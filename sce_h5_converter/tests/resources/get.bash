@@ -1,0 +1,10 @@
+scp poni:/scratch/mfiruleva/winter/initial_kallisto/GSE118545/SRS3669141/SRR7692596/SRS3669141_with_markers.h5ad .
+scp poni:/scratch/mfiruleva/winter/initial_kallisto/GSE118545/SRS3669136/SRR7692592/SRS3669136_with_markers.h5ad .
+scp poni:/scratch/mfiruleva/winter/initial_kallisto/GSE118545/SRS3669138/SRR7692591/SRS3669138_with_markers.h5ad .
+scp poni:/scratch/mfiruleva/winter/initial_kallisto/GSE109247/SRS4504248/SRR8746509/SRS4504248_with_markers.h5ad .
+scp poni:/scratch/mfiruleva/winter/initial_kallisto/GSE124872/SRS4237527/SRR8426366/SRS4237527_with_markers.h5ad .
+scp poni:/scratch/mfiruleva/winter/initial_kallisto/GSE101207/SRS2347568/SRR5818090/SRS2347568_with_markers.h5ad .
+scp poni:/scratch/mfiruleva/winter/initial_kallisto/GSE94333/SRS1950758/SRR5219808/SRS1950758_with_markers.h5ad .
+scp poni:/scratch/mfiruleva/winter/initial_kallisto/GSE94333/SRS1950759/SRR5219809/SRS1950759_with_markers.h5ad .
+scp poni:/scratch/mfiruleva/winter/initial_kallisto/GSE107910/SRS2749433/SRR6365740/SRS2749433_with_markers.h5ad .
+scp poni:/scratch/mfiruleva/winter/initial_kallisto/GSE107910/SRS2749457/SRR6365749/SRS2749457_with_markers.h5ad .

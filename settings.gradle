@@ -1,0 +1,5 @@
+rootProject.name = 'sce'
+include 'sce_core'
+include 'sce_server'
+
+

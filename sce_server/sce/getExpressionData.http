@@ -1,0 +1,4 @@
+GET http://localhost:8080/sce/getExpressionData/?token=HCA_fetal_maternal_interface&gene=0
+Accept: application/json
+
+###

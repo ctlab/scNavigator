@@ -1,0 +1,49 @@
+version: '2'
+
+services:
+  nginx:
+    build: ./nginx
+    volumes:
+      - "./nginx/sites-enabled:/etc/nginx/sites-enabled"
+      - "./sce_js:/sce/sce_js"
+      - "$TMP_PATH:/var/tmp"
+    ports:
+      - "31:80"
+#
+#  genequery:
+#    container_name: gq
+#    build: ./genequery
+#    expose:
+#      - 8423
+#    ports:
+#      - "8423:8423"
+#    volumes:
+#      - "/home/askmebefore/Dropbox (ArtyomovLab)/ArtyomovLab Team Folder/sce-preloaded-dev/gmts:/genequery/data-files"
+
+
+  mongo:
+    image: mongo:latest
+    restart: always
+#    ports:
+#      - "27017:27017"
+    volumes:
+      - "./mongo/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro"
+      - "$DATASET_PATH:/var/datasets"
+
+  fs:
+    restart: always
+    build: ./sce_h5_converter
+    volumes:
+      - "$DATASET_PATH:/var/datasets"
+      - "$TMP_PATH:/var/tmp"
+    command: [ "python", "./watcher/Watcher.py", "/var/datasets", "/var/tmp", $MONGODB_HOST, $MONGODB_DATABASE, $MONGODB_COLLECTION]
+
+  web:
+    env_file:
+      - .env
+    restart: always
+    build: ./sce_server
+    volumes:
+      - "./sce_js:/sce/sce_js"
+      - "$TMP_PATH:/var/tmp"
+    command: ["java", "-Djava.library.path=./", "-jar", "server.jar"]
