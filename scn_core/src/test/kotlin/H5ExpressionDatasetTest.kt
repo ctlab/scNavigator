@@ -6,7 +6,8 @@ import kotlin.test.assertTrue
 class H5ExpressionDatasetTest {
 
     companion object {
-        val datasetPath = "/home/askmebefore/Downloads/SRS3669141_with_uns.h5ad"
+        val datasetPath =
+            Thread.currentThread().contextClassLoader.getResource("SRS3669141_with_uns.h5ad").path.toString()
     }
 
     @Test

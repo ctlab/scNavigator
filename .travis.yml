@@ -6,7 +6,7 @@ matrix:
         - cd scn_h5_converter
         - pip install -r requirements.txt
         - export PYTHONPATH=$PYTHONPATH:`pwd`
-        - pytest tests --typeguard-packages=converter
+      script: pytest tests --typeguard-packages=converter
 
     - language: java
       jdk:
@@ -15,6 +15,11 @@ matrix:
         - gradle build
 
     - language: node_js
+      node_js:
+        - "11"
+        - "10"
+      env:
+        - CXX=g++-7
       before_script:
         - cd scn_js
       scipt: npm install && npm run build
