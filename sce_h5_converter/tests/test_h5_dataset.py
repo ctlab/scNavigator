@@ -1,10 +1,10 @@
-import unittest
 import os
-from converter.Utils import rm_rf
-from converter.H5Dataset import H5Dataset
-from converter.Constants import *
+import unittest
 from typing import List, Iterable
-import pymongo
+
+from converter.Constants import *
+from converter.H5Dataset import H5Dataset
+from converter.Utils import rm_rf
 
 DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 
@@ -38,7 +38,7 @@ class H5DatasetTest(unittest.TestCase):
 
 class FSTest(unittest.TestCase):
     def setUp(self) -> None:
-        self.h5_dataset = H5Dataset(os.path.join(DIRECTORY, "resources/SRA592147.h5ad"))
+        self.h5_dataset = H5Dataset(os.path.join(DIRECTORY, "resources/GSE113293_with_uns.h5ad"))
         self.dataset_path = os.path.join(DIRECTORY, self.h5_dataset.dataset["token"])
 
     def test_convert(self):
@@ -69,7 +69,6 @@ class ValidDatasetsTest(unittest.TestCase):
         os.chdir(DIRECTORY)
         for dataset in self.valid_datasets:
             h5_dataset = H5Dataset(dataset)
-            print(h5_dataset.dataset["species"])
             h5_dataset.convert()
             dataset_path = os.path.join(DIRECTORY, h5_dataset.token)
             self.valid_paths.append(dataset_path)

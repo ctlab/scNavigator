@@ -1,20 +1,21 @@
-import anndata as ad
-import numpy as np
 import json
-
-from pandas import CategoricalDtype
+import logging
+from itertools import zip_longest
+from pathlib import Path
 from typing import List, Tuple, Optional
 
+import anndata as ad
+import numpy as np
+import pandas as pd
+from pandas import CategoricalDtype
 from scipy.sparse import csc_matrix
 
+from converter.Constants import *
+from converter.Exceptions import *
 from converter.NumpyEncoder import NumpyEncoder
 from converter.Types import ExpData, Dataset, PlotData
-from converter.Constants import *
 from converter.Utils import *
-from converter.Exceptions import *
-from itertools import zip_longest
-
-import logging
+from gmt.Converter import GeneConverters
 
 
 class H5Dataset:
@@ -84,7 +85,8 @@ class H5Dataset:
         if type(self.dataset["species"]) == list:
             species_set = set(self.dataset["species"])
             if len(species_set) > 1:
-                raise H5DatasetInvalidException(f"Datasets of multiple species are not allowed {', '.join(species_set)}")
+                raise H5DatasetInvalidException(
+                    f"Datasets of multiple species are not allowed {', '.join(species_set)}")
             self.dataset["species"] = self.dataset["species"][0]
 
         if self.dataset["species"].lower() not in ALLOWED_SPECIES_FLAT:
@@ -92,7 +94,7 @@ class H5Dataset:
                                             .format(self.dataset["species"], ", ".join(ALLOWED_SPECIES)))
         else:
             species = \
-            [key for key in ALLOWED_SPECIES.keys() if self.dataset["species"].lower() in ALLOWED_SPECIES[key]][0]
+                [key for key in ALLOWED_SPECIES.keys() if self.dataset["species"].lower() in ALLOWED_SPECIES[key]][0]
             self.dataset["species"] = species
 
         if self.dataset["expType"] not in ALLOWED_EXP_TYPES:
@@ -137,6 +139,25 @@ class H5Dataset:
                     dict(zip(keys, values)) for values in zip_longest(*[table[key] for key in keys])
                 ]
             self.markers = ret_val
+
+    def generate_gmts(self, gmt_file: str):
+        if self.markers is None:
+            self._get_markers_data()
+
+        with open(gmt_file, "w") as f:
+            converter = GeneConverters['symbol']
+            universe = converter.convert(self.dataset["species"], self.exp_data["features"])
+            uni_name = "_".join([self.dataset["token"], "UNIVERSE"])
+            uni_line = f"{uni_name}\t{uni_name}\t{','.join(universe)}\n"
+            f.write(uni_line)
+            for key in self.markers.keys():
+                df = pd.DataFrame(self.markers[key])
+                gene_lists = df[df.p_val_adj < 0.01].groupby('cluster').gene.apply(lambda x: x.tolist())
+                for key2 in gene_lists.keys():
+                    geneset_name = "#".join([self.dataset["token"], str(key), str(key2)])
+                    geneset = converter.convert(self.dataset["species"], gene_lists[key2])
+                    geneset_line = f"{geneset_name}\t{uni_name}\t{','.join(geneset)}\n"
+                    f.write(geneset_line)
 
     def _get_plot_data(self):
 
@@ -225,10 +246,10 @@ class H5Dataset:
         mkdir_with_check(outdir)
         mkdir_with_check(os.path.join(outdir, FILE_FOLDER))
 
-        dataset_file, exp_data_file, plot_data_file, expression_file, markers_file = \
+        dataset_file, exp_data_file, plot_data_file, expression_file, markers_file, markers_gmt = \
             os.path.join(outdir, DATASET_FILE), os.path.join(outdir, EXP_DATA_FILE), \
             os.path.join(outdir, PLOT_DATA_FILE), os.path.join(outdir, EXPRESSION_FILE), \
-            os.path.join(outdir, MARKERS_FILE)
+            os.path.join(outdir, MARKERS_FILE), os.path.join(outdir, MARKERS_GMT)
 
         self.__write_to_file("dataset", dataset_file)
         self.__write_to_file("exp_data", exp_data_file)
@@ -237,7 +258,7 @@ class H5Dataset:
         if "markers" in self.adata.uns_keys():
             self.__write_to_file("markers", markers_file)
 
-        self.adata.write(expression_file)
+        self.adata.write(Path(expression_file))
 
         self.dataset.update({
             "datasetFile": dataset_file,
@@ -247,3 +268,5 @@ class H5Dataset:
             "markersFile": markers_file,
             "files": []
         })
+
+        self.generate_gmts(markers_gmt)
