@@ -10,5 +10,5 @@ ENV PYTHONPATH "$PYTHONPATH:/scn/scn_h5_converter"
 
 COPY . .
 
-CMD pytest tests --typeguard-packages=converter
+RUN ["pytest", "tests",  "--typeguard-packages=converter"]
 

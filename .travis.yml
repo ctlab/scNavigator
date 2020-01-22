@@ -1,0 +1,26 @@
+matrix:
+  include:
+    - language: python
+      python: 3.8
+      before_script:
+        - cd scn_h5_converter
+        - pip install -r requiremenets
+        - export PYTHONPATH=$PYTHONPATH:`pwd`
+        - pytest tests --typeguard-packages=converter
+
+    - language: java
+      jdk:
+        - oraclejdk8
+        - openjdk8
+      script:
+        - gradle build
+
+    - language: node_js
+      before_script:
+        - cd scn_js
+      scipt: npm install && npm run build
+
+notifications:
+  email:
+    - zayats1812@mail.ru
+
