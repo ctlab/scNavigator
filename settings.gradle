@@ -1,5 +1,5 @@
-rootProject.name = 'sce'
-include 'sce_core'
-include 'sce_server'
+rootProject.name = 'scn'
+include 'scn_core'
+include 'scn_server'
 
 

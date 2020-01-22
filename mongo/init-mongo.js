@@ -4,7 +4,7 @@ const dbSettings = {
     roles: [
         {
             role: 'readWrite',
-            db: 'sce'
+            db: 'scn'
         }
     ]
 };

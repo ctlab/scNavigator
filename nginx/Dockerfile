@@ -16,10 +16,10 @@ RUN \
 
 
 RUN set -e \
-	&& mkdir -p /sce/sce_js
+	&& mkdir -p /scn/scn_js
 
 # Define mountable directories.
-VOLUME ["/etc/nginx/sites-enabled", '/sce/sce_js', '/var/datasets']
+VOLUME ["/etc/nginx/sites-enabled", '/scn/scn_js', '/var/datasets']
 
 # Define working directory.
 WORKDIR /etc/nginx

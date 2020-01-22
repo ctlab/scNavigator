@@ -5,7 +5,7 @@ services:
     build: ./nginx
     volumes:
       - "./nginx/sites-enabled:/etc/nginx/sites-enabled"
-      - "./sce_js:/sce/sce_js"
+      - "./scn_js:/scn/scn_js"
       - "$TMP_PATH:/var/tmp"
     ports:
       - "31:80"
@@ -32,7 +32,7 @@ services:
 
   fs:
     restart: always
-    build: ./sce_h5_converter
+    build: ./scn_h5_converter
     volumes:
       - "$DATASET_PATH:/var/datasets"
       - "$TMP_PATH:/var/tmp"
@@ -42,8 +42,8 @@ services:
     env_file:
       - .env
     restart: always
-    build: ./sce_server
+    build: ./scn_server
     volumes:
-      - "./sce_js:/sce/sce_js"
+      - "./scn_js:/scn/scn_js"
       - "$TMP_PATH:/var/tmp"
     command: ["java", "-Djava.library.path=./", "-jar", "server.jar"]
