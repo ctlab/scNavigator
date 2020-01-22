@@ -4,7 +4,7 @@ matrix:
       python: 3.8
       before_script:
         - cd scn_h5_converter
-        - pip install -r requiremenets
+        - pip install -r requiremenets.txt
         - export PYTHONPATH=$PYTHONPATH:`pwd`
         - pytest tests --typeguard-packages=converter
 
