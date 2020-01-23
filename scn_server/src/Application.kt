@@ -39,10 +39,10 @@ import java.io.File
 import java.nio.file.Paths
 
 
-val mongoDBHost =  System.getenv("MONGODB_HOST") ?: "127.0.0.1:27017"
-val mongoDB = System.getenv("MONGODB_DATABASE") ?: "sce"
-val mongoDBCollection = System.getenv("MONGODB_COLLECTION") ?: "datasets"
-val pathToProd = System.getenv("PROD_PATH") ?: "/home/askmebefore/sce_new/scn_js/prod"
+val mongoDBHost: String =  System.getenv("MONGODB_HOST")
+val mongoDB: String = System.getenv("MONGODB_DATABASE")
+val mongoDBCollection: String = System.getenv("MONGODB_COLLECTION")
+val pathToProd: String = System.getenv("PROD_PATH")
 
 val client = KMongo.createClient(mongoDBHost)
 val database: MongoDatabase = client.getDatabase(mongoDB)

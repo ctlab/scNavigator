@@ -9,6 +9,13 @@ matrix:
       script: pytest tests --typeguard-packages=converter
 
     - language: java
+      services:
+        - mongodb
+      env:
+        - MONGODB_HOST=127.0.0.1:27017
+        - MONGODB_DATABASE=scn
+        - MONGODB_COLLECTION=datasets
+        - PROD_PATH=/home/travis/build/ctlab/scNavigator/scn_js/prod
       jdk:
         - openjdk8
       script:
