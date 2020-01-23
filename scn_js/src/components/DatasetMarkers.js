@@ -56,10 +56,10 @@ class DatasetMarkers extends Component {
             Cell: props =>
                 <>{props.value}
                     <Image.Group className={"floated right"} size={"mini"}>
-                        <a onClick={() => {this.props.fetchGeneData(this.props.token, EXPRESSION_SCATTER, props.value)}}
-                           style={{cursor:'pointer'}}><Image data-tip="Show expression of this gene on scatter plot" style={{margin: 0}}  src={"build/scn-01.svg"} /></a>
-                        <a onClick={() => {this.props.fetchGeneData(this.props.token, EXPRESSION_VIOLIN, props.value)}}
-                           style={{cursor:'pointer'}}><Image data-tip="Show expression of this gene on violin plot" style={{margin: 0}}  src={"build/scn-02.svg"} /></a>
+                        <button onClick={() => {this.props.fetchGeneData(this.props.token, EXPRESSION_SCATTER, props.value)}}
+                           style={{cursor:'pointer'}}><Image data-tip="Show expression of this gene on scatter plot" style={{margin: 0}}  src={"build/scn-01.svg"} /></button>
+                        <button onClick={() => {this.props.fetchGeneData(this.props.token, EXPRESSION_VIOLIN, props.value)}}
+                           style={{cursor:'pointer'}}><Image data-tip="Show expression of this gene on violin plot" style={{margin: 0}}  src={"build/scn-02.svg"} /></button>
                     </Image.Group>
                 </>,
             Filter: FilterLabel("~"),

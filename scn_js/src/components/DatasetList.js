@@ -19,7 +19,7 @@ class DatasetList extends Component {
             {
                 Header: "Name",
                 accessor: 'name',
-                Cell: props => <a onClick={() => this.props.fetchDataset(props.original.token)}> {props.value} </a>,
+                Cell: props => <button onClick={() => this.props.fetchDataset(props.original.token)}> {props.value} </button>,
                 style: {cursor: "pointer"},
                 width: 200,
                 filterMethod: caseInsensetiveRegexpFiltering

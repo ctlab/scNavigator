@@ -4,7 +4,6 @@ import React from 'react';
 import { render } from 'react-dom';
 import { createStore, applyMiddleware, compose } from 'redux';
 import thunk from 'redux-thunk';
-import logger from 'redux-logger';
 import { Provider } from 'react-redux';
 import App from './containers/App';
 import rootReducer from './reducers';
@@ -42,7 +41,7 @@ render(
             buttonStyle={{ color: "#4e503b", fontSize: "13px" }}
             expires={1 / (24 * 60 * 60)}>
             Unfortunately, your browser doesn't support WebGL (or gpu acceleration is disabled). This might slow down rendering of large datasets.
-            Please visit <a target="_blank" href="https://get.webgl.org/">https://get.webgl.org/</a>.
+            Please visit <a target="_blank" rel="noopener noreferrer" href="https://get.webgl.org/">https://get.webgl.org/</a>.
         </CookieConsent>}
     </Provider>,
     document.getElementById('root')

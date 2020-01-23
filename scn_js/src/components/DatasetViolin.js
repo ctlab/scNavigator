@@ -43,7 +43,7 @@ const _DatasetViolinInputs = ({token, tab, x, split, asIs, scaled, log2, zscore,
 const mapInputStateToProps = (state, ownProps) => {
     let dataset = state.datasetsByTokens[ownProps.token];
     let tab = dataset.tabs[ownProps.tab];
-    let asIs = dataset.expData.expressionType == "as_is";
+    let asIs = dataset.expData.expressionType === "as_is";
     const {isGeneLoading, geneResults, geneValue} = tab;
     const {x, split, scaled, log2, zscore} = tab.plot;
     return {
