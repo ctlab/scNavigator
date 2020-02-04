@@ -106,7 +106,16 @@ class H5Dataset:
             raise H5DatasetInvalidException("Cells must be positive int")
 
         if self.dataset["name"] == "":
-            self.dataset["name"] = self.dataset["token"]
+            if self.__uns.get("gse") is not None:
+                self.dataset["name"] = self.__uns.get("gse") + "/" + self.dataset["token"]
+            else:
+                self.dataset["name"] = self.dataset["token"]
+
+        if "title" in self.__uns:
+            self.dataset["description"] = self.__uns["title"]
+
+        if "geo" in self.__uns and self.dataset["link"] == "":
+            self.dataset["link"] = self.__uns["geo"]
 
         self.exp_data = ExpData(
             features=self.features,
@@ -140,24 +149,68 @@ class H5Dataset:
                 ]
             self.markers = ret_val
 
-    def generate_gmts(self, gmt_file: str):
+    def generate_gmts(self, gmt_file: str, annotation_json_file: str):
         if self.markers is None:
             self._get_markers_data()
 
-        with open(gmt_file, "w") as f:
+        json_data = {}
+
+        # Ideally every gene set will be represented with JSON object
+        # json_data = {
+        #     'gene_set_id': {
+        #         'token': 'dataset token, str',
+        #         'title': 'dataset title',
+        #         'link': 'external dataset link',
+        #         'genes': ["SYMBOL", "GENES", "IN", "SET"]
+        #         'species': 'mm'
+        #     }
+        #     ...
+        # }
+
+        if not self.dataset["public"]:
+            logging.info("Not generating GMT and annotation for private dataset")
+        else:
             converter = GeneConverters['symbol']
             universe = converter.convert(self.dataset["species"], self.exp_data["features"])
-            uni_name = "_".join([self.dataset["token"], "UNIVERSE"])
-            uni_line = f"{uni_name}\t{uni_name}\t{','.join(universe)}\n"
-            f.write(uni_line)
-            for key in self.markers.keys():
-                df = pd.DataFrame(self.markers[key])
-                gene_lists = df[df.p_val_adj < 0.01].groupby('cluster').gene.apply(lambda x: x.tolist())
-                for key2 in gene_lists.keys():
-                    geneset_name = "#".join([self.dataset["token"], str(key), str(key2)])
-                    geneset = converter.convert(self.dataset["species"], gene_lists[key2])
-                    geneset_line = f"{geneset_name}\t{uni_name}\t{','.join(geneset)}\n"
-                    f.write(geneset_line)
+            if len(universe) == 0:
+                logging.warning(f"EMPTY UNIVERSE IN {self.token}: might be wrong species")
+            else:
+                with open(gmt_file, "w") as f:
+                    uni_name = "_".join([self.dataset["token"], "UNIVERSE"])
+                    uni_line = f"{uni_name}\t{uni_name}\t{','.join(universe)}\n"
+                    f.write(uni_line)
+
+                    json_data[uni_name] = {
+                        'token': self.token,
+                        'name': self.dataset['name'],
+                        'title': self.dataset['description'],
+                        'species': self.dataset['species'],
+                        'link': self.dataset["link"],
+                        # 'genes': self.exp_data["features"]
+                    }
+
+                    for key in self.markers.keys():
+                        df = pd.DataFrame(self.markers[key])
+                        gene_lists = df[df.p_val_adj < 0.01].groupby('cluster').gene.apply(lambda x: x.tolist())
+                        for key2 in gene_lists.keys():
+                            geneset_name = "#".join([self.dataset["token"], str(key), str(key2)])
+                            geneset = converter.convert(self.dataset["species"], gene_lists[key2])
+                            geneset_line = f"{geneset_name}\t{uni_name}\t{','.join(geneset)}\n"
+
+                            if len(geneset) < 3:
+                                logging.info(f"Skipping {geneset_name} due to small gene set size: {len(geneset)}")
+                            else:
+                                f.write(geneset_line)
+                                json_data[geneset_name] = {
+                                    'token': self.token,
+                                    'name': self.dataset['name'],
+                                    'title': self.dataset['description'],
+                                    'species': self.dataset['species'],
+                                    'link': self.dataset["link"],
+                                    # 'genes': gene_lists[key2]
+                                }
+                with open(annotation_json_file, "w") as f:
+                    json.dump(json_data, f)
 
     def _get_plot_data(self):
 
@@ -246,10 +299,15 @@ class H5Dataset:
         mkdir_with_check(outdir)
         mkdir_with_check(os.path.join(outdir, FILE_FOLDER))
 
-        dataset_file, exp_data_file, plot_data_file, expression_file, markers_file, markers_gmt = \
-            os.path.join(outdir, DATASET_FILE), os.path.join(outdir, EXP_DATA_FILE), \
-            os.path.join(outdir, PLOT_DATA_FILE), os.path.join(outdir, EXPRESSION_FILE), \
-            os.path.join(outdir, MARKERS_FILE), os.path.join(outdir, MARKERS_GMT)
+        markers_file_name = self.dataset['species'] + "." + MARKERS_GMT_SUFFIX
+
+        dataset_file = os.path.join(outdir, DATASET_FILE)
+        exp_data_file = os.path.join(outdir, EXP_DATA_FILE)
+        plot_data_file = os.path.join(outdir, PLOT_DATA_FILE)
+        expression_file = os.path.join(outdir, EXPRESSION_FILE)
+        markers_file = os.path.join(outdir, MARKERS_FILE)
+        markers_gmt = os.path.join(outdir, markers_file_name)
+        markers_annotation_file = os.path.join(outdir, MARKERS_ANNOTATION_FILE)
 
         self.__write_to_file("dataset", dataset_file)
         self.__write_to_file("exp_data", exp_data_file)
@@ -269,4 +327,4 @@ class H5Dataset:
             "files": []
         })
 
-        self.generate_gmts(markers_gmt)
+        self.generate_gmts(markers_gmt, markers_annotation_file)

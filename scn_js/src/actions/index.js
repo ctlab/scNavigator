@@ -11,6 +11,11 @@ import {
     CHANGE_CURRENT_WINDOW, CLOSE_WINDOW
 } from "./AppActions";
 
+import {
+    GENE_SIGNATURE_INPUT_CHANGED, geneSignatureInputChanged,
+    GENE_SIGNATURE_RESULTS_LOADED, GENE_SIGNATURE_SUBMIT, fetchGeneSignature,
+    geneSignatureResultsLoaded, geneSignatureSubmit, showGeneSignature
+} from "./GeneSignatureActions"
 
 import {
     GENE_SEARCH_CHANGED,
@@ -50,6 +55,9 @@ export {
     PATHWAY_SEARCH_CHANGED, PATHWAY_SEARCH_LOADED, PATHWAY_SEARCH_RESET, pathwaySearchResults,
     PATHWAY_LOADED_DATA, PATHWAY_SUBMITTED, fetchPathwayData,
     BULK_LOADED_DATA, BULK_SUBMITTED, fetchBulkData,
-    BULK_CHANGED, bulkChanged
+    BULK_CHANGED, bulkChanged,
+    GENE_SIGNATURE_INPUT_CHANGED, geneSignatureInputChanged,
+    GENE_SIGNATURE_RESULTS_LOADED, GENE_SIGNATURE_SUBMIT, fetchGeneSignature,
+    geneSignatureResultsLoaded, geneSignatureSubmit, showGeneSignature
 };
 

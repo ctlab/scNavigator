@@ -9,7 +9,9 @@ RUN apt update && apt install -y git
 
 #Install everything for the back-end
 
+ARG COMMITSHA=c31136a8bed4170fc83908e7a29de711c93a3fc7
 RUN cd /genequery && git clone https://github.com/konsolerr/genequery-kotlin.git
+RUN cd /genequery/genequery-kotlin && git checkout ${COMMITSHA}
 RUN cd /genequery/genequery-kotlin && gradle build
 
 RUN cp /genequery/genequery-kotlin/genequery-rest/build/libs/genequery-rest-1.1-SNAPSHOT.jar /genequery/
@@ -30,4 +32,4 @@ RUN touch /genequery/genequery-rest2.log
 
 EXPOSE 8423
 
-ENTRYPOINT cd /genequery && java -Xmx4096M -Dspring.config.location=./application.properties -jar ./gq-rest.jar & tail -f /genequery/genequery-rest2.log
+ENTRYPOINT echo "will wait for other services to load: will sleep for 2 minutes" &&  sleep 120 && while [ $(( $(date +%s) - $(stat -c %Y /genequery/data-files/annotation.json) )) -lt 60 ]; do sleep 10; done; echo "DONE WAITING" && cd /genequery && java -Xmx4096M -Dspring.config.location=./application.properties -jar ./gq-rest.jar & tail -f /genequery/genequery-rest2.log

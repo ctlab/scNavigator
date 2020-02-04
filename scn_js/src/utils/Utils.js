@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import React from "react";
 
 export default function parseFields(fields) {
     let numeric = [];
@@ -104,3 +105,14 @@ export function webglSupport () {
         return false;
     }
 };
+
+export const FilterLabel = (label) => ({filter, onChange}) => (
+    <div className="ui labeled fluid input">
+        <div className="ui label">
+            {label}
+        </div>
+        <input
+            fluid
+            type="text"
+            onChange={event => onChange(event.target.value)}/>
+    </div>);

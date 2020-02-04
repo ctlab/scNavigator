@@ -12,16 +12,16 @@ import io.ktor.application.install
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.apache.Apache
 import io.ktor.features.*
+import io.ktor.gson.gson
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.content.default
-import io.ktor.http.content.files
-import io.ktor.http.content.static
 import io.ktor.jackson.jackson
 import io.ktor.request.path
+import io.ktor.request.receive
 import io.ktor.response.respond
 import io.ktor.response.respondText
 import io.ktor.routing.get
+import io.ktor.routing.post
 import io.ktor.routing.route
 import io.ktor.routing.routing
 import kotlinx.css.CSSBuilder
@@ -36,13 +36,14 @@ import org.slf4j.event.Level
 import ru.itmo.scn.core.H5ExpressionDataset
 import ru.itmo.scn.core.SCDataset
 import java.io.File
-import java.nio.file.Paths
+import java.text.DateFormat
+import ru.itmo.scn.server.BulkGeneSearchBody
 
 
-val mongoDBHost: String =  System.getenv("MONGODB_HOST")
-val mongoDB: String = System.getenv("MONGODB_DATABASE")
-val mongoDBCollection: String = System.getenv("MONGODB_COLLECTION")
-val pathToProd: String = System.getenv("PROD_PATH")
+val mongoDBHost: String =  System.getenv("MONGODB_HOST") ?: "mongo:27017"
+val mongoDB: String = System.getenv("MONGODB_DATABASE") ?: "scn"
+val mongoDBCollection: String = System.getenv("MONGODB_COLLECTION") ?: "datasets"
+val pathToProd: String = System.getenv("PROD_PATH") ?: "/scn/scn_js/prod"
 
 val client = KMongo.createClient(mongoDBHost)
 val database: MongoDatabase = client.getDatabase(mongoDB)
@@ -59,10 +60,7 @@ fun main(args: Array<String>) {
 }
 
 
-
-suspend fun checkToken(call: ApplicationCall): SCDataset? {
-    val queryParameters = call.request.queryParameters
-    val token = queryParameters["token"]
+suspend fun checkToken(call: ApplicationCall, token: String?): SCDataset? {
     return if (token === null) {
         call.respond(HttpStatusCode.BadRequest)
         null
@@ -76,6 +74,12 @@ suspend fun checkToken(call: ApplicationCall): SCDataset? {
             dataset
         }
     }
+}
+
+suspend fun checkToken(call: ApplicationCall): SCDataset? {
+    val queryParameters = call.request.queryParameters
+    val token = queryParameters["token"]
+    return checkToken(call, token)
 }
 
 @Suppress("unused") // Referenced in application.conf
@@ -110,10 +114,12 @@ fun Application.module(testing: Boolean = false) {
     }
 
     routing {
-        // Static feature. Try to access `/static/ktor_logo.svg`
-        static("/") {
-            files(pathToProd)
-            default(Paths.get(pathToProd, "index.html").toString())
+
+        install(ContentNegotiation) {
+            gson {
+                setDateFormat(DateFormat.LONG)
+                setPrettyPrinting()
+            }
         }
 
         route("scn") {
@@ -197,39 +203,20 @@ fun Application.module(testing: Boolean = false) {
                 }
             }
 
-            get("getGeneset") {
-                val dataset = checkToken(call)
-                val genesString = call.request.queryParameters["genes"]
+            post("getGeneset") {
+                val body = call.receive<BulkGeneSearchBody>();
+                val dataset = checkToken(call, body.token)
 
-                if (genesString !== null) {
-                    if (dataset !== null) {
-                        val expFile = dataset.expressionFile
-                        val filePath = dataset.expH5Table
+                if (dataset !== null) {
+                    val expFile = dataset.expressionFile
+                    val filePath = dataset.expH5Table
 
-                        if (filePath === null || expFile === null) {
-                            call.respond(HttpStatusCode.NotFound, "No expression data for this dataset")
-                        } else {
-                            val expressionDataset = H5ExpressionDataset.getDataset(filePath)
-                            val expData: Map<String, Any> = ObjectMapper().readValue(File(expFile).readText())
-                            var allGenes = expData["features"]
-                            var genes: List<String> = ObjectMapper().readValue(genesString)
-
-                            when (allGenes) {
-                                null -> {
-                                    call.respond(HttpStatusCode.InternalServerError)
-                                }
-                                else -> {
-                                    allGenes as List<String>
-                                    genes = genes.map { it.toLowerCase() }
-                                    allGenes = (allGenes as List<String>).map { it.toLowerCase() }
-                                    val pathwayIds = genes.map { (allGenes as List<String>).indexOf(it) }.filter { it >= 0}
-                                    call.respond(expressionDataset.getFeaturesAverage(pathwayIds))
-                                }
-                            }
-
-
-
-                        }
+                    if (filePath === null || expFile === null) {
+                        call.respond(HttpStatusCode.NotFound, "No expression data for this dataset")
+                    } else {
+                        val expressionDataset = H5ExpressionDataset.getDataset(filePath)
+                        val genes: List<Int> = body.genes
+                        call.respond(expressionDataset.getFeaturesAverage(genes))
                     }
                 }
             }

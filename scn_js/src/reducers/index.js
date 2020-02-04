@@ -2,6 +2,7 @@ import { publicDatasets, publicDatasetsLoading } from "./PublicDatasetReducers";
 import { token, tokenLoading} from "./TokenReducers";
 import { datasetsByTokens, datasetsTokens} from "./DatasetReducers";
 import { currentWindow } from "./AppReducers"
+import { geneSignature } from "./GeneSigantureReducers";
 
 
 let initState = () => {
@@ -18,7 +19,15 @@ let initState = () => {
             errorText: ""
         },
 
-        currentWindow: 0
+        currentWindow: 0,
+        geneSearch: {
+            searchLoading: false,
+            searchField: "",
+            speciesFrom: "mm",
+            speciesTo: "mm",
+            latestQuery: {},
+            searchResults: {}
+        }
 
     };
 };
@@ -32,7 +41,8 @@ const app = (state = initState(), action) => {
         tokenLoading: tokenLoading(state.tokenLoading, action),
         datasetsTokens: datasetsTokens(state.datasetsTokens, action),
         datasetsByTokens :datasetsByTokens(state.datasetsByTokens, action),
-        currentWindow: currentWindow(state, action)
+        currentWindow: currentWindow(state, action),
+        geneSearch: geneSignature(state.geneSearch, action)
     };
 };
 

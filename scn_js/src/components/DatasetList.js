@@ -3,12 +3,8 @@ import {Icon} from "semantic-ui-react"
 import ReactTable from "react-table";
 import _ from 'lodash';
 import {caseInsensetiveRegexpFiltering} from "../utils/Utils";
+import {speciesMapping} from '../utils/Constants';
 
-let speciesMapping = {
-    "hs": "Homo Sapiens",
-    "mm": "Mus Musculus",
-    "rt": "Rattus Norvegicus"
-};
 
 
 class DatasetList extends Component {
@@ -33,7 +29,7 @@ class DatasetList extends Component {
             ,
             {
                 Header: "Organism",
-                accessor: "organism",
+                accessor: "species",
                 Cell: props => _.get(speciesMapping, props.value, null),
                 filterMethod: caseInsensetiveRegexpFiltering,
                 width: 150

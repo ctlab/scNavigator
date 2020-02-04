@@ -3,22 +3,27 @@ version: '2'
 services:
   nginx:
     build: ./nginx
+    depends_on:
+      - web
     volumes:
       - "./nginx/sites-enabled:/etc/nginx/sites-enabled"
       - "./scn_js:/scn/scn_js"
       - "$TMP_PATH:/var/tmp"
     ports:
       - "31:80"
-#
-#  genequery:
-#    container_name: gq
-#    build: ./genequery
-#    expose:
-#      - 8423
-#    ports:
-#      - "8423:8423"
-#    volumes:
-#      - "/home/askmebefore/Dropbox (ArtyomovLab)/ArtyomovLab Team Folder/sce-preloaded-dev/gmts:/genequery/data-files"
+
+  genequery:
+    container_name: gq
+    depends_on:
+      - fs
+    restart: always
+    build: ./genequery
+    expose:
+      - 8423
+    ports:
+      - "8423:8423"
+    volumes:
+      - "$GMT_PATH:/genequery/data-files"
 
 
   mongo:
@@ -32,16 +37,22 @@ services:
 
   fs:
     restart: always
+    depends_on:
+      - mongo
     build: ./scn_h5_converter
     volumes:
       - "$DATASET_PATH:/var/datasets"
       - "$TMP_PATH:/var/tmp"
-    command: [ "python", "./watcher/Watcher.py", "/var/datasets", "/var/tmp", $MONGODB_HOST, $MONGODB_DATABASE, $MONGODB_COLLECTION]
+      - "$GMT_PATH:/vat/gmt"
+    command: [ "python", "./watcher/Watcher.py", "/var/datasets", "/var/tmp", "/vat/gmt",
+               $MONGODB_HOST, $MONGODB_DATABASE, $MONGODB_COLLECTION]
 
   web:
     env_file:
       - .env
     restart: always
+    depends_on:
+      - fs
     build: ./scn_server
     volumes:
       - "./scn_js:/scn/scn_js"

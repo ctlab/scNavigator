@@ -35,7 +35,7 @@ export const loadedDataset = (token, dataset) => {
 };
 
 
-const shouldOpen = (state, token) => {
+export const shouldOpen = (state, token) => {
   return _.includes(state.datasetsTokens, token);
 };
 

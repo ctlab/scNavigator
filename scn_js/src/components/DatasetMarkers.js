@@ -10,17 +10,8 @@ import {connect} from "react-redux";
 import {EXPRESSION_SCATTER, EXPRESSION_VIOLIN} from "../reducers/Tabs";
 import {fetchGeneData} from "../actions";
 import ReactTooltip from "react-tooltip";
+import {FilterLabel} from "../utils/Utils"
 
-const FilterLabel = (label) => ({filter, onChange}) => (
-    <div className="ui labeled fluid input">
-        <div className="ui label">
-            {label}
-        </div>
-        <input
-            fluid
-            type="text"
-            onChange={event => onChange(event.target.value)}/>
-    </div>);
 
 class DatasetMarkers extends Component {
 

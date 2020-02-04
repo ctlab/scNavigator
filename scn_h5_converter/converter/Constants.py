@@ -2,6 +2,7 @@ DEFAULT_DATASET = {
     "token": "",
     "name": "",
     "description": "",
+    "link": "",
     "cells": 0,
     "species": "mm",
     "expType": "counts",
@@ -28,6 +29,7 @@ MARKERS_FILE = "markers.json"
 PLOT_DATA_FILE = "plot_data.json"
 FILE_FOLDER = "files"
 EXPRESSION_FILE = "data.h5"
-MARKERS_GMT = "markers.gmt"
+MARKERS_GMT_SUFFIX = "modules.gmt"
+MARKERS_ANNOTATION_FILE = "modules.annotation.json"
 
 REDUCTION_DIMS_TO_KEEP = 10

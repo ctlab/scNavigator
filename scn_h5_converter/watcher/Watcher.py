@@ -7,12 +7,14 @@ import os
 from hachiko import hachiko
 from pathlib import Path
 from datetime import datetime
-from datetime import timedelta
+
 from asyncio import Queue
+
 
 from watcher.EventHandler import EventHandler, ChangeType
 from watcher.WatcherArgs import parser
 from watcher.MongoDBRoutines import remove_dataset, insert_dataset
+from functools import partial
 
 TIMEDELTA_THRESHOLD = 10
 SUFFIX_TO_WATCH = ".h5ad"
@@ -23,16 +25,28 @@ logging.basicConfig(level=logging.INFO,
 
 args = parser.parse_args()
 
+FUNCTION_MAPPING = {
+    ChangeType.MODIFIED: insert_dataset,
+    ChangeType.DELETED: remove_dataset
+}
+
 
 async def worker(async_queue: Queue,
                  out_dir: str,
-                 collection: pymongo.collection.Collection):
+                 gmt_dir: str,
+                 collection: pymongo.collection.Collection,
+                 processes: int = 4):
     while True:
-        change = await async_queue.get()
-        if change.type == ChangeType.MODIFIED:
-            insert_dataset(change.file, out_dir, collection)
-        elif change.type == ChangeType.DELETED:
-            remove_dataset(change.file, out_dir, collection)
+        changes = list()
+        changes.append(await async_queue.get())
+        while len(changes) <= processes:
+            if async_queue.qsize() > 0:
+                changes.append(await async_queue.get())
+            else:
+                break
+
+        functions = map(lambda x: partial(FUNCTION_MAPPING[x.type], path_to_dataset = x.file), changes)
+        await asyncio.gather(*map(lambda fun: fun(out_dir=out_dir, gmt_dir=gmt_dir, collection=collection), functions))
 
 
 async def main():
@@ -57,8 +71,7 @@ async def main():
     watch_dog.start()
 
     async_queue = Queue()
-
-    asyncio.create_task(worker(async_queue, args.OUTDIR, collection))
+    asyncio.create_task(worker(async_queue, args.OUTDIR, args.GMTDIR, collection, 4))
 
     for root, dirs, files in os.walk(path):
         for file in files:

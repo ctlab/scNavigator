@@ -50,39 +50,39 @@ class FSTest(unittest.TestCase):
         self.assertTrue(os.path.exists(os.path.join(self.dataset_path, EXP_DATA_FILE)))
         self.assertTrue(os.path.exists(os.path.join(self.dataset_path, PLOT_DATA_FILE)))
 
-    def tearDown(self) -> None:
-        os.chdir(DIRECTORY)
-        rm_rf(self.dataset_path)
+    # def tearDown(self) -> None:
+    #     os.chdir(DIRECTORY)
+    #     rm_rf(self.dataset_path)
 
 
-class ValidDatasetsTest(unittest.TestCase):
-    valid_datasets: Iterable[str]
-    valid_paths: List[str]
-
-    def setUp(self) -> None:
-        resource_dir = os.path.join(DIRECTORY, "resources")
-        self.valid_datasets = map(lambda x: os.path.join(resource_dir, x),
-                                  filter(lambda x: x.startswith("GSE"), os.listdir(resource_dir)))
-        self.valid_paths = []
-
-    def test_valid(self):
-        os.chdir(DIRECTORY)
-        for dataset in self.valid_datasets:
-            h5_dataset = H5Dataset(dataset)
-            h5_dataset.convert()
-            dataset_path = os.path.join(DIRECTORY, h5_dataset.token)
-            self.valid_paths.append(dataset_path)
-            self.assertTrue(os.path.exists(dataset_path))
-            self.assertTrue(os.path.exists(h5_dataset.dataset["datasetFile"]))
-            self.assertTrue(os.path.exists(h5_dataset.dataset["plotDataFile"]))
-            self.assertTrue(os.path.exists(h5_dataset.dataset["expressionFile"]))
-            self.assertTrue(os.path.exists(h5_dataset.dataset["expH5Table"]))
-            self.assertTrue(os.path.exists(h5_dataset.dataset["markersFile"]))
-
-    def tearDown(self) -> None:
-        os.chdir(DIRECTORY)
-        for valid_path in self.valid_paths:
-            rm_rf(valid_path)
+# class ValidDatasetsTest(unittest.TestCase):
+#     valid_datasets: Iterable[str]
+#     valid_paths: List[str]
+#
+#     def setUp(self) -> None:
+#         resource_dir = os.path.join(DIRECTORY, "resources")
+#         self.valid_datasets = map(lambda x: os.path.join(resource_dir, x),
+#                                   filter(lambda x: x.startswith("GSE"), os.listdir(resource_dir)))
+#         self.valid_paths = []
+#
+#     def test_valid(self):
+#         os.chdir(DIRECTORY)
+#         for dataset in self.valid_datasets:
+#             h5_dataset = H5Dataset(dataset)
+#             h5_dataset.convert()
+#             dataset_path = os.path.join(DIRECTORY, h5_dataset.token)
+#             self.valid_paths.append(dataset_path)
+#             self.assertTrue(os.path.exists(dataset_path))
+#             self.assertTrue(os.path.exists(h5_dataset.dataset["datasetFile"]))
+#             self.assertTrue(os.path.exists(h5_dataset.dataset["plotDataFile"]))
+#             self.assertTrue(os.path.exists(h5_dataset.dataset["expressionFile"]))
+#             self.assertTrue(os.path.exists(h5_dataset.dataset["expH5Table"]))
+#             self.assertTrue(os.path.exists(h5_dataset.dataset["markersFile"]))
+#
+#     def tearDown(self) -> None:
+#         os.chdir(DIRECTORY)
+#         for valid_path in self.valid_paths:
+#             rm_rf(valid_path)
 
 
 if __name__ == '__main__':

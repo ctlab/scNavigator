@@ -78,7 +78,7 @@ export function datasetsByTokens(state = {}, action) {
     let tabs;
     let newTab;
     let newPlot;
-    let openTabs
+    let openTabs;
     switch (action.type) {
         // case LOAD_DATASET:
         //     newState = _.clone(state);
