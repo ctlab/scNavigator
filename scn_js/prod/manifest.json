@@ -1,6 +1,6 @@
 {
-  "short_name": "SCE",
-  "name": "Single cell explorer: beta",
+  "short_name": "SCN",
+  "name": "scNavigator: beta",
   "icons": [
     {
       "src": "/static/favicon.ico",

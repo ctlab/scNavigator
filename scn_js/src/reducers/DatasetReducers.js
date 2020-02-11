@@ -25,6 +25,7 @@ import _ from "lodash";
 import parseFields from "../utils/Utils";
 import { LOADED_FILES_DATA } from "../actions/DatasetActions";
 import {generateTabs, getOpenTabsOrdered} from "./Tabs";
+import {filterPlotData, generateFilteringOptions, getFilteredIndices} from "../utils/FilteringUtils";
 
 export function datasetsTokens(state = [], action) {
     switch (action.type) {
@@ -44,11 +45,16 @@ const createDefaultDataset = (token) => {
         token: token,
         loaded: false,
 
-
+        fields: null,
         plotData: null,
+
+        plotDataFull: null,
+        fieldsFull: null,
+        plotDataOrder: null,
+
         plotDataLoaded: false,
         annotations: null,
-        fields: null,
+
 
         markers: null,
         markersLoaded: false,
@@ -103,9 +109,14 @@ export function datasetsByTokens(state = {}, action) {
         case LOADED_PLOT_DATA:
             newState = _.clone(state);
             newDataset = _.clone(newState[action.token]);
-            newDataset.plotData = action.data.data;
+            newDataset.plotDataFull = action.data.data;
+            newDataset.fieldsFull = parseFields(action.data.fields);
+            newDataset.fields = generateFilteringOptions(newDataset.fieldsFull);
+            let indices = getFilteredIndices(newDataset.plotDataFull, newDataset.fields);
+            newDataset.plotDataOrder = _.shuffle(indices);
+            newDataset.plotData = _.map(newDataset.plotDataOrder, (x) => newDataset.plotDataFull[x]);
             newDataset.annotations = action.data.annotations;
-            newDataset.fields = parseFields(action.data.fields);
+
             newDataset.plotDataLoaded = true;
             tabs = generateTabs(newDataset);
             newDataset.tabs = tabs.tabs;
