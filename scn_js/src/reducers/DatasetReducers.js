@@ -18,7 +18,7 @@ import {
     PATHWAY_SUBMITTED,
     PATHWAY_LOADED_DATA,
     BULK_SUBMITTED,
-    BULK_LOADED_DATA, BULK_CHANGED
+    BULK_LOADED_DATA, BULK_CHANGED, FILTER_CHANGED_FACTOR, FILTER_LOADING, FILTER_CHANGED_NUMERIC
 } from "../actions";
 
 import _ from "lodash";
@@ -52,6 +52,8 @@ const createDefaultDataset = (token) => {
         fieldsFull: null,
         plotDataOrder: null,
 
+        filterLoaded: true,
+
         plotDataLoaded: false,
         annotations: null,
 
@@ -84,7 +86,12 @@ export function datasetsByTokens(state = {}, action) {
     let tabs;
     let newTab;
     let newPlot;
+    let newFields;
+    let newFactorLevels;
+    let newNumericRanges;
     let openTabs;
+    let indices;
+
     switch (action.type) {
         // case LOAD_DATASET:
         //     newState = _.clone(state);
@@ -112,7 +119,7 @@ export function datasetsByTokens(state = {}, action) {
             newDataset.plotDataFull = action.data.data;
             newDataset.fieldsFull = parseFields(action.data.fields);
             newDataset.fields = generateFilteringOptions(newDataset.fieldsFull);
-            let indices = getFilteredIndices(newDataset.plotDataFull, newDataset.fields);
+            indices = getFilteredIndices(newDataset.plotDataFull, newDataset.fields);
             newDataset.plotDataOrder = _.shuffle(indices);
             newDataset.plotData = _.map(newDataset.plotDataOrder, (x) => newDataset.plotDataFull[x]);
             newDataset.annotations = action.data.annotations;
@@ -182,6 +189,63 @@ export function datasetsByTokens(state = {}, action) {
             newState[action.token] = newDataset;
             return newState;
 
+        // FILTERING PARTS
+        case FILTER_LOADING:
+            newState = _.clone(state);
+            newDataset = _.clone(newState[action.token]);
+            newDataset.filterLoaded = false;
+            newState[action.token] = newDataset;
+            return newState;
+
+        case FILTER_CHANGED_FACTOR:
+            newState = _.clone(state);
+            newDataset = _.clone(newState[action.token]);
+            newFields = _.clone(newDataset.fields);
+            newFactorLevels = _.clone(newFields.factorLevels);
+
+            if (_.includes(newDataset.fieldsFull.factor, action.name)) {
+                if (action.checked) {
+                    if (!_.includes(newFactorLevels[action.name], action.value)) {
+                        newFactorLevels[action.name] =
+                            _.filter(newDataset.fieldsFull.factorLevels[action.name],
+                                (v) => _.includes(newFactorLevels[action.name], v)
+                                    || v === action.value)
+                    }
+                } else {
+                    if (_.includes(newFactorLevels[action.name], action.value)) {
+                        newFactorLevels[action.name] =
+                            _.filter(newDataset.fieldsFull.factorLevels[action.name],
+                                (v) => _.includes(newFactorLevels[action.name], v)
+                                    && v !== action.value)
+                    }
+                }
+            }
+
+            newFields.factorLevels = newFactorLevels;
+            newDataset.fields = newFields;
+            indices = getFilteredIndices(newDataset.plotDataFull, newDataset.fields);
+            newDataset.plotDataOrder = _.shuffle(indices);
+            newDataset.plotData = _.map(newDataset.plotDataOrder, (x) => newDataset.plotDataFull[x]);
+            newDataset.filterLoaded = true;
+            newState[action.token] = newDataset;
+            return newState;
+
+        case FILTER_CHANGED_NUMERIC:
+            newState = _.clone(state);
+            newDataset = _.clone(newState[action.token]);
+            newFields = _.clone(newDataset.fields);
+            newNumericRanges = _.clone(newFields.numericRanges);
+            newNumericRanges[action.name] = action.range;
+            newFields.numericRanges = newNumericRanges;
+            newDataset.fields = newFields;
+            indices = getFilteredIndices(newDataset.plotDataFull, newDataset.fields);
+            newDataset.plotDataOrder = _.shuffle(indices);
+            newDataset.plotData = _.map(newDataset.plotDataOrder, (x) => newDataset.plotDataFull[x]);
+            newDataset.filterLoaded = true;
+            newState[action.token] = newDataset;
+            return newState;
+
+
         // GENES PARTS
 
         case GENE_SEARCH_CHANGED:
@@ -240,15 +304,26 @@ export function datasetsByTokens(state = {}, action) {
             newState = _.clone(state);
             newDataset = _.clone(newState[action.token]);
             newTab = _.clone(newDataset.tabs[action.tab]);
+            newFields = _.clone(newDataset.fields);
             newPlot = _.clone(newTab.plot);
 
             if (!_.has(newDataset.cachedGenes, action.geneValue)) {
                 newDataset.cachedGenes[action.geneValue] = action.geneData;
+
+                let range = [_.min(action.geneData), _.max(action.geneData)];
+
+                newDataset.fieldsFull.numeric.push(action.geneValue);
+                newDataset.fieldsFull.numericRanges[action.geneValue] = range;
+
+                newFields.numeric.push(action.geneValue);
+                newFields.numericRanges[action.geneValue] = range;
             }
 
             newTab.plotLoading = false;
             newPlot.gene = action.geneValue;
             newPlot.geneData = action.geneData;
+
+
 
             newTab.plot = newPlot;
             newDataset.tabs[action.tab] = newTab;
@@ -318,6 +393,14 @@ export function datasetsByTokens(state = {}, action) {
 
             if (!_.has(newDataset.cachedPathways, action.pathwayValue)) {
                 newDataset.cachedPathways[action.pathwayValue] = action.pathwayData;
+
+                let range = [_.min(action.pathwayData), _.max(action.pathwayData)];
+
+                newDataset.fieldsFull.numeric.push(action.pathwayValue);
+                newDataset.fieldsFull.numericRanges[action.pathwayValue] = range;
+
+                newFields.numeric.push(action.pathwayValue);
+                newFields.numericRanges[action.pathwayValue] = range;
             }
 
             newTab.plotLoading = false;

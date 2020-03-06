@@ -131,3 +131,50 @@ export const tabChanged = (token, tab) => {
         tab
     }
 };
+
+export const FILTER_LOADING = "FILTER_LOADING";
+export const filterLoading = (token) => {
+    return {
+        type: FILTER_LOADING,
+        token
+    }
+};
+
+export const FILTER_CHANGED_FACTOR = "FILTER_CHANGED_FACTOR";
+export const _filterChangedFactor = (token, name, value, checked) => {
+    return {
+        type: FILTER_CHANGED_FACTOR,
+        token,
+        name,
+        value,
+        checked
+    }
+};
+
+export const filterChangedFactor = (token, name, value, checked) => {
+    return function(dispatch, getState) {
+        dispatch(filterLoading(token));
+        setTimeout(function() {
+            dispatch(_filterChangedFactor(token, name, value, checked))
+        })
+    }
+};
+
+export const FILTER_CHANGED_NUMERIC = "FILTER_CHANGED_NUMERIC";
+export const _filterChangedNumeric = (token, name, range) => {
+    return {
+        type: FILTER_CHANGED_NUMERIC,
+        token,
+        name,
+        range
+    }
+};
+
+export const filterChangedNumeric = (token, name, range) => {
+    return function(dispatch, getState) {
+        dispatch(filterLoading(token));
+        setTimeout(function() {
+            dispatch(_filterChangedNumeric(token, name, range))
+        })
+    }
+};

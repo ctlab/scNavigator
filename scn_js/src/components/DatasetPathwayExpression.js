@@ -76,18 +76,27 @@ const PathwayInputs = connect(
     null
 )(_PathwayInputs);
 
-const _DatasetPathwayComponent = ({token, tab, plotAreaId}) => {
-    return (
-        <Grid>
-            <PathwayInputs token={token} tab={tab} />
-            <ScatterPlotPathwayComponent token={token} tab={tab} plotAreaId={plotAreaId}/>
-        </Grid>
-    )
+const _DatasetPathwayComponent = ({token, tab, windowOpen, tabOpen, plotAreaId}) => {
+    if (windowOpen && tabOpen) {
+        return (
+            <Grid>
+                <PathwayInputs token={token} tab={tab} />
+                <ScatterPlotPathwayComponent token={token} tab={tab} plotAreaId={plotAreaId}/>
+            </Grid>
+        )
+    } else {
+        return <></>
+    }
+
 };
 
 const mapStateToProps = (state, ownProps) => {
+    let dataset = state.datasetsByTokens[ownProps.token];
+    let windowOpen = (state.datasetsTokens.indexOf(ownProps.token) + 1) === state.currentWindow;
+    let tabOpen = dataset.openTabs.indexOf(ownProps.tab) === dataset.currentTab;
     return {
         token: ownProps.token,
+        windowOpen, tabOpen,
         tab: ownProps.tab,
         plotAreaId: ownProps.token.concat(ownProps.tab)
     }

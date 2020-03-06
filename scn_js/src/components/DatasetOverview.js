@@ -48,18 +48,25 @@ const DatasetOverviewInputs = connect(
 )(_DatasetOverviewInputs);
 
 
-const _DatasetOverview = ({token, tab, plotAreaId}) => {
-    return(
-        (<Grid>
-            <DatasetOverviewInputs token = {token} tab={tab} />
-            <ScatterPlotOverviewComponent token = {token} tab={tab} plotAreaId={plotAreaId}/>
-        </Grid>)
-    )
+const _DatasetOverview = ({token, tab, windowOpen, tabOpen, plotAreaId}) => {
+    if (windowOpen && tabOpen) {
+        return (
+            (<Grid>
+                <DatasetOverviewInputs token={token} tab={tab}/>
+                <ScatterPlotOverviewComponent token={token} tab={tab} plotAreaId={plotAreaId}/>
+            </Grid>))
+    } else {
+        return <></>
+    }
 };
 
 const mapStateToProps = (state, ownProps) => {
+    let dataset = state.datasetsByTokens[ownProps.token];
+    let windowOpen = (state.datasetsTokens.indexOf(ownProps.token) + 1) === state.currentWindow;
+    let tabOpen = dataset.openTabs.indexOf(ownProps.tab) === dataset.currentTab;
     return {
         token: ownProps.token,
+        windowOpen, tabOpen,
         tab: ownProps.tab,
         plotAreaId: ownProps.token.concat(ownProps.tab)
     }

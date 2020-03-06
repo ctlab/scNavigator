@@ -118,8 +118,8 @@ class _ExpressionScatterPlot extends PlotComponents {
         let zz = Math.min(height, width);
 
         const {x, y, gene, geneData, split, showPlotGrid, plotPointSize, fontSize, log2, scaled, zscore} = this.props.plot;
-        let plotData = _.clone(this.props.data);
-        let plotFields = _.clone(this.props.fields);
+        let plotDataFull = this.props.plotDataFull;
+        let fieldsFull = this.props.fieldsFull;
         let chosenAnnotations = getChosenAnnotations(this.props.annotations, this.props.plot);
 
         if (geneData !== null && gene !== null) {
@@ -137,12 +137,12 @@ class _ExpressionScatterPlot extends PlotComponents {
             let geneMin = _.min(ggdata);
             let geneMax = _.max(ggdata);
 
-            for (let i = 0; i < plotData.length; i++) {
-                plotData[i][gene] = ggdata[i];
+            for (let i = 0; i < plotDataFull.length; i++) {
+                plotDataFull[i][gene] = ggdata[i];
             }
 
-            plotFields.numeric.push(gene);
-            plotFields.numericRanges[gene] = [geneMin, geneMax];
+            this.props.fields.numericRanges[gene] = [geneMin, geneMax];
+            fieldsFull.numericRanges[gene] = [geneMin, geneMax];
         }
 
         let layout = {
@@ -154,7 +154,7 @@ class _ExpressionScatterPlot extends PlotComponents {
             }
         };
 
-        scatterPlot(plotData, plotFields,
+        scatterPlot(this.props.data, this.props.fields,
             x, y, gene, split,
             plotAreaId, layout,
             {
@@ -173,12 +173,15 @@ const mapExpressionStateToProps = (state, ownProps) => {
     let dataset = state.datasetsByTokens[ownProps.token];
     let tab = dataset.tabs[ownProps.tab];
     let plot = tab.plot;
-    let {annotations, expData } = dataset ;
+    let { annotations, expData } = dataset ;
+    let cachedGenes = dataset.cachedGenes;
 
     return {
+        plotDataFull: dataset.plotDataFull,
+        fieldsFull: dataset.fieldsFull,
         data: dataset.plotData,
         fields: dataset.fields,
-        plot, annotations, expData,
+        plot, annotations, expData, cachedGenes,
         plotLoading: tab.plotLoading,
         ...ownProps
     }
@@ -244,8 +247,8 @@ class _ViolinPlotComponent extends PlotComponents {
         let width = document.documentElement.clientWidth * 0.62;
 
         const {x, gene, geneData, split, showPlotGrid, plotPointSize, fontSize, log2, scaled, zscore} = this.props.plot;
-        let plotData = _.clone(this.props.data);
-        let plotFields = _.clone(this.props.fields);
+        let plotDataFull = this.props.plotDataFull;
+        let fieldsFull = this.props.fieldsFull;
 
         if (geneData !== null && gene !== null) {
 
@@ -262,12 +265,12 @@ class _ViolinPlotComponent extends PlotComponents {
             let geneMin = _.min(ggdata);
             let geneMax = _.max(ggdata);
 
-            for (let i = 0; i < plotData.length; i++) {
-                plotData[i][gene] = ggdata[i];
+            for (let i = 0; i < plotDataFull.length; i++) {
+                plotDataFull[i][gene] = ggdata[i];
             }
 
-            plotFields.numeric.push(gene);
-            plotFields.numericRanges[gene] = [geneMin, geneMax];
+            this.props.fields.numericRanges[gene] = [geneMin, geneMax];
+            fieldsFull.numericRanges[gene] = [geneMin, geneMax];
         }
 
         let layout = {
@@ -279,7 +282,7 @@ class _ViolinPlotComponent extends PlotComponents {
             }
         };
 
-        violinPlot(plotData, plotFields, x, gene, split,
+        violinPlot(this.props.data, this.props.fields, x, gene, split,
             plotAreaId, layout,
             {
                 showPlotGrid,
@@ -304,8 +307,8 @@ class _ScatterPlotPathwayComponent extends PlotComponents {
         let zz = Math.min(height, width);
 
         const {x, y, pathway, pathwayData, split, showPlotGrid, plotPointSize, fontSize} = this.props.plot;
-        let plotData = _.clone(this.props.data);
-        let plotFields = _.clone(this.props.fields);
+        let plotDataFull = this.props.plotDataFull;
+        let plotFieldsFull = this.props.fieldsFull;
         let chosenAnnotations = getChosenAnnotations(this.props.annotations, this.props.plot);
 
 
@@ -314,12 +317,12 @@ class _ScatterPlotPathwayComponent extends PlotComponents {
             let geneMin = _.min(pathwayData);
             let geneMax = _.max(pathwayData);
 
-            for (let i = 0; i < plotData.length; i++) {
-                plotData[i][pathway] = pathwayData[i];
+            for (let i = 0; i < plotDataFull.length; i++) {
+                plotDataFull[i][pathway] = pathwayData[i];
             }
 
-            plotFields.numeric.push(pathway);
-            plotFields.numericRanges[pathway] = [geneMin, geneMax];
+            this.props.fields.numericRanges[pathway] = [geneMin, geneMax];
+            plotFieldsFull.numericRanges[pathway] = [geneMin, geneMax];
         }
 
 
@@ -334,7 +337,7 @@ class _ScatterPlotPathwayComponent extends PlotComponents {
         };
 
 
-        scatterPlot(plotData, plotFields,
+        scatterPlot(this.props.data, this.props.fields,
             x, y, pathway, split,
             plotAreaId, layout,
             {
@@ -351,10 +354,11 @@ const mapPathwayStateToProps = (state, ownProps) => {
     let plot = tab.plot;
 
     let { annotations, expData } = dataset ;
+    let { fields, fieldsFull, plotDataFull } = dataset;
 
     return {
         data: dataset.plotData,
-        fields: dataset.fields,
+        fields, fieldsFull, plotDataFull,
         plot, annotations, expData,
         plotLoading: tab.plotLoading,
         ...ownProps

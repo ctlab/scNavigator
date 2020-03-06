@@ -4,7 +4,8 @@ import {
     LOAD_DATASET, LOADED_DATASET, FAILED_DATASET, OPEN_DATASET, fetchDataset,
     LOADED_PLOT_DATA, LOADED_EXP_DATA, LOADED_MARKERS_DATA, LOADED_PATHWAYS_DATA,
     loadedPlotData, loadedExpData, loadedMarkersData, loadedPathwaysData, loadedFilesData,
-    INPUT_CHANGED, inputChanged, tabChanged, TAB_CHANGED
+    INPUT_CHANGED, inputChanged, tabChanged, TAB_CHANGED,
+    FILTER_CHANGED_NUMERIC, FILTER_CHANGED_FACTOR, FILTER_LOADING, filterChangedFactor, filterChangedNumeric
 } from "./DatasetActions";
 import {
     changeCurrentWindow, closeWindow,
@@ -45,6 +46,7 @@ export {
     CHECKED_TOKEN_INVALID, CHECKED_TOKEN_VALID, CHECK_TOKEN, fetchToken,
     LOAD_DATASET, LOADED_DATASET, FAILED_DATASET, OPEN_DATASET, fetchDataset,
     LOADED_PLOT_DATA, LOADED_EXP_DATA, LOADED_MARKERS_DATA, LOADED_PATHWAYS_DATA,
+    FILTER_CHANGED_NUMERIC, FILTER_CHANGED_FACTOR, FILTER_LOADING, filterChangedFactor, filterChangedNumeric,
     loadedPlotData, loadedExpData, loadedMarkersData, loadedPathwaysData, loadedFilesData,
     changeCurrentWindow, CHANGE_CURRENT_WINDOW,
     closeWindow, CLOSE_WINDOW,

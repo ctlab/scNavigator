@@ -68,18 +68,27 @@ const DatasetEpxressionInputs = connect(
 
 
 
-const _DatasetExpressionComponent = ({token, tab, plotAreaId}) => {
-    return (
-        <Grid>
-            <DatasetEpxressionInputs token={token} tab={tab} />
-            <ScatterPlotExpressionComponent token={token} tab={tab} plotAreaId={plotAreaId}/>
-        </Grid>
-    )
+const _DatasetExpressionComponent = ({token, tab, windowOpen, tabOpen, plotAreaId}) => {
+    if (windowOpen && tabOpen) {
+        return (
+            <Grid>
+                <DatasetEpxressionInputs token={token} tab={tab} />
+                <ScatterPlotExpressionComponent token={token} tab={tab} plotAreaId={plotAreaId}/>
+            </Grid>
+        )
+    } else {
+        return <></>
+    }
+
 };
 
 const mapStateToProps = (state, ownProps) => {
+    let dataset = state.datasetsByTokens[ownProps.token];
+    let windowOpen = (state.datasetsTokens.indexOf(ownProps.token) + 1) === state.currentWindow;
+    let tabOpen = dataset.openTabs.indexOf(ownProps.tab) === dataset.currentTab;
     return {
         token: ownProps.token,
+        windowOpen, tabOpen,
         tab: ownProps.tab,
         plotAreaId: ownProps.token.concat(ownProps.tab)
     }
