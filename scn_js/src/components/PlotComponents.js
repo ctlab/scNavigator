@@ -117,7 +117,8 @@ class _ExpressionScatterPlot extends PlotComponents {
         let width = document.documentElement.clientWidth * 0.6;
         let zz = Math.min(height, width);
 
-        const {x, y, gene, geneData, split, showPlotGrid, plotPointSize, fontSize, log2, scaled, zscore} = this.props.plot;
+        const {x, y, gene, split, showPlotGrid, plotPointSize, fontSize, log2, scaled, zscore} = this.props.plot;
+        const geneData = this.props.cachedGenes[gene];
         let plotDataFull = this.props.plotDataFull;
         let fieldsFull = this.props.fieldsFull;
         let chosenAnnotations = getChosenAnnotations(this.props.annotations, this.props.plot);
@@ -246,7 +247,8 @@ class _ViolinPlotComponent extends PlotComponents {
         let height = document.documentElement.clientHeight * 0.8;
         let width = document.documentElement.clientWidth * 0.62;
 
-        const {x, gene, geneData, split, showPlotGrid, plotPointSize, fontSize, log2, scaled, zscore} = this.props.plot;
+        const {x, gene, split, showPlotGrid, plotPointSize, fontSize, log2, scaled, zscore} = this.props.plot;
+        const geneData = this.props.cachedGenes[gene];
         let plotDataFull = this.props.plotDataFull;
         let fieldsFull = this.props.fieldsFull;
 
@@ -306,7 +308,8 @@ class _ScatterPlotPathwayComponent extends PlotComponents {
         let width = document.documentElement.clientWidth * 0.6;
         let zz = Math.min(height, width);
 
-        const {x, y, pathway, pathwayData, split, showPlotGrid, plotPointSize, fontSize} = this.props.plot;
+        const {x, y, pathway, split, showPlotGrid, plotPointSize, fontSize} = this.props.plot;
+        const pathwayData = this.props.cachedPathways[pathway];
         let plotDataFull = this.props.plotDataFull;
         let plotFieldsFull = this.props.fieldsFull;
         let chosenAnnotations = getChosenAnnotations(this.props.annotations, this.props.plot);
@@ -361,6 +364,7 @@ const mapPathwayStateToProps = (state, ownProps) => {
         fields, fieldsFull, plotDataFull,
         plot, annotations, expData,
         plotLoading: tab.plotLoading,
+        cachedPathways: dataset.cachedPathways,
         ...ownProps
     }
 };

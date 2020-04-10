@@ -309,7 +309,6 @@ export function datasetsByTokens(state = {}, action) {
 
             if (!_.has(newDataset.cachedGenes, action.geneValue)) {
                 newDataset.cachedGenes[action.geneValue] = action.geneData;
-
                 let range = [_.min(action.geneData), _.max(action.geneData)];
 
                 newDataset.fieldsFull.numeric.push(action.geneValue);
@@ -321,12 +320,11 @@ export function datasetsByTokens(state = {}, action) {
 
             newTab.plotLoading = false;
             newPlot.gene = action.geneValue;
-            newPlot.geneData = action.geneData;
-
 
 
             newTab.plot = newPlot;
             newDataset.tabs[action.tab] = newTab;
+            newDataset.fields = newFields;
             openTabs = getOpenTabsOrdered(newDataset.openTabs);
             newDataset.currentTab = openTabs.indexOf(action.tab);
             newState[action.token] = newDataset;
@@ -389,6 +387,7 @@ export function datasetsByTokens(state = {}, action) {
             newState = _.clone(state);
             newDataset = _.clone(newState[action.token]);
             newTab = _.clone(newDataset.tabs[action.tab]);
+            newFields = _.clone(newDataset.fields);
             newPlot = _.clone(newTab.plot);
 
             if (!_.has(newDataset.cachedPathways, action.pathwayValue)) {
@@ -404,11 +403,11 @@ export function datasetsByTokens(state = {}, action) {
             }
 
             newTab.plotLoading = false;
-            newPlot.pathway = action.pathway;
-            newPlot.pathwayData = action.pathwayData;
+            newPlot.pathway = action.pathwayValue;
 
             newTab.plot = newPlot;
             newDataset.tabs[action.tab] = newTab;
+            newDataset.fields = newFields;
             openTabs = getOpenTabsOrdered(newDataset.openTabs);
             newDataset.currentTab = openTabs.indexOf(action.tab);
             newState[action.token] = newDataset;
