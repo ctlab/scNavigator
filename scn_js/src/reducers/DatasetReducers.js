@@ -25,7 +25,7 @@ import _ from "lodash";
 import parseFields from "../utils/Utils";
 import { LOADED_FILES_DATA } from "../actions/DatasetActions";
 import {generateTabs, getOpenTabsOrdered} from "./Tabs";
-import {filterPlotData, generateFilteringOptions, getFilteredIndices} from "../utils/FilteringUtils";
+import {generateFilteringOptions, getFilteredIndices} from "../utils/FilteringUtils";
 
 export function datasetsTokens(state = [], action) {
     switch (action.type) {
