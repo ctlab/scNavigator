@@ -442,15 +442,28 @@ export function datasetsByTokens(state = {}, action) {
             newState = _.clone(state);
             newDataset = _.clone(newState[action.token]);
             newTab = _.clone(newDataset.tabs[action.tab]);
+            newFields = _.clone(newDataset.fields);
             newPlot = _.clone(newTab.plot);
 
 
             newTab.plotLoading = false;
-            newPlot.pathway = action.genes.slice(0, 5).join(", ").concat("...");
-            newPlot.pathwayData = action.pathwayData;
+            newPlot.pathway = action.genes.join(", ");
+
+            if (!_.has(newDataset.cachedPathways, newPlot.pathway)) {
+                newDataset.cachedPathways[newPlot.pathway] = action.pathwayData;
+
+                let range = [_.min(action.pathwayData), _.max(action.pathwayData)];
+
+                newDataset.fieldsFull.numeric.push(newPlot.pathway);
+                newDataset.fieldsFull.numericRanges[newPlot.pathway] = range;
+
+                newFields.numeric.push(newPlot.pathway);
+                newFields.numericRanges[newPlot.pathway] = range;
+            }
 
             newTab.plot = newPlot;
             newDataset.tabs[action.tab] = newTab;
+            newDataset.fields = newFields;
             openTabs = getOpenTabsOrdered(newDataset.openTabs);
             newDataset.currentTab = openTabs.indexOf(action.tab);
             newState[action.token] = newDataset;

@@ -123,7 +123,7 @@ class _ExpressionScatterPlot extends PlotComponents {
         let fieldsFull = this.props.fieldsFull;
         let chosenAnnotations = getChosenAnnotations(this.props.annotations, this.props.plot);
 
-        if (geneData !== null && gene !== null) {
+        if (geneData !== undefined && geneData !== null && gene !== null) {
 
             let ggdata = _.cloneDeep(geneData);
             if (scaled) ggdata = _.zipWith(ggdata, this.props.expData.totalCounts, (a, b) => a * 10000 / b);
@@ -252,7 +252,7 @@ class _ViolinPlotComponent extends PlotComponents {
         let plotDataFull = this.props.plotDataFull;
         let fieldsFull = this.props.fieldsFull;
 
-        if (geneData !== null && gene !== null) {
+        if (geneData !== undefined && geneData !== null && gene !== null) {
 
             let ggdata = _.cloneDeep(geneData);
             if (scaled) ggdata = _.zipWith(ggdata, this.props.expData.totalCounts, (a, b) => a * 10000 / b);
@@ -315,7 +315,7 @@ class _ScatterPlotPathwayComponent extends PlotComponents {
         let chosenAnnotations = getChosenAnnotations(this.props.annotations, this.props.plot);
 
 
-        if (pathwayData !== null && pathway !== null) {
+        if (pathwayData !== undefined && pathwayData !== null && pathway !== null ) {
 
             let geneMin = _.min(pathwayData);
             let geneMax = _.max(pathwayData);
