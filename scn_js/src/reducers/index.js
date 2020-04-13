@@ -26,6 +26,7 @@ let initState = () => {
             speciesFrom: "mm",
             speciesTo: "mm",
             latestQuery: {},
+            latestQuerySymbol: [],
             searchResults: {}
         }
 

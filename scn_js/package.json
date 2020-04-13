@@ -19,6 +19,8 @@
     "plotly.js-dist": "^1.52.1",
     "query-string": "^6.10.1",
     "randomcolor": "^0.5.3",
+    "rc-slider": "^9.2.2",
+    "rc-tooltip": "^4.0.1",
     "react": "^16.12.0",
     "react-cookie-consent": "^2.5.0",
     "react-csv": "^1.1.2",

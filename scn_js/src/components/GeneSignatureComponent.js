@@ -22,7 +22,7 @@ export default class GeneSignatureComponent extends Component {
                 Header: "Show Enrichment",
                 accessor: 'token',
                 Cell: props =>  {
-                    return <button onClick={() => {this.props.showGeneSignature(props.value, this.props.latestQuery["genes"])}}
+                    return <button onClick={() => {this.props.showGeneSignature(props.value, this.props.latestQuerySymbol)}}
                                    style={{cursor:'pointer'}}>Show enrichment</button>;
 
                 },

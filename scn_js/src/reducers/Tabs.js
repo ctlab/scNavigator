@@ -8,6 +8,7 @@ import DatasetViolin from "../components/DatasetViolin";
 import DatasetPathwayExpression from "../components/DatasetPathwayExpression";
 import DatasetMarkers from "../components/DatasetMarkers";
 import FilesComponent from "../components/FilesComponent";
+import FilterComponent from "../components/FilterComponent";
 
 export const OVERVIEW = "_overview";
 export const HISTOGRAM = "_histogram";
@@ -16,6 +17,7 @@ export const EXPRESSION_VIOLIN = "_violin";
 export const PATHWAYS = "_pathways";
 export const MARKERS = "_markers";
 export const FILES = "_files";
+export const FILTER = "_filter";
 
 const generatePlotState = (dataset) => {
     let annotations = dataset.annotations;
@@ -85,6 +87,7 @@ export const generatePathwaysState = (dataset) => {
 
 export const generateMarkersState = (dataset) => (dataset);
 export const generateFilesState = (dataset) => (dataset);
+export const generateFilterState = (dataset) => (dataset);
 
 export const defaultTabOrder = [
     OVERVIEW,
@@ -93,7 +96,8 @@ export const defaultTabOrder = [
     EXPRESSION_VIOLIN,
     PATHWAYS,
     MARKERS,
-    FILES
+    FILES,
+    FILTER
 ];
 
 
@@ -107,6 +111,7 @@ tabRequirements[EXPRESSION_VIOLIN] = ["plotDataLoaded", "expDataLoaded"];
 tabRequirements[PATHWAYS] = ["plotDataLoaded", "expDataLoaded", "pathwaysLoaded"];
 tabRequirements[MARKERS] = ["markersLoaded"];
 tabRequirements[FILES] = ["filesLoaded"];
+tabRequirements[FILTER] = ["plotDataLoaded"];
 
 const tabGenerators = {};
 tabGenerators[OVERVIEW] = (dataset) => generateOverviewState(dataset);
@@ -116,6 +121,7 @@ tabGenerators[EXPRESSION_VIOLIN] = (dataset) => generateExpressionViolinState(da
 tabGenerators[PATHWAYS] = (dataset) => generatePathwaysState(dataset);
 tabGenerators[MARKERS] = (dataset) => generateMarkersState(dataset);
 tabGenerators[FILES] = (dataset) => generateFilesState(dataset);
+tabGenerators[FILTER] = (dataset) => generateFilterState(dataset);
 
 export const tabNames = {};
 tabNames[OVERVIEW] = "Overview";
@@ -125,6 +131,7 @@ tabNames[EXPRESSION_VIOLIN] = "Expression violin plot";
 tabNames[PATHWAYS] = "Pathway / Gene set plot";
 tabNames[MARKERS] = "Markers";
 tabNames[FILES] = "Files";
+tabNames[FILTER] = "Filtering";
 
 
 export const tabClasses = {};
@@ -135,7 +142,7 @@ tabClasses[EXPRESSION_VIOLIN] = DatasetViolin;
 tabClasses[PATHWAYS] = DatasetPathwayExpression;
 tabClasses[MARKERS] = DatasetMarkers;
 tabClasses[FILES] = FilesComponent;
-
+tabClasses[FILTER] = FilterComponent;
 
 export const generateTabs = (dataset) => {
     let tabs = {};

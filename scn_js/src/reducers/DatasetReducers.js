@@ -18,13 +18,14 @@ import {
     PATHWAY_SUBMITTED,
     PATHWAY_LOADED_DATA,
     BULK_SUBMITTED,
-    BULK_LOADED_DATA, BULK_CHANGED
+    BULK_LOADED_DATA, BULK_CHANGED, FILTER_CHANGED_FACTOR, FILTER_LOADING, FILTER_CHANGED_NUMERIC
 } from "../actions";
 
 import _ from "lodash";
 import parseFields from "../utils/Utils";
 import { LOADED_FILES_DATA } from "../actions/DatasetActions";
 import {generateTabs, getOpenTabsOrdered} from "./Tabs";
+import {generateFilteringOptions, getFilteredIndices} from "../utils/FilteringUtils";
 
 export function datasetsTokens(state = [], action) {
     switch (action.type) {
@@ -44,11 +45,18 @@ const createDefaultDataset = (token) => {
         token: token,
         loaded: false,
 
-
+        fields: null,
         plotData: null,
+
+        plotDataFull: null,
+        fieldsFull: null,
+        plotDataOrder: null,
+
+        filterLoaded: true,
+
         plotDataLoaded: false,
         annotations: null,
-        fields: null,
+
 
         markers: null,
         markersLoaded: false,
@@ -78,7 +86,12 @@ export function datasetsByTokens(state = {}, action) {
     let tabs;
     let newTab;
     let newPlot;
+    let newFields;
+    let newFactorLevels;
+    let newNumericRanges;
     let openTabs;
+    let indices;
+
     switch (action.type) {
         // case LOAD_DATASET:
         //     newState = _.clone(state);
@@ -103,9 +116,14 @@ export function datasetsByTokens(state = {}, action) {
         case LOADED_PLOT_DATA:
             newState = _.clone(state);
             newDataset = _.clone(newState[action.token]);
-            newDataset.plotData = action.data.data;
+            newDataset.plotDataFull = action.data.data;
+            newDataset.fieldsFull = parseFields(action.data.fields);
+            newDataset.fields = generateFilteringOptions(newDataset.fieldsFull);
+            indices = getFilteredIndices(newDataset.plotDataFull, newDataset.fields);
+            newDataset.plotDataOrder = _.shuffle(indices);
+            newDataset.plotData = _.map(newDataset.plotDataOrder, (x) => newDataset.plotDataFull[x]);
             newDataset.annotations = action.data.annotations;
-            newDataset.fields = parseFields(action.data.fields);
+
             newDataset.plotDataLoaded = true;
             tabs = generateTabs(newDataset);
             newDataset.tabs = tabs.tabs;
@@ -171,6 +189,63 @@ export function datasetsByTokens(state = {}, action) {
             newState[action.token] = newDataset;
             return newState;
 
+        // FILTERING PARTS
+        case FILTER_LOADING:
+            newState = _.clone(state);
+            newDataset = _.clone(newState[action.token]);
+            newDataset.filterLoaded = false;
+            newState[action.token] = newDataset;
+            return newState;
+
+        case FILTER_CHANGED_FACTOR:
+            newState = _.clone(state);
+            newDataset = _.clone(newState[action.token]);
+            newFields = _.clone(newDataset.fields);
+            newFactorLevels = _.clone(newFields.factorLevels);
+
+            if (_.includes(newDataset.fieldsFull.factor, action.name)) {
+                if (action.checked) {
+                    if (!_.includes(newFactorLevels[action.name], action.value)) {
+                        newFactorLevels[action.name] =
+                            _.filter(newDataset.fieldsFull.factorLevels[action.name],
+                                (v) => _.includes(newFactorLevels[action.name], v)
+                                    || v === action.value)
+                    }
+                } else {
+                    if (_.includes(newFactorLevels[action.name], action.value)) {
+                        newFactorLevels[action.name] =
+                            _.filter(newDataset.fieldsFull.factorLevels[action.name],
+                                (v) => _.includes(newFactorLevels[action.name], v)
+                                    && v !== action.value)
+                    }
+                }
+            }
+
+            newFields.factorLevels = newFactorLevels;
+            newDataset.fields = newFields;
+            indices = getFilteredIndices(newDataset.plotDataFull, newDataset.fields);
+            newDataset.plotDataOrder = _.shuffle(indices);
+            newDataset.plotData = _.map(newDataset.plotDataOrder, (x) => newDataset.plotDataFull[x]);
+            newDataset.filterLoaded = true;
+            newState[action.token] = newDataset;
+            return newState;
+
+        case FILTER_CHANGED_NUMERIC:
+            newState = _.clone(state);
+            newDataset = _.clone(newState[action.token]);
+            newFields = _.clone(newDataset.fields);
+            newNumericRanges = _.clone(newFields.numericRanges);
+            newNumericRanges[action.name] = action.range;
+            newFields.numericRanges = newNumericRanges;
+            newDataset.fields = newFields;
+            indices = getFilteredIndices(newDataset.plotDataFull, newDataset.fields);
+            newDataset.plotDataOrder = _.shuffle(indices);
+            newDataset.plotData = _.map(newDataset.plotDataOrder, (x) => newDataset.plotDataFull[x]);
+            newDataset.filterLoaded = true;
+            newState[action.token] = newDataset;
+            return newState;
+
+
         // GENES PARTS
 
         case GENE_SEARCH_CHANGED:
@@ -229,18 +304,27 @@ export function datasetsByTokens(state = {}, action) {
             newState = _.clone(state);
             newDataset = _.clone(newState[action.token]);
             newTab = _.clone(newDataset.tabs[action.tab]);
+            newFields = _.clone(newDataset.fields);
             newPlot = _.clone(newTab.plot);
 
             if (!_.has(newDataset.cachedGenes, action.geneValue)) {
                 newDataset.cachedGenes[action.geneValue] = action.geneData;
+                let range = [_.min(action.geneData), _.max(action.geneData)];
+
+                newDataset.fieldsFull.numeric.push(action.geneValue);
+                newDataset.fieldsFull.numericRanges[action.geneValue] = range;
+
+                newFields.numeric.push(action.geneValue);
+                newFields.numericRanges[action.geneValue] = range;
             }
 
             newTab.plotLoading = false;
             newPlot.gene = action.geneValue;
-            newPlot.geneData = action.geneData;
+
 
             newTab.plot = newPlot;
             newDataset.tabs[action.tab] = newTab;
+            newDataset.fields = newFields;
             openTabs = getOpenTabsOrdered(newDataset.openTabs);
             newDataset.currentTab = openTabs.indexOf(action.tab);
             newState[action.token] = newDataset;
@@ -303,18 +387,27 @@ export function datasetsByTokens(state = {}, action) {
             newState = _.clone(state);
             newDataset = _.clone(newState[action.token]);
             newTab = _.clone(newDataset.tabs[action.tab]);
+            newFields = _.clone(newDataset.fields);
             newPlot = _.clone(newTab.plot);
 
             if (!_.has(newDataset.cachedPathways, action.pathwayValue)) {
                 newDataset.cachedPathways[action.pathwayValue] = action.pathwayData;
+
+                let range = [_.min(action.pathwayData), _.max(action.pathwayData)];
+
+                newDataset.fieldsFull.numeric.push(action.pathwayValue);
+                newDataset.fieldsFull.numericRanges[action.pathwayValue] = range;
+
+                newFields.numeric.push(action.pathwayValue);
+                newFields.numericRanges[action.pathwayValue] = range;
             }
 
             newTab.plotLoading = false;
-            newPlot.pathway = action.pathway;
-            newPlot.pathwayData = action.pathwayData;
+            newPlot.pathway = action.pathwayValue;
 
             newTab.plot = newPlot;
             newDataset.tabs[action.tab] = newTab;
+            newDataset.fields = newFields;
             openTabs = getOpenTabsOrdered(newDataset.openTabs);
             newDataset.currentTab = openTabs.indexOf(action.tab);
             newState[action.token] = newDataset;
@@ -349,15 +442,28 @@ export function datasetsByTokens(state = {}, action) {
             newState = _.clone(state);
             newDataset = _.clone(newState[action.token]);
             newTab = _.clone(newDataset.tabs[action.tab]);
+            newFields = _.clone(newDataset.fields);
             newPlot = _.clone(newTab.plot);
 
 
             newTab.plotLoading = false;
-            newPlot.pathway = action.genes.slice(0, 5).join(", ").concat("...");
-            newPlot.pathwayData = action.pathwayData;
+            newPlot.pathway = action.genes.join(", ");
+
+            if (!_.has(newDataset.cachedPathways, newPlot.pathway)) {
+                newDataset.cachedPathways[newPlot.pathway] = action.pathwayData;
+
+                let range = [_.min(action.pathwayData), _.max(action.pathwayData)];
+
+                newDataset.fieldsFull.numeric.push(newPlot.pathway);
+                newDataset.fieldsFull.numericRanges[newPlot.pathway] = range;
+
+                newFields.numeric.push(newPlot.pathway);
+                newFields.numericRanges[newPlot.pathway] = range;
+            }
 
             newTab.plot = newPlot;
             newDataset.tabs[action.tab] = newTab;
+            newDataset.fields = newFields;
             openTabs = getOpenTabsOrdered(newDataset.openTabs);
             newDataset.currentTab = openTabs.indexOf(action.tab);
             newState[action.token] = newDataset;
