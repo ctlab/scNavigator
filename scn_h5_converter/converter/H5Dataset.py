@@ -35,7 +35,7 @@ class H5Dataset:
         self.token: str
         self.h5ad_path = h5ad_path
         self.adata = ad.read_h5ad(h5ad_path)
-        self.adata.X = csc_matrix(self.adata.X)
+        # self.adata.X = csc_matrix(self.adata.X)
 
         self.dims = self.adata.shape
         self.n_barcodes = self.dims[0]
@@ -66,6 +66,12 @@ class H5Dataset:
                                             self.n_barcodes, len(self.barcodes))
 
         self.__uns = json.loads(json.dumps(dict(self.adata.uns), cls=NumpyEncoder))
+
+        # unification of lists
+        for key, val in self.__uns.items():
+            if type(val) == list and len(set(val)) == 1:
+                self.__uns[key] = val[0]
+
         self.dataset = dict(DEFAULT_DATASET,
                             **{k: self.__uns[k]
                                for k in DEFAULT_DATASET.keys()
@@ -81,13 +87,6 @@ class H5Dataset:
             raise H5DatasetInvalidException("Empty tokens are not allowed")
 
         self.token = self.dataset["token"]
-
-        if type(self.dataset["species"]) == list:
-            species_set = set(self.dataset["species"])
-            if len(species_set) > 1:
-                raise H5DatasetInvalidException(
-                    f"Datasets of multiple species are not allowed {', '.join(species_set)}")
-            self.dataset["species"] = self.dataset["species"][0]
 
         if self.dataset["species"].lower() not in ALLOWED_SPECIES_FLAT:
             raise H5DatasetInvalidException("Species {} are not allowed. Allowed species are "
@@ -316,7 +315,8 @@ class H5Dataset:
         if "markers" in self.adata.uns_keys():
             self.__write_to_file("markers", markers_file)
 
-        self.adata.write(Path(expression_file))
+        os.symlink(self.h5ad_path, Path(expression_file))
+        # self.adata.write()
 
         self.dataset.update({
             "datasetFile": dataset_file,

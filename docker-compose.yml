@@ -55,6 +55,7 @@ services:
       - fs
     build: ./scn_server
     volumes:
+      - "$DATASET_PATH:/var/datasets"
       - "./scn_js:/scn/scn_js"
       - "$TMP_PATH:/var/tmp"
     command: ["java", "-Djava.library.path=./", "-jar", "server.jar"]
