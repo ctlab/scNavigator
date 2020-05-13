@@ -13,21 +13,21 @@ class H5DatasetTest(unittest.TestCase):
     h5_dataset: H5Dataset
 
     def setUp(self) -> None:
-        self.h5_dataset = H5Dataset(os.path.join(DIRECTORY, "resources/SRA592147.h5ad"))
+        self.h5_dataset = H5Dataset(os.path.join(DIRECTORY, "resources/SRS3434028_with_uns.h5ad"))
 
     def test_creation(self):
         self.assertEqual(True, isinstance(self.h5_dataset, H5Dataset))
 
     def test_dims(self):
-        self.assertEqual((14055, 17767), self.h5_dataset.dims)
-        self.assertEqual(17767, self.h5_dataset.n_features)
-        self.assertEqual(14055, self.h5_dataset.n_barcodes)
+        self.assertEqual((3349, 13337), self.h5_dataset.dims)
+        self.assertEqual(13337, self.h5_dataset.n_features)
+        self.assertEqual(3349, self.h5_dataset.n_barcodes)
 
     def test_features(self):
         feature_len = len(self.h5_dataset.features)
-        self.assertEqual(['X0610009O20Rik', 'X1110020A21Rik', 'X1700028P14Rik'],
+        self.assertEqual(['CICP27', 'AP006222.1', 'AL732372.2'],
                          self.h5_dataset.features[0:3])
-        self.assertEqual(['Zbtb32', 'Zbtb42', 'Zbtb8b', 'Zcchc16', 'Zcchc5'],
+        self.assertEqual(['MT-CYB', 'AC011043.1', 'AC007325.4', 'AC004556.1', 'AC240274.1'],
                          self.h5_dataset.features[feature_len - 5:feature_len])
 
     def test_uns_keys(self):
