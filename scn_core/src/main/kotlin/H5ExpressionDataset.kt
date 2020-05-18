@@ -16,23 +16,33 @@ class H5ExpressionDataset(h5path: String) {
     val attrs = H5.H5Aget_num_attrs(openGroup)
     val attrNames = (0 until attrs).map {
         val aName = Array<String>(1) { "" }
-        val attrId = H5.H5Aopen_by_idx(openGroup, ".", HDF5Constants.H5_INDEX_CRT_ORDER, HDF5Constants.H5_ITER_INC,
-            it.toLong(), HDF5Constants.H5P_DEFAULT, HDF5Constants.H5P_DEFAULT)
+        val attrId = H5.H5Aopen_by_idx(
+            openGroup, ".", HDF5Constants.H5_INDEX_CRT_ORDER, HDF5Constants.H5_ITER_INC,
+            it.toLong(), HDF5Constants.H5P_DEFAULT, HDF5Constants.H5P_DEFAULT
+        )
         H5.H5Aget_name(attrId, aName)
         aName[0]
     }
 
+    private val oldString = "h5sparse_shape"
+    private val newString = "shape"
+    val shapeString: String
+        get() {
+            if (attrNames.contains(newString)) return newString
+            if (attrNames.contains(oldString)) return oldString
+            return ""
+        }
 
-    val shapeId = H5.H5Aopen(openGroup, "h5sparse_shape", HDF5Constants.H5P_DEFAULT)
+    val shapeId = H5.H5Aopen(openGroup, shapeString, HDF5Constants.H5P_DEFAULT)
     private var _shape: IntArray? = null
     val shape: IntArray
-    get() {
-        if (_shape == null) {
-            _shape = IntArray(2)
-            H5.H5Aread(shapeId, HDF5Constants.H5T_NATIVE_INT, _shape)
+        get() {
+            if (_shape == null) {
+                _shape = IntArray(2)
+                H5.H5Aread(shapeId, HDF5Constants.H5T_NATIVE_INT, _shape)
+            }
+            return _shape!!
         }
-        return _shape!!
-    }
 
     val barcodes = shape[0]
     val features = shape[1]
