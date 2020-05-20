@@ -34,7 +34,7 @@ const FilterComponent = ({token, fields, fieldsFull, filterLoaded, changeFilterF
         <h4>Below you can choose which part of the dataset you want to see in the Navigator</h4>
         <Form loading={!filterLoaded}>
         {fieldsFull.factor.map((key, index) => {
-            return  <Form.Group inline>
+            return  <Form.Group grouped>
                 <label>{key}</label>
                 {fieldsFull.factorLevels[key].map((value) => {
                   return <Form.Field
