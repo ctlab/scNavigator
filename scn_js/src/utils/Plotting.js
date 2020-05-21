@@ -352,6 +352,13 @@ function splitData(datas, traces, layout, anns, fields, splitField, axisXLayout,
         }
     } else {
         let uniqueVals = fields.factorLevels[splitField];
+
+        // Data check to only include factors that are present
+        let actualSplitVals = _.flatMap(datas, (data) => data.map(a => a[splitField]));
+        actualSplitVals = _.uniq(actualSplitVals);
+        uniqueVals = _.filter(uniqueVals, (a) => _.includes(actualSplitVals, a));
+
+
         let splits = uniqueVals.length;
 
         let columns = Math.ceil(Math.sqrt(splits));
