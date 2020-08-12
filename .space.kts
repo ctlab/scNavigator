@@ -19,16 +19,10 @@ job("Build frontend") {
 }
 
 job("Build and test python converter") {
-    container("python:3.8-alpine") {
+    container("python:3.8-slim") {
         workDir = "/mnt/space/work/scn_h5_converter"
         shellScript {
-            content = "pip install -r requirements.txt"
-        }
-    }
-    container("python:3.8-alpine") {
-        workDir = "/mnt/space/work/scn_h5_converter"
-        shellScript {
-            content = "export PYTHONPATH=\$PYTHONPATH:`pwd` && pytest tests --typeguard-packages=converter"
+            content = "pip install -r requirements.txt && export PYTHONPATH=\$PYTHONPATH:`pwd` && pytest tests --typeguard-packages=converter"
         }
     }
 }
