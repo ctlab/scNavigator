@@ -8,7 +8,8 @@ services:
     volumes:
       - "./nginx/sites-enabled:/etc/nginx/sites-enabled"
       - "./scn_js:/scn/scn_js"
-      - "$TMP_PATH:/var/tmp"
+      - "./scn_docs/build/:/scn/docs"
+      - "$DATASET_PATH:/var/datasets"
     ports:
       - "31:80"
 
@@ -36,16 +37,16 @@ services:
       - "$DATASET_PATH:/var/datasets"
 
   fs:
+    env_file:
+      - .env
     restart: always
     depends_on:
       - mongo
-    build: ./scn_h5_converter
+    build: ./scn_fs
     volumes:
       - "$DATASET_PATH:/var/datasets"
-      - "$TMP_PATH:/var/tmp"
       - "$GMT_PATH:/vat/gmt"
-    command: [ "python", "./watcher/Watcher.py", "/var/datasets", "/var/tmp", "/vat/gmt",
-               $MONGODB_HOST, $MONGODB_DATABASE, $MONGODB_COLLECTION]
+    command: ["java", "-Djava.library.path=./", "-jar", "fs.jar", "/var/datasets"]
 
   web:
     env_file:
@@ -57,5 +58,4 @@ services:
     volumes:
       - "$DATASET_PATH:/var/datasets"
       - "./scn_js:/scn/scn_js"
-      - "$TMP_PATH:/var/tmp"
     command: ["java", "-Djava.library.path=./", "-jar", "server.jar"]

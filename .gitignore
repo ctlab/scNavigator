@@ -4,7 +4,5 @@
 # Ignore Gradle build output directory
 build
 
-/scn_h5_converter/venv/
-/.idea/
-/scn_h5_converter/.idea/
-__pycache__
+.idea
+.Rproj.user

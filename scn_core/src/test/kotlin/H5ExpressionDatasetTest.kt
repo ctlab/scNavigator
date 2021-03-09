@@ -8,6 +8,45 @@ class H5ExpressionDatasetTest {
     companion object {
         val datasetPath =
             Thread.currentThread().contextClassLoader.getResource("SRS3669141_with_uns.h5ad").path.toString()
+        val datasetPath2 =
+            Thread.currentThread().contextClassLoader.getResource("data_test.h5").path.toString()
+    }
+
+    @Test
+    fun testSecondDatasetShape() {
+        val h5ExpressionDataset = H5ExpressionDataset.getDataset(datasetPath2)
+        assertEquals(listOf(2592, 11026), h5ExpressionDataset.shape.toList())
+    }
+
+    @Test
+    fun testSecondDatasetIndPtr() {
+        val h5ExpressionDataset = H5ExpressionDataset.getDataset(datasetPath2)
+        val expectedValues = intArrayOf(0, 45, 56, 78, 94, 97, 101, 120, 158, 165)
+        val values = h5ExpressionDataset.getIndPtrSlice(0, 9)
+        assertEquals(expectedValues.toList(), values.toList())
+    }
+
+    @Test
+    fun testSecondDatasetGetDataSlice() {
+        val h5ExpressionDataset = H5ExpressionDataset.getDataset(datasetPath2)
+        val expectedValues = floatArrayOf(1F, 2F, 1F, 1F, 1F, 1F, 1F, 1F, 1F, 1F)
+        val values = h5ExpressionDataset.getDataSlice(9, 18)
+        assertEquals(expectedValues.toList(), values.toList())
+    }
+
+    @Test
+    fun testSecondDatasetGetGene() {
+        val h5ExpressionDataset = H5ExpressionDataset.getDataset(datasetPath2)
+        val geneId = 4307 // Lyz2
+        val expectedValues = floatArrayOf(12F, 9F, 3F, 9F, 0F, 0F, 0F, 0F, 5F,
+            7F, 0F, 2F, 2F, 2F, 4F, 0F, 0F, 0F, 5F, 0F)
+        val values = h5ExpressionDataset.getFeatureByIndex(geneId)
+
+        assertEquals(values.size, h5ExpressionDataset.shape[0])
+        assertEquals(expectedValues.toList(), values.slice(0 until 20).toList())
+        assertEquals(8832F, values.sum())
+
+
     }
 
     @Test

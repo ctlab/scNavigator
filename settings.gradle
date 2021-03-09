@@ -1,5 +1,5 @@
 rootProject.name = 'scn'
 include 'scn_core'
 include 'scn_server'
-
+include 'scn_fs'
 
