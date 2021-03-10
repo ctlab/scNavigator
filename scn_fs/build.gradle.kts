@@ -29,7 +29,7 @@ dependencies {
     compile("org.litote.kmongo:kmongo:3.11.1")
     compile(":jarhdf5-2.11.0")
     implementation("org.slf4j:slf4j-log4j12:1.7.21")
-    testCompile("org.jetbrains.kotlin:kotlin-reflect:1.4.30")
+    compile("org.jetbrains.kotlin:kotlin-reflect:1.4.30")
     testCompile("org.jetbrains.kotlin:kotlin-test:1.4.30")
     testCompile("junit", "junit", "4.12")
 }

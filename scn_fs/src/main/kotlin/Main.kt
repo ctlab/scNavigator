@@ -65,9 +65,11 @@ fun main(args: Array<String>) {
     touchEveryFile(File(directoryToWatch))
 
     Thread.sleep(30000)
-    Log.info("Now generating GMTs and annotationns")
+    Log.info("Now generating GMTs and annotations")
     generateGMTs(mongoDBCollection, gmtOutDir)
     generateAnnotationJSONs(mongoDBCollection, gmtOutDir)
 
-    Thread.sleep(1000000000)
+    while (true) {
+        Thread.sleep(10000)
+    }
 }
