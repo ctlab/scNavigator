@@ -1,8 +1,8 @@
 import org.junit.Assert
 import org.junit.Test
-import ru.itmo.scn.core.add
-import ru.itmo.scn.core.scale
-import ru.itmo.scn.core.sd
+import ru.itmo.scn.fs.add
+import ru.itmo.scn.fs.scale
+import ru.itmo.scn.fs.sd
 import kotlin.test.assertFailsWith
 
 class MathTest {

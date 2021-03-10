@@ -1,5 +1,4 @@
-
-import ru.itmo.scn.core.DATASET_FILE_NAME
+package ru.itmo.scn.fs
 import java.io.File
 
 fun touchEveryFile(directory: File) {

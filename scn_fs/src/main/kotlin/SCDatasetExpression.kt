@@ -1,4 +1,4 @@
-package ru.itmo.scn.core
+package ru.itmo.scn.fs
 
 class SCDatasetExpression(val datasetId: Int) {
 

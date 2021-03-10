@@ -33,8 +33,8 @@ import org.litote.kmongo.eq
 import org.litote.kmongo.findOne
 import org.litote.kmongo.getCollection
 import org.slf4j.event.Level
-import ru.itmo.scn.core.H5ExpressionDataset
-import ru.itmo.scn.core.SCDataset
+import ru.itmo.scn.fs.H5ExpressionDataset
+import ru.itmo.scn.fs.SCDataset
 import java.io.File
 import java.text.DateFormat
 import ru.itmo.scn.server.BulkGeneSearchBody

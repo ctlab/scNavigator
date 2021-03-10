@@ -1,5 +1,4 @@
-package ru.itmo.scn.core
-
+package ru.itmo.scn.fs
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json

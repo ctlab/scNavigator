@@ -1,4 +1,4 @@
-package ru.itmo.scn.core
+package ru.itmo.scn.fs
 
 import ncsa.hdf.hdf5lib.H5
 import ncsa.hdf.hdf5lib.HDF5Constants
@@ -114,7 +114,7 @@ class H5ExpressionDataset(h5path: String) {
 
     companion object {
         private val openDatasets = HashMap<String, H5ExpressionDataset>()
-        fun getDataset(h5path: String): H5ExpressionDataset{
+        fun getDataset(h5path: String): H5ExpressionDataset {
             val dataset = openDatasets[h5path]
             return if (dataset == null) {
                 val newDataset = H5ExpressionDataset(h5path)

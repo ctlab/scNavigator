@@ -1,3 +1,5 @@
+package ru.itmo.scn.fs
+
 import de.jupf.staticlog.Log
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
@@ -5,7 +7,6 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
-import ru.itmo.scn.core.DATASET_FILE_NAME
 import java.nio.file.Path
 import java.nio.file.StandardWatchEventKinds
 import java.nio.file.WatchEvent

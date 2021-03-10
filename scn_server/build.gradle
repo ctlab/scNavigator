@@ -37,11 +37,12 @@ repositories {
     }
     maven { url 'https://kotlin.bintray.com/ktor' }
     maven { url 'https://kotlin.bintray.com/kotlin-js-wrappers' }
+    maven { url 'https://kotlin.bintray.com/kotlinx/' }
 }
 
 dependencies {
     compile name: "jarhdf5-2.11.0"
-    compile project(":scn_core")
+    compile project(":scn_fs")
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     compile "org.jetbrains.kotlinx:kotlinx-serialization-runtime:0.14.0" // JVM dependency
     compile "io.ktor:ktor-server-netty:$ktor_version"

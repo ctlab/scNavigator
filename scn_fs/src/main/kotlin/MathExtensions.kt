@@ -1,4 +1,4 @@
-package ru.itmo.scn.core
+package ru.itmo.scn.fs
 
 import kotlin.math.sqrt
 

@@ -1,5 +1,6 @@
+
 import org.junit.Test
-import ru.itmo.scn.core.H5ExpressionDataset
+import ru.itmo.scn.fs.H5ExpressionDataset
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 

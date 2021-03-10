@@ -1,3 +1,4 @@
+package ru.itmo.scn.fs
 
 import com.mongodb.client.MongoCollection
 import com.mongodb.client.MongoDatabase
@@ -11,13 +12,13 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.datetime.Instant
 import org.litote.kmongo.KMongo
 import org.litote.kmongo.getCollection
-import ru.itmo.scn.core.SCDataset
+import ru.itmo.scn.fs.SCDataset
 import java.io.File
 import java.nio.file.FileSystems
 import java.nio.file.Path
+
 import java.nio.file.WatchEvent
 import kotlin.time.ExperimentalTime
-
 
 val mongoDBHost: String =  System.getenv("MONGODB_HOST") ?: "mongo:27017"
 val mongoDB: String = System.getenv("MONGODB_DATABASE") ?: "scn"

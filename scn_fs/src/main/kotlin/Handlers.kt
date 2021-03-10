@@ -1,3 +1,4 @@
+package ru.itmo.scn.fs
 
 import com.mongodb.client.MongoCollection
 import de.jupf.staticlog.Log
@@ -6,7 +7,8 @@ import org.litote.kmongo.deleteOneById
 import org.litote.kmongo.eq
 import org.litote.kmongo.findOne
 import org.litote.kmongo.updateOneById
-import ru.itmo.scn.core.SCDataset
+
+import ru.itmo.scn.fs.SCDataset
 import java.nio.file.Path
 
 

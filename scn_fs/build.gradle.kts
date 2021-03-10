@@ -22,14 +22,16 @@ repositories {
 
 dependencies {
     implementation(kotlin("stdlib"))
-    testCompile("junit", "junit", "4.12")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2")
     implementation("org.jetbrains.kotlinx:kotlinx-datetime-jvm:0.1.0")
     compile("org.jetbrains.kotlinx:kotlinx-serialization-json:1.1.0")
     compile("io.github.jupf.staticlog:staticlog:2.2.0")
     compile("org.litote.kmongo:kmongo:3.11.1")
     compile(":jarhdf5-2.11.0")
-    implementation(project(":scn_core"))
+    implementation("org.slf4j:slf4j-log4j12:1.7.21")
+    testCompile("org.jetbrains.kotlin:kotlin-reflect:1.4.30")
+    testCompile("org.jetbrains.kotlin:kotlin-test:1.4.30")
+    testCompile("junit", "junit", "4.12")
 }
 
 
@@ -45,7 +47,7 @@ sourceSets {
 tasks {
     named<ShadowJar>("shadowJar") {
         manifest {
-            attributes(mapOf("Main-Class" to "MainKt"))
+            attributes(mapOf("Main-Class" to "ru.itmo.scn.fs.MainKt"))
         }
     }
 }
@@ -54,4 +56,8 @@ tasks {
     build {
         dependsOn(shadowJar)
     }
+}
+
+tasks.test {
+    systemProperty("java.library.path", "./libs")
 }

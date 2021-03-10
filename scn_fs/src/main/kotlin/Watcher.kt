@@ -1,3 +1,5 @@
+package ru.itmo.scn.fs
+
 import de.jupf.staticlog.Log
 import kotlinx.coroutines.channels.Channel
 import java.io.File

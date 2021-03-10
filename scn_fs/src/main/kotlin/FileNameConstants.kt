@@ -1,4 +1,4 @@
-package ru.itmo.scn.core
+package ru.itmo.scn.fs
 
 const val H5_DATASET_FILE_NAME = "data.h5"
 const val DATASET_FILE_NAME = "dataset.json"
