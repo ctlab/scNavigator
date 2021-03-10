@@ -54,7 +54,7 @@ suspend fun recursiveFSWatcher(
                     }
                 }
             } else {
-                Log.info("SENDING EVENT TO FSReciever")
+                // Log.info("SENDING EVENT TO FSReciever")
                 outChannel.send(Pair(fullPath, event.kind() as WatchEvent.Kind<Path>));
             }
         }
