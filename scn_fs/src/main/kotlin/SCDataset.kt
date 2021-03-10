@@ -56,6 +56,8 @@ data class SCDataset (
     val markersFile: String?,
     val expressionFile: String?,
     val expH5Table: String?,
+    val gmtFile: String?,
+    val gmtAnnotationFile: String?,
     val files: List<String>
 ) {
     companion object Factory {
@@ -69,6 +71,9 @@ data class SCDataset (
             val expressionFile = Paths.get(workingDir, EXP_DATA_FILE_NAME)
             val expH5Table = Paths.get(workingDir, H5_DATASET_FILE_NAME)
             val filesDir = Paths.get(workingDir, FILES_FOLDER_NAME).toFile()
+            val gmtFileName = scJson.species.name + GMT_PREFIX
+            val gmtFile = Paths.get(workingDir, gmtFileName)
+            val gmtAnnotationFile = Paths.get(workingDir, GMT_ANNOTATION_FILE)
             var files: List<String> = emptyList()
 
 
@@ -93,6 +98,8 @@ data class SCDataset (
                 markersFile = if (markersFile.toFile().exists()) markersFile.toString() else null,
                 expressionFile = if (expressionFile.toFile().exists()) expressionFile.toString() else null,
                 expH5Table = if (expH5Table.toFile().exists()) expH5Table.toString() else null,
+                gmtFile = if (gmtFile.toFile().exists()) gmtFile.toString() else null,
+                gmtAnnotationFile = if (gmtAnnotationFile.toFile().exists()) gmtAnnotationFile.toString() else null,
                 files = files
             )
         }
