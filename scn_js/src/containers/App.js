@@ -10,6 +10,7 @@ import _ from 'lodash';
 
 
 const buttonTags = ["button", "i"];
+const docsHref = "docs/";
 
 const App = ({datasetsTokens, currentWindow, dispatch}) => {
   let panes = [{
@@ -18,6 +19,13 @@ const App = ({datasetsTokens, currentWindow, dispatch}) => {
       key: "main",
       content: (<MainPage />)
     }}];
+
+  let docsPane = {
+    menuItem: (<Menu.Item position="right" href={docsHref} target='_blank'>Documentation</Menu.Item>),
+    pane: {
+      key: "scn_docs"
+    }
+  }
 
   const datasetPanes = datasetsTokens.map(
       (dataset) =>
@@ -36,11 +44,18 @@ const App = ({datasetsTokens, currentWindow, dispatch}) => {
       }
   );
   panes.push.apply(panes, datasetPanes);
+  panes.push(docsPane);
 
   return (
       <Tab menu={{ attached: false, tabular: false }}
            onTabChange={(e, data) => {
              let tagName = e.target.tagName.toLowerCase();
+             if (e.target.attributes.hasOwnProperty("href")) {
+               if (e.target.attributes["href"].value === docsHref) {
+                 return
+               }
+             }
+
              if (_.filter(buttonTags, e => e === tagName).length === 0) {
                dispatch(changeCurrentWindow(data.activeIndex))
              }

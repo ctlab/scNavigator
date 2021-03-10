@@ -46,7 +46,9 @@ class DatasetList extends Component {
                 accessor: "link",
                 Cell: props =>  {
                     return !_.isUndefined(props.value) ?
-                        <a href={props.value} target={"_blank"}> <Icon name={"linkify"} size={"tiny"}/> </a> : <> </>;
+                        <a href={props.value} target={"_blank"} rel={"noreferrer"}>
+                            <Icon name={"linkify"} size={"tiny"}/>
+                        </a> : <> </>;
 
                 },
                 width: 50
