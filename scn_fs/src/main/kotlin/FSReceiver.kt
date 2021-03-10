@@ -30,12 +30,12 @@ suspend fun fsReceiver(inChannel: Channel<Pair<Path, WatchEvent.Kind<Path>>>,
 
         if (fullPath.fileName.toString() != FILENAME_TO_WATCH) continue
 
-        fileChanges[fullPath] = Clock.System.now()
-
         when (kind) {
             StandardWatchEventKinds.ENTRY_DELETE -> {
                 deletedChannel.send(fullPath)
-                fileChanges.remove(fullPath)
+                mutex.withLock {
+                    fileChanges.remove(fullPath)
+                }
             }
             StandardWatchEventKinds.ENTRY_CREATE,
             StandardWatchEventKinds.ENTRY_MODIFY -> {
