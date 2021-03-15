@@ -1,5 +1,7 @@
 import _ from "lodash";
+import React from 'react';
 import { getDefaultX, getDefaultY } from "../utils/Utils";
+import {Header, Menu} from "semantic-ui-react"
 
 import DatasetOverview from "../components/DatasetOverview";
 import DatasetHistogram from "../components/DatasetHistogram";
@@ -9,6 +11,8 @@ import DatasetPathwayExpression from "../components/DatasetPathwayExpression";
 import DatasetMarkers from "../components/DatasetMarkers";
 import FilesComponent from "../components/FilesComponent";
 import FilterComponent from "../components/FilterComponent";
+import InfoComponent from "../components/InfoComponent";
+import {speciesMapping} from "../utils/Constants";
 
 export const OVERVIEW = "_overview";
 export const HISTOGRAM = "_histogram";
@@ -18,6 +22,7 @@ export const PATHWAYS = "_pathways";
 export const MARKERS = "_markers";
 export const FILES = "_files";
 export const FILTER = "_filter";
+export const INFO = "_info";
 
 const generatePlotState = (dataset) => {
     let annotations = dataset.annotations;
@@ -88,6 +93,7 @@ export const generatePathwaysState = (dataset) => {
 export const generateMarkersState = (dataset) => (dataset);
 export const generateFilesState = (dataset) => (dataset);
 export const generateFilterState = (dataset) => (dataset);
+export const generateInfoState = (dataset) => (dataset);
 
 export const defaultTabOrder = [
     OVERVIEW,
@@ -97,7 +103,8 @@ export const defaultTabOrder = [
     PATHWAYS,
     MARKERS,
     FILES,
-    FILTER
+    FILTER,
+    INFO
 ];
 
 
@@ -112,6 +119,7 @@ tabRequirements[PATHWAYS] = ["plotDataLoaded", "expDataLoaded", "pathwaysLoaded"
 tabRequirements[MARKERS] = ["markersLoaded"];
 tabRequirements[FILES] = ["filesLoaded"];
 tabRequirements[FILTER] = ["plotDataLoaded"];
+tabRequirements[INFO] = ["plotDataLoaded"];
 
 const tabGenerators = {};
 tabGenerators[OVERVIEW] = (dataset) => generateOverviewState(dataset);
@@ -122,16 +130,27 @@ tabGenerators[PATHWAYS] = (dataset) => generatePathwaysState(dataset);
 tabGenerators[MARKERS] = (dataset) => generateMarkersState(dataset);
 tabGenerators[FILES] = (dataset) => generateFilesState(dataset);
 tabGenerators[FILTER] = (dataset) => generateFilterState(dataset);
+tabGenerators[INFO] = (dataset) => generateInfoState(dataset);
 
-export const tabNames = {};
-tabNames[OVERVIEW] = "Overview";
-tabNames[HISTOGRAM] = "Histogram / Bar plot";
-tabNames[EXPRESSION_SCATTER] = "Expression scatter plot";
-tabNames[EXPRESSION_VIOLIN] = "Expression violin plot";
-tabNames[PATHWAYS] = "Pathway / Gene set plot";
-tabNames[MARKERS] = "Markers";
-tabNames[FILES] = "Files";
-tabNames[FILTER] = "Filtering";
+export const tabMenuItems = {};
+tabMenuItems[OVERVIEW] = (props) => "Overview";
+tabMenuItems[HISTOGRAM] = (props) => "Histogram / Bar plot";
+tabMenuItems[EXPRESSION_SCATTER] = (props) => "Expression scatter plot";
+tabMenuItems[EXPRESSION_VIOLIN] = (props) => "Expression violin plot";
+tabMenuItems[PATHWAYS] = (props) => "Pathway / Gene set plot";
+tabMenuItems[MARKERS] =  (props) => "Markers";
+tabMenuItems[FILES] =  (props) => "Files";
+tabMenuItems[FILTER] = (props) => "Filtering";
+tabMenuItems[INFO] = (props) => {
+    return (<Menu.Item>
+        <Header as='h4'>Information</Header>
+        <p>Token: {props.token} <br/>
+            Species: {speciesMapping[props.species]} <br/>
+            Number of cells: {props.cells} <br/>
+            Dataset is public: {props.public ? "yes" : "no"} <br/>
+        </p>
+    </Menu.Item>)
+}
 
 
 export const tabClasses = {};
@@ -143,6 +162,7 @@ tabClasses[PATHWAYS] = DatasetPathwayExpression;
 tabClasses[MARKERS] = DatasetMarkers;
 tabClasses[FILES] = FilesComponent;
 tabClasses[FILTER] = FilterComponent;
+tabClasses[INFO] = InfoComponent;
 
 export const generateTabs = (dataset) => {
     let tabs = {};

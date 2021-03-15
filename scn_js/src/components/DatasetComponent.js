@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import {Tab} from 'semantic-ui-react';
 import {
-    getOpenTabsOrdered, tabClasses, tabNames
+    getOpenTabsOrdered, tabClasses, tabMenuItems
 } from "../reducers/Tabs";
 
 
@@ -51,9 +51,9 @@ class DatasetComponent extends Component {
             for (let i = 0; i < openTabs.length; i++) {
                 let tab = openTabs[i];
                 let key = this.props.token.concat(tab);
-                let name = tabNames[tab];
                 panes.push({
-                    menuItem: name, pane: {
+                    menuItem: tabMenuItems[tab](this.props),
+                    pane: {
                         key: key,
                         content: React.createElement(tabClasses[tab], {token: this.props.token, tab: tab}, null)
                     }
