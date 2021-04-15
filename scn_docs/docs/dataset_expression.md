@@ -78,14 +78,19 @@ h5closeAll()
 ## `exp_data.json`
 
 
-This file simply contains gene names, cell barcodes/names and total UMI per cell. 
+This file simply contains gene/feature names, cell barcodes/names and total UMI per cell. 
+Special field is "expType" that tells the scNavigator which format expression data is: supported values are `"counts"` 
+and `"as_is"`. If the value is `"counts"` scNavigator will by default apply library size / log2 normalizations to the data,
+otherwise it will be used as is.
+
 This file must reflect row and column names of matrix `data.h5` which contains expression data.
 
 ```json
 {
-  "genes": ["TSPAN6", "DPM1", "SCYL3", "C1orf112", "CFH", "FUCA2", ...],
+  "features": ["TSPAN6", "DPM1", "SCYL3", "C1orf112", "CFH", "FUCA2", ...],
   "barcodes": ["00ca0d37-b787-41a4-be59-2aff5b13b0bd","0103aed0-29c2-4b29-a02a-2b58036fe875", ... ],
-  "totalCounts": [890612, 939514, ...]
+  "totalCounts": [890612, 939514, ...],
+  "expType": "counts"
 }
 ```
 
