@@ -32,6 +32,7 @@ fun generateGMTs(
         val outGmtFile = Paths.get(outDir, speciesName + GMT_PREFIX)
         val charset: Charset = StandardCharsets.UTF_8
 
+        Files.delete(outGmtFile)
         // Join files (lines)
         for (path in inputs) {
             val lines = Files.readAllLines(path, charset)
