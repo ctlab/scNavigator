@@ -28,7 +28,7 @@ suspend fun fsReceiver(inChannel: Channel<Pair<Path, WatchEvent.Kind<Path>>>,
         val fullPath = pair.first
         val kind = pair.second
 
-        if (fullPath.fileName.toString() != FILENAME_TO_WATCH) continue
+//        if (fullPath.fileName.toString() != FILENAME_TO_WATCH) continue
 
         when (kind) {
             StandardWatchEventKinds.ENTRY_DELETE -> {
