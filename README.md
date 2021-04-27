@@ -1,15 +1,13 @@
----
-id: installation
-title: Installing scNavigator locally
----
+# scNavigator
 
 ![Badge - Java](https://github.com/ctlab/scNavigator/actions/workflows/java.yml/badge.svg)
 ![Badge - Frontend](https://github.com/ctlab/scNavigator/actions/workflows/frontend.yml/badge.svg)
 ![Badge - Docs](https://github.com/ctlab/scNavigator/actions/workflows/docs.yml/badge.svg)
 
-This is an installation guide for scNavigator. 
+scNavigator is a webserver for visualization and analysis of scRNA-seq datasets.
+scNavigator also allows accessing thousands of public scRNA-seq datasets from GEO and EMBL-EBI databases.
 
-Main repository will always be hosted at https://github.com/ctlab/scNavigator.
+Below is installation and deployment guide for scNavigator.
 
 ## scNavigator: server-side
 
