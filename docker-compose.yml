@@ -5,6 +5,7 @@ services:
     build: ./nginx
     depends_on:
       - web
+    restart: always
     volumes:
       - "./nginx/sites-enabled:/etc/nginx/sites-enabled"
       - "./scn_js:/scn/scn_js"
