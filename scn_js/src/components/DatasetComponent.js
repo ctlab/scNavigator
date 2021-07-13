@@ -1,20 +1,16 @@
 import React, {Component} from 'react';
 import {Tab} from 'semantic-ui-react';
-import {
-    getOpenTabsOrdered, tabClasses, tabMenuItems
-} from "../reducers/Tabs";
-
-
+import _ from "lodash";
+import {getOpenTabsOrdered, tabClasses, tabMenuItems} from "../reducers/Tabs";
 
 
 class DatasetComponent extends Component {
     componentDidMount() {
 
         // removing first slash, so fetch takes relative path
-        let plotDataUrl = this.props.plotDataFile.substr(1);
-        let markersDataUrl = this.props.markersFile.substr(1);
-        let expDataUrl = this.props.expressionFile.substr(1);
-
+        let plotDataUrl = _.get(this.props, "plotDataFile", "/").substr(1);
+        let markersDataUrl = _.get(this.props, "markersFile", "/").substr(1);
+        let expDataUrl = _.get(this.props, "expressionFile", "/").substr(1);
 
         fetch(plotDataUrl, {headers: {'Accept-Encoding': 'gzip'}})
             .then(res => res.json())
