@@ -9,7 +9,7 @@ RUN apt update && apt install -y git
 
 #Install everything for the back-end
 
-ARG COMMITSHA=028350c8049afeb4ccfd0b1d3e8d0549bc27ba10
+ARG COMMITSHA=b704606d2da7d58858295a66c5ddea970488258a
 RUN cd /genequery && git clone https://github.com/konsolerr/genequery-kotlin.git
 RUN cd /genequery/genequery-kotlin && git checkout ${COMMITSHA}
 RUN cd /genequery/genequery-kotlin && gradle build
