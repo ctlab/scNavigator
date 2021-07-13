@@ -20,7 +20,11 @@ const InfoComponent = ({token, name, description, link, species, cells, isPublic
             </Table.Row>
             <Table.Row>
                 <Table.HeaderCell>Link</Table.HeaderCell>
-                <Table.Cell>{link}</Table.Cell>
+                <Table.Cell>
+					<a href={link} target={"_blank"} rel={"noreferrer"}>
+                            {link}
+                    </a>
+				</Table.Cell>
             </Table.Row>
             <Table.Row>
                 <Table.HeaderCell>Species</Table.HeaderCell>
