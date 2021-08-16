@@ -27,7 +27,8 @@ let initState = () => {
             speciesTo: "mm",
             latestQuery: {},
             latestQuerySymbol: [],
-            searchResults: {}
+            searchResults: {},
+            collapseResults: "dataset" // values are 'study', 'dataset', and 'none'
         }
 
     };

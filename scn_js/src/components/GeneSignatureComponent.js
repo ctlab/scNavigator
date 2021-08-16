@@ -60,6 +60,18 @@ export default class GeneSignatureComponent extends Component {
                 width: 50
             }];
 
+        let extraColumns = [
+            {
+                Header: "Markers table",
+                accessor: 'table',
+                width: 50
+            }, {
+                Header: "Cluster #",
+                accessor: 'cluster',
+                width: 50
+            }
+        ];
+
         let hasResults = _.has(this.props.searchResults, "success");
         let resultsBlock = (<div />);
         if (hasResults) {
@@ -68,14 +80,38 @@ export default class GeneSignatureComponent extends Component {
                 let resultsToShow = _.map(searchResult.enrichmentResultItems,
                     (x) => {
                         let ownValues = _.pick(x, ["datasetId", "adjPvalue", "intersectionSize", "moduleSize"]);
+                        let partsHash = ownValues["datasetId"].split("#");
+                        let partsUnderscore = partsHash[0].split("_");
+                        let study = partsUnderscore[0];
+                        let dataset = partsUnderscore[partsUnderscore.length - 1];
                         let extension = searchResult.meta[ownValues["datasetId"]];
+                        extension["study"] = study;
+                        extension["dataset"] = dataset;
+                        extension["table"] = partsHash[1];
+                        extension["cluster"] = partsHash[2];
                         return _.merge(ownValues, extension);
                     });
+                let columnsToShow = [];
+
+                if (this.props.collapseResults !== "none") {
+                    resultsToShow = _.groupBy(resultsToShow, this.props.collapseResults);
+                    resultsToShow = _.mapValues(resultsToShow,
+                            collection => _.minBy(collection, "adjPvalue"));
+                    resultsToShow = _.values(resultsToShow);
+                    columnsToShow = geneSignatureTableColumns;
+                } else {
+                    columnsToShow = _.concat(
+                        geneSignatureTableColumns.slice(0, 4),
+                        extraColumns,
+                        geneSignatureTableColumns.slice(4, 7)
+                    );
+                }
+
                 resultsBlock = <ReactTable
                     filterable
                     data={resultsToShow}
                     defaultPageSize={10}
-                    columns={geneSignatureTableColumns}
+                    columns={columnsToShow}
                 />
             } else {
                 resultsBlock = <div>Something went wrong: {this.props.searchResults.errors}</div>
@@ -161,6 +197,35 @@ export default class GeneSignatureComponent extends Component {
                 </Form.Field>
                 <Button type='submit'>Submit</Button>
                 <br />< br />
+                <Form.Group>
+                    <Form.Field>
+                        <Radio
+                            label='Collapse by study'
+                            name='radioGroupCollapse'
+                            value='study'
+                            checked={this.props.collapseResults === 'study'}
+                            onChange={() => this.props.changeInput("collapseResults", "study")}
+                        />
+                    </Form.Field>
+                    <Form.Field>
+                        <Radio
+                            label='Collapse by dataset'
+                            name='radioGroupCollapse'
+                            value='dataset'
+                            checked={this.props.collapseResults === 'dataset'}
+                            onChange={() => this.props.changeInput("collapseResults", "dataset")}
+                        />
+                    </Form.Field>
+                    <Form.Field>
+                        <Radio
+                            label="Dont collapse"
+                            name='radioGroupCollapse'
+                            value='none'
+                            checked={this.props.collapseResults === 'none'}
+                            onChange={() => this.props.changeInput("collapseResults", "none")}
+                        />
+                    </Form.Field>
+                </Form.Group>
                 {resultsBlock}
 
             </Form>
