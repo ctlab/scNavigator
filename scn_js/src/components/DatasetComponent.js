@@ -25,11 +25,11 @@ class DatasetComponent extends Component {
             .then(data => this.props.loadedExpData(this.props.token, data));
 
         // TODO: this is unnecessary call for each dataset
-        fetch("scn/getPathwayNames/", {headers: {'Accept-Encoding': 'gzip'}})
+        fetch("scn/getPathwayNames", {headers: {'Accept-Encoding': 'gzip'}})
             .then(res => res.json())
             .then(data => this.props.loadedPathwaysData(this.props.token, data));
 
-        fetch("scn/getFiles/?token=" + this.props.token)
+        fetch("scn/getFiles?token=" + this.props.token)
             .then(res => res.json())
             .then(data => this.props.loadedFilesData(this.props.token, data));
 

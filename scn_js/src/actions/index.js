@@ -19,6 +19,14 @@ import {
 } from "./GeneSignatureActions"
 
 import {
+    SINGLE_GENE_INPUT_CHANGED, singleGeneInputChanged,
+    SINGLE_GENE_RESULTS_LOADED, singleGeneResultsLoaded,
+    SINGLE_GENE_SUBMIT, singleGeneSubmit,
+    fetchSingleGeneCounts, showSingleGene
+}
+from "./SingleGeneSearchActions"
+
+import {
     GENE_SEARCH_CHANGED,
     GENE_SEARCH_RESET,
     GENE_SEARCH_LOADED,
@@ -60,6 +68,10 @@ export {
     BULK_CHANGED, bulkChanged,
     GENE_SIGNATURE_INPUT_CHANGED, geneSignatureInputChanged,
     GENE_SIGNATURE_RESULTS_LOADED, GENE_SIGNATURE_SUBMIT, fetchGeneSignature,
-    geneSignatureResultsLoaded, geneSignatureSubmit, showGeneSignature
+    geneSignatureResultsLoaded, geneSignatureSubmit, showGeneSignature,
+    SINGLE_GENE_INPUT_CHANGED, singleGeneInputChanged,
+    SINGLE_GENE_RESULTS_LOADED, singleGeneResultsLoaded,
+    SINGLE_GENE_SUBMIT, singleGeneSubmit,
+    fetchSingleGeneCounts, showSingleGene
 };
 

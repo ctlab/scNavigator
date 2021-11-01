@@ -119,116 +119,118 @@ export default class GeneSignatureComponent extends Component {
         }
 
         return(
-            <Form loading={this.props.searchLoading}
-                    onSubmit={() => this.props.submitGeneSignatureForm(this.props.speciesFrom,
-                        this.props.speciesTo, this.props.searchField)}>
-                <Form.Field>
-                    Selected species of gene set
-                </Form.Field>
-                <Form.Group>
+            <>
+                <Form loading={this.props.searchLoading}
+                      onSubmit={() => this.props.submitGeneSignatureForm(this.props.speciesFrom,
+                          this.props.speciesTo, this.props.searchField)}>
                     <Form.Field>
-                        <Radio
-                            label={speciesMapping["mm"]}
-                            name='radioGroupFrom'
-                            value='mm'
-                            checked={this.props.speciesFrom === 'mm'}
-                            onChange={() => this.props.changeInput("speciesFrom", "mm")}
-                        />
+                        Selected species of gene set
+                    </Form.Field>
+                    <Form.Group>
+                        <Form.Field>
+                            <Radio
+                                label={speciesMapping["mm"]}
+                                name='radioGroupFrom'
+                                value='mm'
+                                checked={this.props.speciesFrom === 'mm'}
+                                onChange={() => this.props.changeInput("speciesFrom", "mm")}
+                            />
+                        </Form.Field>
+                        <Form.Field>
+                            <Radio
+                                label={speciesMapping["hs"]}
+                                name='radioGroupFrom'
+                                value='hs'
+                                checked={this.props.speciesFrom === 'hs'}
+                                onChange={() => this.props.changeInput("speciesFrom", "hs")}
+                            />
+                        </Form.Field>
+                        <Form.Field>
+                            <Radio
+                                label={speciesMapping["rn"]}
+                                name='radioGroupFrom'
+                                value='rn'
+                                checked={this.props.speciesFrom === 'rn'}
+                                onChange={() => this.props.changeInput("speciesFrom", "rn")}
+                            />
+                        </Form.Field>
+                    </Form.Group>
+                    <Form.Field>
+                        Selected species of dataset (if it's different from gene set we will use orthology to convert genes)
+                    </Form.Field>
+                    <Form.Group>
+                        <Form.Field>
+                            <Radio
+                                label={speciesMapping["mm"]}
+                                name='radioGroupTo'
+                                value='mm'
+                                checked={this.props.speciesTo === 'mm'}
+                                onChange={() => this.props.changeInput("speciesTo", "mm")}
+                            />
+                        </Form.Field>
+                        <Form.Field>
+                            <Radio
+                                label={speciesMapping["hs"]}
+                                name='radioGroupTo'
+                                value='hs'
+                                checked={this.props.speciesTo === 'hs'}
+                                onChange={() => this.props.changeInput("speciesTo", "hs")}
+                            />
+                        </Form.Field>
+                        <Form.Field>
+                            <Radio
+                                label={speciesMapping["rn"]}
+                                name='radioGroupTo'
+                                value='rn'
+                                checked={this.props.speciesTo === 'rn'}
+                                onChange={() => this.props.changeInput("speciesTo", "rn")}
+                            />
+                        </Form.Field>
+                    </Form.Group>
+                    <Form.Field>
+                        Paste genes in Symbol/Entrez/Ensembl or Refseq format below.
                     </Form.Field>
                     <Form.Field>
-                        <Radio
-                            label={speciesMapping["hs"]}
-                            name='radioGroupFrom'
-                            value='hs'
-                            checked={this.props.speciesFrom === 'hs'}
-                            onChange={() => this.props.changeInput("speciesFrom", "hs")}
-                        />
+                        <TextArea placeholder='Paste genes here'
+                                  name={"geneSearchField"}
+                                  value={this.props.searchField}
+                                  onChange={(e, { name, value }) => this.props.changeInput("searchField", value)} />
                     </Form.Field>
-                    <Form.Field>
-                        <Radio
-                            label={speciesMapping["rn"]}
-                            name='radioGroupFrom'
-                            value='rn'
-                            checked={this.props.speciesFrom === 'rn'}
-                            onChange={() => this.props.changeInput("speciesFrom", "rn")}
-                        />
-                    </Form.Field>
-                </Form.Group>
-                <Form.Field>
-                    Selected species of dataset (if it's different from gene set we will use orthology to convert genes)
-                </Form.Field>
-                <Form.Group>
-                    <Form.Field>
-                        <Radio
-                            label={speciesMapping["mm"]}
-                            name='radioGroupTo'
-                            value='mm'
-                            checked={this.props.speciesTo === 'mm'}
-                            onChange={() => this.props.changeInput("speciesTo", "mm")}
-                        />
-                    </Form.Field>
-                    <Form.Field>
-                        <Radio
-                            label={speciesMapping["hs"]}
-                            name='radioGroupTo'
-                            value='hs'
-                            checked={this.props.speciesTo === 'hs'}
-                            onChange={() => this.props.changeInput("speciesTo", "hs")}
-                        />
-                    </Form.Field>
-                    <Form.Field>
-                        <Radio
-                            label={speciesMapping["rn"]}
-                            name='radioGroupTo'
-                            value='rn'
-                            checked={this.props.speciesTo === 'rn'}
-                            onChange={() => this.props.changeInput("speciesTo", "rn")}
-                        />
-                    </Form.Field>
-                </Form.Group>
-                <Form.Field>
-                    Paste genes in Symbol/Entrez/Ensembl or Refseq format below.
-                </Form.Field>
-                <Form.Field>
-                    <TextArea placeholder='Paste genes here'
-                              name={"geneSearchField"}
-                              value={this.props.searchField}
-                              onChange={(e, { name, value }) => this.props.changeInput("searchField", value)} />
-                </Form.Field>
-                <Button type='submit'>Submit</Button>
-                <br />< br />
-                <Form.Group>
-                    <Form.Field>
-                        <Radio
-                            label='Collapse by study'
-                            name='radioGroupCollapse'
-                            value='study'
-                            checked={this.props.collapseResults === 'study'}
-                            onChange={() => this.props.changeInput("collapseResults", "study")}
-                        />
-                    </Form.Field>
-                    <Form.Field>
-                        <Radio
-                            label='Collapse by dataset'
-                            name='radioGroupCollapse'
-                            value='dataset'
-                            checked={this.props.collapseResults === 'dataset'}
-                            onChange={() => this.props.changeInput("collapseResults", "dataset")}
-                        />
-                    </Form.Field>
-                    <Form.Field>
-                        <Radio
-                            label="Dont collapse"
-                            name='radioGroupCollapse'
-                            value='none'
-                            checked={this.props.collapseResults === 'none'}
-                            onChange={() => this.props.changeInput("collapseResults", "none")}
-                        />
-                    </Form.Field>
-                </Form.Group>
+                    <Button type='submit'>Submit</Button>
+                    <br />< br />
+                    <Form.Group>
+                        <Form.Field>
+                            <Radio
+                                label='Collapse by study'
+                                name='radioGroupCollapse'
+                                value='study'
+                                checked={this.props.collapseResults === 'study'}
+                                onChange={() => this.props.changeInput("collapseResults", "study")}
+                            />
+                        </Form.Field>
+                        <Form.Field>
+                            <Radio
+                                label='Collapse by dataset'
+                                name='radioGroupCollapse'
+                                value='dataset'
+                                checked={this.props.collapseResults === 'dataset'}
+                                onChange={() => this.props.changeInput("collapseResults", "dataset")}
+                            />
+                        </Form.Field>
+                        <Form.Field>
+                            <Radio
+                                label="Dont collapse"
+                                name='radioGroupCollapse'
+                                value='none'
+                                checked={this.props.collapseResults === 'none'}
+                                onChange={() => this.props.changeInput("collapseResults", "none")}
+                            />
+                        </Form.Field>
+                    </Form.Group>
+                </Form>
                 {resultsBlock}
+            </>
 
-            </Form>
         )
     }
 }

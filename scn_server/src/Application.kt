@@ -5,44 +5,34 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.mongodb.client.MongoDatabase
 import de.jupf.staticlog.Log
-import io.ktor.application.Application
-import io.ktor.application.ApplicationCall
-import io.ktor.application.call
-import io.ktor.application.install
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.apache.Apache
+import io.ktor.application.*
+import io.ktor.client.*
+import io.ktor.client.engine.apache.*
 import io.ktor.features.*
-import io.ktor.gson.gson
-import io.ktor.http.ContentType
-import io.ktor.http.HttpStatusCode
-import io.ktor.jackson.jackson
-import io.ktor.request.path
-import io.ktor.request.receive
-import io.ktor.response.respond
-import io.ktor.response.respondText
-import io.ktor.routing.get
-import io.ktor.routing.post
-import io.ktor.routing.route
-import io.ktor.routing.routing
-import kotlinx.css.CSSBuilder
+import io.ktor.gson.*
+import io.ktor.http.*
+import io.ktor.jackson.*
+import io.ktor.request.*
+import io.ktor.response.*
+import io.ktor.routing.*
+import kotlinx.css.CssBuilder
 import kotlinx.html.CommonAttributeGroupFacade
 import kotlinx.html.FlowOrMetaDataContent
 import kotlinx.html.style
-import org.litote.kmongo.KMongo
-import org.litote.kmongo.eq
-import org.litote.kmongo.findOne
-import org.litote.kmongo.getCollection
+import org.litote.kmongo.*
+import org.litote.kmongo.MongoOperator.*
 import org.slf4j.event.Level
 import ru.itmo.scn.fs.H5ExpressionDataset
 import ru.itmo.scn.fs.SCDataset
+import ru.itmo.scn.fs.SCDatasetExpression
 import java.io.File
 import java.text.DateFormat
-import ru.itmo.scn.server.BulkGeneSearchBody
 
 
-val mongoDBHost: String =  System.getenv("MONGODB_HOST") ?: "mongo:27017"
+val mongoDBHost: String =  System.getenv("MONGODB_HOST") ?: "mongodb://mongo:27017"
 val mongoDB: String = System.getenv("MONGODB_DATABASE") ?: "scn"
 val mongoDBCollection: String = System.getenv("MONGODB_COLLECTION") ?: "datasets"
+val mongoDBCollectionExpressionName: String = System.getenv("MONGODB_COLLECTION_exp") ?: "datasets_expression_data"
 val pathToProd: String = System.getenv("PROD_PATH") ?: "/scn/scn_js/prod"
 
 val client = KMongo.createClient(mongoDBHost)
@@ -221,6 +211,54 @@ fun Application.module(testing: Boolean = false) {
                 }
             }
 
+            post("getSingleGene") {
+                val body = call.receive<SingleGeneSearchBody>();
+                val gene = body.gene
+
+                val collection = database.getCollection<SCDataset>(mongoDBCollection)
+                val collectionExpression = database.getCollection<SCDatasetExpression>(mongoDBCollectionExpressionName)
+                val fieldString = "featureCounts.${gene}"
+
+
+//                val queryBson = """[
+//  { $match: { "$fieldString": {$gt: 0} } },
+//  { $lookup: { from: "$mongoDBCollection", localField: "token", foreignField: "token", as: "details"} },
+//  { $project: {
+//      token: 1,
+//      count: "$ $fieldString",
+//      percent: { $divide: ["$ $fieldString", {$size: "$ barcodes"} ] },
+//      name: "$ details.0.name",
+//      description: "$ details.0.description",
+//      link: "$ details.0.link",
+//  } },
+//  { $sort: { percent: -1 } }
+//]
+//""".formatJson()
+
+                val queryBson = """[
+  { $match: { "$fieldString": {$gt: 0} } },
+  { $lookup: { from: "$mongoDBCollection", localField: "token", foreignField: "token", as: "details"} },
+  { $ addFields: { details: {$ first: "$ details"} } }, 
+  { $project: {
+      token: 1,
+      count: "$ $fieldString",
+      percent: { $divide: ["$ $fieldString", {$size: "$ barcodes"} ] },
+      name: "$ details.name",
+      description: "$ details.description",
+      link: "$ details.link"
+  } },
+  { $sort: { percent: -1 } }
+]
+""".formatJson()
+
+                println(queryBson)
+                val datasets = collectionExpression.aggregate<SingleGeneResponse>(queryBson)
+                println(datasets.toMutableList())
+
+                call.respond(datasets.toMutableList())
+
+            }
+
             get("getExpressionData") {
                 val dataset = checkToken(call)
                 val gene = call.request.queryParameters["gene"]?.toInt()
@@ -259,16 +297,16 @@ fun Application.module(testing: Boolean = false) {
 class AuthenticationException : RuntimeException()
 class AuthorizationException : RuntimeException()
 
-fun FlowOrMetaDataContent.styleCss(builder: CSSBuilder.() -> Unit) {
+fun FlowOrMetaDataContent.styleCss(builder: CssBuilder.() -> Unit) {
     style(type = ContentType.Text.CSS.toString()) {
-        +CSSBuilder().apply(builder).toString()
+        +CssBuilder().apply(builder).toString()
     }
 }
 
-fun CommonAttributeGroupFacade.style(builder: CSSBuilder.() -> Unit) {
-    this.style = CSSBuilder().apply(builder).toString().trim()
+fun CommonAttributeGroupFacade.style(builder: CssBuilder.() -> Unit) {
+    this.style = CssBuilder().apply(builder).toString().trim()
 }
 
-suspend inline fun ApplicationCall.respondCss(builder: CSSBuilder.() -> Unit) {
-    this.respondText(CSSBuilder().apply(builder).toString(), ContentType.Text.CSS)
+suspend inline fun ApplicationCall.respondCss(builder: CssBuilder.() -> Unit) {
+    this.respondText(CssBuilder().apply(builder).toString(), ContentType.Text.CSS)
 }

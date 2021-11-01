@@ -3,6 +3,7 @@ import TokenInput from "../containers/TokenInput";
 import React, {Component} from "react";
 import PublicDatasets, {CuratedDatasets} from "../containers/PublicDatasets";
 import GeneSignature from "../containers/GeneSignature"
+import SingleGeneSearch from "../containers/SingleGeneSearch"
 import {fetchPublicDatasets} from "../actions";
 import {connect} from "react-redux";
 
@@ -18,6 +19,7 @@ class MainPage extends Component {
             { menuItem: 'All scRNA-seq datasets', render: () => <Tab.Pane><PublicDatasets /></Tab.Pane> },
             { menuItem: 'Curated datasets', render: () => <Tab.Pane><CuratedDatasets /></Tab.Pane> },
             { menuItem: 'Gene signature search', render: () => <Tab.Pane><GeneSignature /></Tab.Pane> },
+            { menuItem: 'Single gene search', render: () => <Tab.Pane><SingleGeneSearch /></Tab.Pane>}
         ];
         return (
             <Tab.Pane>

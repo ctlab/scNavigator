@@ -87,7 +87,7 @@ export const fetchGeneData = (token, tab, geneValue) => {
         } else {
             let expData = getState().datasetsByTokens[token].expData;
             let geneIndex = expData.features.indexOf(geneValue);
-            fetch("scn/getExpressionData/?token=" + token + "&gene=" + geneIndex)
+            fetch("scn/getExpressionData?token=" + token + "&gene=" + geneIndex)
                 .then(res => res.json())
                 .then(data => dispatch(genePlotLoadedData(token, tab, geneValue, data)));
         }
@@ -181,7 +181,7 @@ export const fetchPathwayData = (token, tab, pathwayValue) => {
             dispatch(pathwayLoadedData(token, tab, pathwayValue, cachedPathways[pathwayValue]));
         } else {
             let pathwayString = encodeURIComponent(pathwayValue);
-            fetch("scn/getPathway/?token=" + token + "&pathway=" + pathwayString)
+            fetch("scn/getPathway?token=" + token + "&pathway=" + pathwayString)
                 .then(res => res.json())
                 .then(data => dispatch(pathwayLoadedData(token, tab, pathwayValue, data)));
         }
@@ -233,7 +233,7 @@ export const fetchBulkData = (token, tab, bulkValue) => {
             genes: indices
         };
 
-        fetch("scn/getGeneset/", {
+        fetch("scn/getGeneset", {
             method: "POST",
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(postData)

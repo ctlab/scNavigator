@@ -1,9 +1,12 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
+
+
 plugins {
     java
-    kotlin("jvm") version "1.4.30"
-    kotlin("plugin.serialization") version "1.4.30"
+    val kotlinVersion by System.getProperties()
+    kotlin("jvm") version kotlinVersion.toString()
+    kotlin("plugin.serialization") version kotlinVersion.toString()
     id("com.github.johnrengelman.shadow") version "5.2.0"
 }
 
@@ -21,19 +24,20 @@ repositories {
 }
 
 dependencies {
+    val mongoVersion: String by System.getProperties()
     implementation(kotlin("stdlib"))
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2")
-    implementation("org.jetbrains.kotlinx:kotlinx-datetime-jvm:0.1.0")
-    compile("org.jetbrains.kotlinx:kotlinx-serialization-json:1.1.0")
-    compile("io.github.jupf.staticlog:staticlog:2.2.0")
-    compile("org.litote.kmongo:kmongo:3.11.1")
-    compile(":jarhdf5-2.11.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime-jvm:0.3.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.1.0")
+    implementation("io.github.jupf.staticlog:staticlog:2.2.0")
+    implementation("org.litote.kmongo:kmongo:$mongoVersion")
+    implementation(":jarhdf5-2.11.0")
     implementation("org.slf4j:slf4j-log4j12:1.7.21")
-    compile("org.jetbrains.kotlin:kotlin-reflect:1.4.30")
-    testCompile("org.jetbrains.kotlin:kotlin-test:1.4.30")
-    testCompile("junit", "junit", "4.12")
+    implementation("org.jetbrains.kotlin:kotlin-reflect")
+    testImplementation("org.jetbrains.kotlin:kotlin-test")
+    testImplementation("junit", "junit", "4.12")
+    testImplementation(kotlin("script-runtime"))
 }
-
 
 sourceSets {
     main {

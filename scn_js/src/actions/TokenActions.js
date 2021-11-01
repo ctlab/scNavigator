@@ -31,7 +31,7 @@ export const fetchToken = (token) => {
 
         dispatch(checkToken(token));
 
-        return fetch("scn/checkDataset/?token=" + token)
+        return fetch("scn/checkDataset?token=" + token)
             .then(res => {
                 if (res.status === 200) {
                     dispatch(fetchDataset(token));

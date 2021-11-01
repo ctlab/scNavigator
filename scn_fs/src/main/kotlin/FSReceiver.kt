@@ -10,6 +10,7 @@ import kotlinx.datetime.Instant
 import java.nio.file.Path
 import java.nio.file.StandardWatchEventKinds
 import java.nio.file.WatchEvent
+import kotlin.time.DurationUnit
 import kotlin.time.ExperimentalTime
 
 // 10 seconds
@@ -55,7 +56,7 @@ suspend fun delayedFSReceiver(modifiedChannel: Channel<Path>,
         delay(100)
         mutex.withLock {
             val changes = fileChanges.filter {
-                (Clock.System.now() - it.value).inSeconds > TIMEDELTA_THRESHOLD
+                (Clock.System.now() - it.value).toDouble(DurationUnit.SECONDS) > TIMEDELTA_THRESHOLD
             }
             var pathChangePairs: List<Pair<Path, Instant>> = changes.toList()
             pathChangePairs = pathChangePairs.sortedBy { it.second }

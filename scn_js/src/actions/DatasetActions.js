@@ -48,7 +48,7 @@ export const fetchDataset = (token) => {
         } else {
             dispatch(loadDataset(token));
 
-            return fetch("scn/getDataset/?token=" + token)
+            return fetch("scn/getDataset?token=" + token)
                 .then(res => {
                     if (res.status === 200) {
                         res.json().then(data => dispatch(loadedDataset(token, data)));

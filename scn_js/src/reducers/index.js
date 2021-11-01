@@ -3,6 +3,7 @@ import { token, tokenLoading} from "./TokenReducers";
 import { datasetsByTokens, datasetsTokens} from "./DatasetReducers";
 import { currentWindow } from "./AppReducers"
 import { geneSignature } from "./GeneSigantureReducers";
+import { singleGeneSearch } from "./SingleGeneSearchReducers";
 
 
 let initState = () => {
@@ -29,6 +30,13 @@ let initState = () => {
             latestQuerySymbol: [],
             searchResults: {},
             collapseResults: "dataset" // values are 'study', 'dataset', and 'none'
+        },
+
+        singleGeneSearch: {
+            searchLoading: false,
+            searchField: "",
+            latestQuery: {},
+            searchResults: [],
         }
 
     };
@@ -44,7 +52,8 @@ const app = (state = initState(), action) => {
         datasetsTokens: datasetsTokens(state.datasetsTokens, action),
         datasetsByTokens :datasetsByTokens(state.datasetsByTokens, action),
         currentWindow: currentWindow(state, action),
-        geneSearch: geneSignature(state.geneSearch, action)
+        geneSearch: geneSignature(state.geneSearch, action),
+        singleGeneSearch: singleGeneSearch(state.singleGeneSearch, action)
     };
 };
 
