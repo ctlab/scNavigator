@@ -39,8 +39,8 @@ export default class SingleGeneComponent extends Component {
                 },
                 width: 50
             },{
-                Header: "Title",
-                accessor: 'name',
+                Header: "Description",
+                accessor: 'description',
                 Filter: FilterLabel("~"),
                 filterMethod: caseInsensetiveRegexpFiltering
             }, {

@@ -14,7 +14,7 @@ const docsHref = "docs/";
 
 const App = ({datasetsTokens, currentWindow, dispatch}) => {
   let panes = [{
-    menuItem: "scNavigator: beta",
+    menuItem: "scNavigator: DEVELOPMENT VERSION",
     pane: {
       key: "main",
       content: (<MainPage />)
