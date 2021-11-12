@@ -30,20 +30,21 @@ export const singleGeneSubmit = () => {
 
 
 
-export const fetchSingleGeneCounts = (value) => {
+export const fetchSingleGeneCounts = (value, searchBy) => {
     return function(dispatch, getState) {
         dispatch(singleGeneSubmit());
 
-        let postData = {
-            gene: value
-        };
+        let postData = { gene: value };
+        let latestQuery = { gene: value, searchBy: searchBy };
 
-        fetch("scn/getSingleGene", {
+        let url = (searchBy === "dataset") ? "scn/getSingleGeneByDataset" : "scn/getSingleGeneByCluster";
+
+        fetch(url, {
             method: "POST",
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(postData)
         }).then(res => res.json())
-            .then(data => dispatch(singleGeneResultsLoaded(postData, data)));
+            .then(data => dispatch(singleGeneResultsLoaded(latestQuery, data)));
 
 
     }

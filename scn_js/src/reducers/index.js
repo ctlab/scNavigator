@@ -37,6 +37,7 @@ let initState = () => {
             searchField: "",
             latestQuery: {},
             searchResults: [],
+            searchBy: "cluster" // values are 'cluster' and 'dataset
         }
 
     };

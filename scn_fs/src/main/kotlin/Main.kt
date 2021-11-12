@@ -12,6 +12,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.datetime.Instant
 import org.litote.kmongo.KMongo
 import org.litote.kmongo.getCollection
+import org.litote.kmongo.index
 import java.io.File
 import java.nio.file.FileSystems
 import java.nio.file.Path
@@ -22,6 +23,7 @@ val mongoDBHost: String =  System.getenv("MONGODB_HOST") ?: "mongodb://mongo:270
 val mongoDB: String = System.getenv("MONGODB_DATABASE") ?: "scn"
 val mongoDBCollectionName: String = System.getenv("MONGODB_COLLECTION") ?: "datasets"
 val mongoDBCollectionExpressionName: String = System.getenv("MONGODB_COLLECTION_exp") ?: "datasets_expression_data"
+val mongoDBCollectionMarkersName: String = System.getenv("MONGODB_COLLECTION_markers") ?: "markers"
 val gmtOutDir: String = System.getenv("GMT_PATH") ?: ""
 
 val client = KMongo.createClient(mongoDBHost)
@@ -36,6 +38,7 @@ fun main(args: Array<String>) {
 
     val mongoDBCollection: MongoCollection<SCDataset>;
     val mongoDBCollectionExp: MongoCollection<SCDatasetExpression>;
+    val mongoDBCollectionMarkers: MongoCollection<SCMarkerEntry>
 
     if (!database.listCollectionNames().contains(mongoDBCollectionName)) {
         Log.info("Initializing MongoDB (dataset descriptors) for the first time")
@@ -47,12 +50,26 @@ fun main(args: Array<String>) {
     }
 
     if (!database.listCollectionNames().contains(mongoDBCollectionExpressionName)) {
-        Log.info("Initializing MongoDB (dataset expresson info) for the first time")
+        Log.info("Initializing MongoDB (dataset expression info) for the first time")
         mongoDBCollectionExp = database.getCollection<SCDatasetExpression>(mongoDBCollectionExpressionName)
         val indexOptions = IndexOptions().unique(true);
         mongoDBCollectionExp.createIndex(Indexes.ascending("token"), indexOptions);
     } else {
         mongoDBCollectionExp = database.getCollection<SCDatasetExpression>(mongoDBCollectionExpressionName)
+    }
+
+    if (!database.listCollectionNames().contains(mongoDBCollectionMarkersName)) {
+        Log.info("Initializing MongoDB (dataset markers info) for the first time")
+        mongoDBCollectionMarkers = database.getCollection<SCMarkerEntry>(mongoDBCollectionMarkersName)
+        val indexOptions = IndexOptions().unique(true);
+        mongoDBCollectionMarkers.createIndex(index(mapOf(
+            SCMarkerEntry::token to true,
+            SCMarkerEntry::tableName to true,
+            SCMarkerEntry::cluster to true,
+            SCMarkerEntry::gene to true
+        )), indexOptions);
+    } else {
+        mongoDBCollectionMarkers = database.getCollection<SCMarkerEntry>(mongoDBCollectionMarkersName)
     }
 
     val pathChangesChannel = Channel<Pair<Path, WatchEvent.Kind<Path>>>();
@@ -69,8 +86,10 @@ fun main(args: Array<String>) {
     GlobalScope.launch { recursiveFSWatcher(watchService, directoryToWatch, pathChangesChannel) }
     GlobalScope.launch { fsReceiver(pathChangesChannel, deletedChannel, fileChanges, mutex) }
     GlobalScope.launch { delayedFSReceiver(modifiedChannel, fileChanges, mutex) }
-    GlobalScope.launch { fileChangeHandler(modifiedChannel, mongoDBCollection, mongoDBCollectionExp) }
-    GlobalScope.launch { fileDeleteHandler(deletedChannel, mongoDBCollection, mongoDBCollectionExp) }
+    GlobalScope.launch { fileChangeHandler(modifiedChannel, mongoDBCollection,
+        mongoDBCollectionExp, mongoDBCollectionMarkers) }
+    GlobalScope.launch { fileDeleteHandler(deletedChannel, mongoDBCollection,
+        mongoDBCollectionExp, mongoDBCollectionMarkers) }
 
     Thread.sleep(10000)
     Log.info("Now touching all the dataset.json files in the directory")

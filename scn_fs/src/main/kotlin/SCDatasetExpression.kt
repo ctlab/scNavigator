@@ -26,7 +26,7 @@ data class SCExpressionJson (
 
 @Serializable
 data class SCDatasetExpression (
-    val _id: Id<SCDataset> = newId(),
+    val _id: Id<SCDatasetExpression> = newId(),
     val token: String,
     val features: List<String>,
     val featureCounts: Map<String, Int>?,

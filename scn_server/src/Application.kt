@@ -25,6 +25,7 @@ import org.slf4j.event.Level
 import ru.itmo.scn.fs.H5ExpressionDataset
 import ru.itmo.scn.fs.SCDataset
 import ru.itmo.scn.fs.SCDatasetExpression
+import ru.itmo.scn.fs.SCMarkerEntry
 import java.io.File
 import java.text.DateFormat
 
@@ -33,6 +34,7 @@ val mongoDBHost: String =  System.getenv("MONGODB_HOST") ?: "mongodb://mongo:270
 val mongoDB: String = System.getenv("MONGODB_DATABASE") ?: "scn"
 val mongoDBCollection: String = System.getenv("MONGODB_COLLECTION") ?: "datasets"
 val mongoDBCollectionExpressionName: String = System.getenv("MONGODB_COLLECTION_exp") ?: "datasets_expression_data"
+val mongoDBCollectionMarkersName: String = System.getenv("MONGODB_COLLECTION_markers") ?: "markers"
 val pathToProd: String = System.getenv("PROD_PATH") ?: "/scn/scn_js/prod"
 
 val client = KMongo.createClient(mongoDBHost)
@@ -211,29 +213,13 @@ fun Application.module(testing: Boolean = false) {
                 }
             }
 
-            post("getSingleGene") {
+            post("getSingleGeneByDataset") {
                 val body = call.receive<SingleGeneSearchBody>();
                 val gene = body.gene
 
                 val collection = database.getCollection<SCDataset>(mongoDBCollection)
                 val collectionExpression = database.getCollection<SCDatasetExpression>(mongoDBCollectionExpressionName)
                 val fieldString = "featureCounts.${gene}"
-
-
-//                val queryBson = """[
-//  { $match: { "$fieldString": {$gt: 0} } },
-//  { $lookup: { from: "$mongoDBCollection", localField: "token", foreignField: "token", as: "details"} },
-//  { $project: {
-//      token: 1,
-//      count: "$ $fieldString",
-//      percent: { $divide: ["$ $fieldString", {$size: "$ barcodes"} ] },
-//      name: "$ details.0.name",
-//      description: "$ details.0.description",
-//      link: "$ details.0.link",
-//  } },
-//  { $sort: { percent: -1 } }
-//]
-//""".formatJson()
 
                 val queryBson = """[
   { $match: { "$fieldString": {$gt: 0} } },
@@ -251,11 +237,20 @@ fun Application.module(testing: Boolean = false) {
 ]
 """.formatJson()
 
-                println(queryBson)
                 val datasets = collectionExpression.aggregate<SingleGeneResponse>(queryBson)
-                println(datasets.toMutableList())
-
                 call.respond(datasets.toMutableList())
+
+            }
+
+            post("getSingleGeneByCluster") {
+                val body = call.receive<SingleGeneSearchBody>();
+                val gene = body.gene
+                val collectionMarkers = database.getCollection<SCMarkerEntry>(mongoDBCollectionMarkersName)
+
+                val results = collectionMarkers
+                    .find(and(SCMarkerEntry::gene eq gene, SCMarkerEntry::pValueAdjusted lt 0.01))
+                    .sort(descending(SCMarkerEntry::pct1))
+                call.respond(results.toMutableList())
 
             }
 

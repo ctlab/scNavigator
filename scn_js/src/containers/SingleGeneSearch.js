@@ -10,7 +10,7 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => ({
     changeInput: (name, value) => dispatch(singleGeneInputChanged(name, value)),
-    submitSingleGeneForm: (gene) => dispatch(fetchSingleGeneCounts(gene)),
+    submitSingleGeneForm: (gene, searchBy) => dispatch(fetchSingleGeneCounts(gene, searchBy)),
     showGeneExpression: (token, gene) => dispatch(showSingleGene(token, gene))
 
 });

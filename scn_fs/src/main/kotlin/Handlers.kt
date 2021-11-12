@@ -16,7 +16,8 @@ import java.nio.file.Paths
 
 fun insertOrUpdateSCDataset(path: Path,
                             mongoDBCollection: MongoCollection<SCDataset>,
-                            mongoDBCollectionExp: MongoCollection<SCDatasetExpression>) {
+                            mongoDBCollectionExp: MongoCollection<SCDatasetExpression>,
+                            mongoDBCollectionMarkers: MongoCollection<SCMarkerEntry>) {
     try {
         val scDataset = SCDataset.fromJsonFile(path)
         val datasetQuery = mongoDBCollection.findOne(SCDataset::token eq scDataset.token)
@@ -49,7 +50,31 @@ fun insertOrUpdateSCDataset(path: Path,
                         mongoDBCollectionExp.updateOneById(datasetExpQuery._id, scExp)
                     }
 
-                }                }
+                }
+            }
+
+            if (scDataset.markersFile !== null) {
+                val markersCollection = MarkerCollection.fromJsonFile(scDataset.markersFile)
+                val flatSCMarkerEntries: List<SCMarkerEntry> = markersCollection.collection.flatMap { entry ->
+                    val tableName = entry.key
+                    entry.value.map {
+                        SCMarkerEntry(
+                            token = scDataset.token,
+                            tableName = tableName,
+                            cluster = it.cluster,
+                            gene = it.gene,
+                            pct1 = it.pct1,
+                            pct2 = it.pct2,
+                            pValue = it.pValue,
+                            pValueAdjusted = it.pValueAdjusted,
+                            averageLogFoldChange = it.averageLogFoldChange
+                        )
+                    }
+                }
+                Log.info("Updating the markers info for dataset ${scDataset.token} in the database")
+                mongoDBCollectionMarkers.deleteMany(SCMarkerEntry::token eq scDataset.token)
+                mongoDBCollectionMarkers.insertMany(flatSCMarkerEntries)
+            }
         }
 
 
@@ -61,7 +86,8 @@ fun insertOrUpdateSCDataset(path: Path,
 
 fun deleteSCDataset(path: Path,
                     mongoDBCollection: MongoCollection<SCDataset>,
-                    mongoDBCollectionExp: MongoCollection<SCDatasetExpression>)  {
+                    mongoDBCollectionExp: MongoCollection<SCDatasetExpression>,
+                    mongoDBCollectionMarkers: MongoCollection<SCMarkerEntry>)  {
     try {
         val datasetQuery = mongoDBCollection.findOne(SCDataset::selfPath eq path.toString())
         if (datasetQuery == null) {
@@ -70,6 +96,7 @@ fun deleteSCDataset(path: Path,
             Log.info("Found $path in the dataset. Removing")
             mongoDBCollection.deleteOneById(datasetQuery._id)
             mongoDBCollectionExp.deleteOne(SCDatasetExpression::token eq datasetQuery.token)
+            mongoDBCollectionMarkers.deleteMany(SCMarkerEntry::token eq datasetQuery.token)
         }
 
 
@@ -82,7 +109,8 @@ fun deleteSCDataset(path: Path,
 
 suspend fun fileChangeHandler(modifiedChannel: Channel<Path>,
                               mongoDBCollection: MongoCollection<SCDataset>,
-                              mongoDBCollectionExp: MongoCollection<SCDatasetExpression>) {
+                              mongoDBCollectionExp: MongoCollection<SCDatasetExpression>,
+                              mongoDBCollectionMarkers: MongoCollection<SCMarkerEntry>) {
     while (true) {
         val modifiedPath = modifiedChannel.receive();
         Log.info("FILE MODIFIED: $modifiedPath")
@@ -93,19 +121,22 @@ suspend fun fileChangeHandler(modifiedChannel: Channel<Path>,
         val dirName = File(modifiedPath.toString()).parentFile.name
 
         if (fileName == DATASET_FILE_NAME) {
-            insertOrUpdateSCDataset(modifiedPath, mongoDBCollection, mongoDBCollectionExp)
+            insertOrUpdateSCDataset(modifiedPath, mongoDBCollection,
+                mongoDBCollectionExp, mongoDBCollectionMarkers)
         } else if (dirName == FILES_FOLDER_NAME) {
             val datasetPath = Paths.get(datasetDir, DATASET_FILE_NAME)
             Log.info(datasetPath.toString())
             if (!Files.exists(datasetPath)) continue
-            insertOrUpdateSCDataset(datasetPath, mongoDBCollection, mongoDBCollectionExp)
+            insertOrUpdateSCDataset(datasetPath, mongoDBCollection,
+                mongoDBCollectionExp, mongoDBCollectionMarkers)
         }
     }
 }
 
 suspend fun fileDeleteHandler(deletedChannel: Channel<Path>,
                               mongoDBCollection: MongoCollection<SCDataset>,
-                              mongoDBCollectionExp: MongoCollection<SCDatasetExpression>) {
+                              mongoDBCollectionExp: MongoCollection<SCDatasetExpression>,
+                              mongoDBCollectionMarkers: MongoCollection<SCMarkerEntry>) {
     while (true) {
         val deletedPath = deletedChannel.receive();
         Log.info("FILE deleted: $deletedPath")
@@ -115,11 +146,13 @@ suspend fun fileDeleteHandler(deletedChannel: Channel<Path>,
         val dirName = File(deletedPath.toString()).parentFile.name
 
         if (fileName == DATASET_FILE_NAME) {
-            deleteSCDataset(deletedPath, mongoDBCollection, mongoDBCollectionExp)
+            deleteSCDataset(deletedPath, mongoDBCollection,
+                mongoDBCollectionExp, mongoDBCollectionMarkers)
         } else if (dirName == FILES_FOLDER_NAME) {
             val datasetPath = Paths.get(dirChanged, DATASET_FILE_NAME)
             if (!Files.exists(datasetPath)) continue
-            insertOrUpdateSCDataset(datasetPath, mongoDBCollection, mongoDBCollectionExp)
+            insertOrUpdateSCDataset(datasetPath, mongoDBCollection,
+                mongoDBCollectionExp, mongoDBCollectionMarkers)
         }
     }
 }
