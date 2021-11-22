@@ -28,6 +28,7 @@ import ru.itmo.scn.fs.SCDatasetExpression
 import ru.itmo.scn.fs.SCMarkerEntry
 import java.io.File
 import java.text.DateFormat
+import java.util.*
 
 
 val mongoDBHost: String =  System.getenv("MONGODB_HOST") ?: "mongodb://mongo:27017"
@@ -181,8 +182,8 @@ fun Application.module(testing: Boolean = false) {
                                 }
                                 else -> {
                                     allGenes as List<String>
-                                    pathwayGenes = pathwayGenes.map { it.toLowerCase() }
-                                    allGenes = allGenes.map { it.toLowerCase() }
+                                    pathwayGenes = pathwayGenes.map { it.lowercase(Locale.getDefault()) }
+                                    allGenes = allGenes.map { it.lowercase(Locale.getDefault()) }
                                     val pathwayIds = pathwayGenes.map { (allGenes as List<String>).indexOf(it) }.filter { it >= 0}
                                     call.respond(expressionDataset.getFeaturesAverage(pathwayIds))
                                 }
@@ -237,7 +238,7 @@ fun Application.module(testing: Boolean = false) {
 ]
 """.formatJson()
 
-                val datasets = collectionExpression.aggregate<SingleGeneResponse>(queryBson)
+                val datasets = collectionExpression.aggregate<SingleGeneResponseDataset>(queryBson)
                 call.respond(datasets.toMutableList())
 
             }
@@ -247,11 +248,39 @@ fun Application.module(testing: Boolean = false) {
                 val gene = body.gene
                 val collectionMarkers = database.getCollection<SCMarkerEntry>(mongoDBCollectionMarkersName)
 
-                val results = collectionMarkers
-                    .find(and(SCMarkerEntry::gene eq gene, SCMarkerEntry::pValueAdjusted lt 0.01))
-                    .sort(descending(SCMarkerEntry::pct1))
-                call.respond(results.toMutableList())
 
+                // For some reason, in the mongodb field is kept as pvalueAdjusted and not
+                // pValueAdjusted as intended.
+                // Why? No idea
+
+                val queryBson = """[
+  { $match: { "gene": {$eq: "$gene"}, "pvalueAdjusted": {$lte: 0.01} } }, 
+  { $lookup: { from: "$mongoDBCollection", localField: "token", foreignField: "token", as: "details"} },
+  { $ addFields: { details: {$ first: "$ details"} } }, 
+  { $ addFields: { name: "$ details.name", description: "$ details.description", link: "$ details.link"} },
+  { $sort: { token: 1, pct1: -1 } },
+  { $group: {
+      _id: "$ token",
+      token: {$first: "$ token"},
+      tableName: {$first: "$ tableName"},
+      pValue: {$first: "$ pvalue"},
+      pValueAdjusted: {$first: "$ pvalueAdjusted"},
+      averageLogFoldChange: {$first: "$ averageLogFoldChange"},
+      pct1: {$first: "$ pct1"},
+      pct2: {$first: "$ pct2"},
+      cluster: {$first: "$ cluster"},
+      gene: {$first: "$ gene"},
+      name: {$first: "$ name"},
+      description: {$first: "$ description"},
+      link: {$first: "$ link"}
+  } },
+  { $sort: { pct1: -1 } }
+]
+
+""".formatJson()
+
+                val markers = collectionMarkers.aggregate<SingleGeneResponseCluster>(queryBson)
+                call.respond(markers.toMutableList())
             }
 
             get("getExpressionData") {

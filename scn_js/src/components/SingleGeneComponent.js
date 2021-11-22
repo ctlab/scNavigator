@@ -77,13 +77,35 @@ export default class SingleGeneComponent extends Component {
                 },
                 width: 150
             },{
+                Header: "Table Name (resolution)",
+                accessor: 'tableName',
+                width: 50
+            },{
                 Header: "Cluster",
                 accessor: 'cluster',
                 Filter: FilterLabel("="),
-                filterMethod: (filter, row) => String(row[filter.id]) === filter.value
+                filterMethod: (filter, row) => String(row[filter.id]) === filter.value,
+                width: 50
+            }, {
+                Header: "External link",
+                accessor: "link",
+                Cell: props =>  {
+                    return !_.isUndefined(props.value) ?
+                        <a href={props.value} target={"_blank"} rel={"noreferrer"}>
+                            <Icon name={"linkify"} size={"tiny"}/>
+                        </a> : <> </>;
+
+                },
+                width: 50
+            },{
+                Header: "Description",
+                accessor: 'description',
+                Filter: FilterLabel("~"),
+                filterMethod: caseInsensetiveRegexpFiltering
             }, {
                 Header: "Adjusted p value",
-                accessor: 'pvalueAdjusted'
+                accessor: 'pvalueAdjusted',
+                width: 100
             }, {
                 Header: "% in cluster",
                 accessor: 'pct1',
@@ -92,6 +114,7 @@ export default class SingleGeneComponent extends Component {
                         {(props.value * 100).toFixed(2)+"%"}
                     </>
                 },
+                width: 70
             }
         ]
 
