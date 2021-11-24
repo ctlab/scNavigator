@@ -115,6 +115,15 @@ export default class SingleGeneComponent extends Component {
                     </>
                 },
                 width: 70
+            }, {
+                Header: "% in - % out",
+                accessor: 'diff',
+                Cell: props =>  {
+                    return <>
+                        {(props.value * 100).toFixed(2)+"%"}
+                    </>
+                },
+                width: 70
             }
         ]
 

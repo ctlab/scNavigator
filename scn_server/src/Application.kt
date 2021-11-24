@@ -258,7 +258,7 @@ fun Application.module(testing: Boolean = false) {
   { $lookup: { from: "$mongoDBCollection", localField: "token", foreignField: "token", as: "details"} },
   { $ addFields: { details: {$ first: "$ details"} } }, 
   { $ addFields: { name: "$ details.name", description: "$ details.description", link: "$ details.link"} },
-  { $sort: { token: 1, pct1: -1 } },
+  { $sort: { token: 1, pvalueAdjusted: 1 } },
   { $group: {
       _id: "$ token",
       token: {$first: "$ token"},
@@ -274,7 +274,8 @@ fun Application.module(testing: Boolean = false) {
       description: {$first: "$ description"},
       link: {$first: "$ link"}
   } },
-  { $sort: { pct1: -1 } }
+  { $ addFields: { diff: { $subtract: [ "$ pct1", "$ pct2" ] } } }, 
+  { $sort: { diff: -1 } }
 ]
 
 """.formatJson()

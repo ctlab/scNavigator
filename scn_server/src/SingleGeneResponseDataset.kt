@@ -17,6 +17,7 @@ data class SingleGeneResponseCluster(
     val averageLogFoldChange: Double,
     val pct1: Double,
     val pct2: Double,
+    val diff: Double,
     val cluster: String,
     val gene: String,
     val name: String?,
