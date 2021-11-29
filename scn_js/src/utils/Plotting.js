@@ -97,8 +97,13 @@ export function histPlot(data, fields, x, splitField, percent, plotAreaId, layou
         range: expandRange(fields.numericRanges[x])
     }, linearAxis);
 
+    let axisYLayout = (percent ? _.defaults({
+        showgrid: _.get(options, "showPlotGrid", linearAxis.showgrid),
+        tickformat: ',.0%'
+    }, linearAxis) : linearAxis);
+
     let anns = generateAnnotations();
-    [datas, traces, layout, anns] = splitData(datas, traces, layout, anns, fields, splitField, axisXLayout, linearAxis);
+    [datas, traces, layout, anns] = splitData(datas, traces, layout, anns, fields, splitField, axisXLayout, axisYLayout);
 
     for (let i = 0; i < datas.length; i++) {
         traces[i].x = datas[i].map(a => a[x]);
@@ -119,8 +124,13 @@ export function barPlot(data, fields, x, splitField, percent, plotAreaId, layout
         }
     });
 
+    let axisYLayout = (percent ? _.defaults({
+        showgrid: _.get(options, "showPlotGrid", linearAxis.showgrid),
+        tickformat: ',.0%'
+    }, linearAxis) : linearAxis);
+
     let anns = generateAnnotations();
-    [datas, traces, layout, anns] = splitData(datas, traces, layout, anns, fields, splitField, categorialAxis, linearAxis);
+    [datas, traces, layout, anns] = splitData(datas, traces, layout, anns, fields, splitField, categorialAxis, axisYLayout);
 
 
     let allLevels = fields.factorLevels[x];
