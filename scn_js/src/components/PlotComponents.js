@@ -200,7 +200,7 @@ class _HistogramPlotComponent extends PlotComponents {
         let height = document.documentElement.clientHeight * 0.8;
         let width = document.documentElement.clientWidth * 0.62;
 
-        const {x, split, showPlotGrid, fontSize} = this.props.plot;
+        const {x, split, percent, showPlotGrid, fontSize} = this.props.plot;
 
         let layout = {
             show_legend: true,
@@ -213,7 +213,7 @@ class _HistogramPlotComponent extends PlotComponents {
 
         barHistPlot(this.props.data,
             this.props.fields,
-            x, split, plotAreaId, layout, {showPlotGrid})
+            x, split, percent, plotAreaId, layout, {showPlotGrid})
     }
 }
 

@@ -41,6 +41,7 @@ const generatePlotState = (dataset) => {
             y: getDefaultY(dataset.fields.numeric),
             // color: null,
             split: null,
+            percent: false,
             showPlotGrid: false,
             plotPointSize: 8,
             fontSize: 16,

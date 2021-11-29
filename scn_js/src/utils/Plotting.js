@@ -73,17 +73,24 @@ export function scatterPlot(data, fields, x, y, colorField, splitField, plotArea
     Plotly.newPlot(plotAreaId, traces, _.defaultsDeep(layout, defaultScatterLayout));
 }
 
-export function histPlot(data, fields, x, splitField, plotAreaId, layout, options) {
+export function histPlot(data, fields, x, splitField, percent, plotAreaId, layout, options) {
     let datas = [data];
-    let traces = [];
-    traces.push({
+
+    let mainTrace = {
         type: "histogram",
         showlegend: false,
         marker: {
             size:8,
             color: "darkgrey"
         }
-    });
+    }
+
+    if (percent === true) {
+        mainTrace["histnorm"] = "probability";
+    }
+
+    let traces = [];
+    traces.push(mainTrace);
 
     let axisXLayout = _.defaults({
         showgrid: _.get(options, "showPlotGrid", linearAxis.showgrid),
@@ -100,7 +107,7 @@ export function histPlot(data, fields, x, splitField, plotAreaId, layout, option
     Plotly.newPlot(plotAreaId, traces, _.defaultsDeep(layout, defaultLayout));
 }
 
-export function barPlot(data, fields, x, splitField, plotAreaId, layout, options) {
+export function barPlot(data, fields, x, splitField, percent, plotAreaId, layout, options) {
     let datas = [data];
     let traces = [];
     traces.push({
@@ -122,7 +129,14 @@ export function barPlot(data, fields, x, splitField, plotAreaId, layout, options
         let counts = _.countBy(datas[i].map(a => a[x]));
         let values = _.flatMap(allLevels, a => _.get(counts, a, 0));
         traces[i].x = allLevels;
-        traces[i].y = values;
+
+        if (percent === true) {
+            let totalSum = _.sum(values);
+            traces[i].y = _.map(values, value => value / totalSum)
+        } else {
+            traces[i].y = values;
+        }
+
     }
 
     Plotly.newPlot(plotAreaId, traces, _.defaultsDeep(layout, defaultLayout));
@@ -174,11 +188,11 @@ export function violinPlot(data, fields, x, y, splitField, plotAreaId, layout, o
 }
 
 
-export function barHistPlot(data, fields, x, splitField, plotAreaId, layout, options) {
+export function barHistPlot(data, fields, x, splitField, percent, plotAreaId, layout, options) {
     if (fields.numeric.indexOf(x) !== -1) {
-        return histPlot(data, fields, x, splitField, plotAreaId, layout, options)
+        return histPlot(data, fields, x, splitField, percent, plotAreaId, layout, options)
     } else {
-        return barPlot(data, fields, x, splitField, plotAreaId, layout, options)
+        return barPlot(data, fields, x, splitField, percent, plotAreaId, layout, options)
     }
 
 
