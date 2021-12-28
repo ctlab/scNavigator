@@ -1,5 +1,5 @@
 import React from 'react';
-import { Grid, Form, Divider } from 'semantic-ui-react';
+import {Grid, Form, Divider, Checkbox} from 'semantic-ui-react';
 import {getFields, getFieldsAndNull} from "../utils/Utils";
 import {DropDownComponent} from "./InputComponents";
 import {inputChanged} from "../actions";
@@ -9,7 +9,7 @@ import OtherOptionsComponent from "./OtherOptionsComponent";
 import {ScatterPlotOverviewComponent} from "./PlotComponents";
 
 
-const _DatasetOverviewInputs = ({token, tab, x, y, color, split, fields, dispatch}) => {
+const _DatasetOverviewInputs = ({token, tab, x, y, color, split, useDensity, fields, dispatch}) => {
     return (<Grid.Column width={3}>
         <Form>
             <Divider horizontal>Coordinates</Divider>
@@ -19,6 +19,9 @@ const _DatasetOverviewInputs = ({token, tab, x, y, color, split, fields, dispatc
             <Divider horizontal>Color and split</Divider>
             <DropDownComponent label={"Color by"} name={'color'} value={color} options={getFieldsAndNull(fields.all)} onChange={(e, { name, value }) => dispatch(inputChanged(token, tab, name, value))} />
             <DropDownComponent label={"Split by"} name={'split'} value={split} options={getFieldsAndNull(fields.factor)} onChange={(e, { name, value }) => dispatch(inputChanged(token, tab, name, value))} />
+
+            <Divider horizontal>Show density (disables color)</Divider>
+            <Checkbox label={"Show Density"} name={'useDensity'} checked={useDensity} onChange={(e, { name, checked }) => dispatch(inputChanged(token, tab, name, checked))} />
 
             <Divider horizontal>Available annotations</Divider>
             <AnnotationsComponent token={token} tab={tab} />
@@ -33,12 +36,12 @@ const _DatasetOverviewInputs = ({token, tab, x, y, color, split, fields, dispatc
 const mapInputStateToProps = (state, ownProps) => {
     let dataset = state.datasetsByTokens[ownProps.token];
     let tab = dataset.tabs[ownProps.tab];
-    let {x, y, color, split} = tab.plot;
+    let {x, y, color, split, useDensity} = tab.plot;
     return {
         token: ownProps.token,
         tab: ownProps.tab,
         fields: dataset.fields,
-        x, y, color, split
+        x, y, color, split, useDensity
     }
 };
 

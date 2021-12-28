@@ -20,6 +20,52 @@ let generateAnnotations = function() {
     };
 };
 
+export function densityPlot(data, fields, x, y, splitField, plotAreaId, layout, options) {
+    let datas = [data];
+    let traces = [{
+        name: 'density',
+        ncontours: 20,
+        colorscale: 'Hot',
+        reversescale: true,
+        showscale: false,
+        type: 'histogram2dcontour'
+    }];
+
+    let axisXLayout = _.defaults({
+        showgrid: _.get(options, "showPlotGrid", linearAxis.showgrid),
+        range: expandRange(fields.numericRanges[x])
+    }, linearAxis);
+
+    let axisYLayout = _.defaults({
+        showgrid: _.get(options, "showPlotGrid", linearAxis.showgrid),
+        range: expandRange(fields.numericRanges[y])
+    }, linearAxis);
+
+    let anns = generateAnnotations();
+
+    for (let i = 0; i < options.annotations.length; i++) {
+        let annotation = options.annotations[i];
+        anns = annotators[annotation.type](anns, x, y, annotation);
+    }
+
+    [datas, traces, layout, anns] = splitData(datas, traces, layout, anns, fields, splitField, axisXLayout, axisYLayout);
+
+    for (let i = 0; i < datas.length; i++) {
+        traces[i].x = datas[i].map(a => a[x]);
+        traces[i].y = datas[i].map(a => a[y]);
+        traces[i].text = datas[i].map(a => {
+            return(_.keys(a).map(key => key + ": " + a[key]).join('<br>'));
+        });
+    }
+
+    traces = _.concat(traces, anns.traces);
+    layout.annotations = _.concat(_.get(layout, "annotations", []), anns.annotations);
+    layout.shapes = _.concat(_.get(layout, "shapes", []), anns.shapes);
+
+    console.log(traces[0])
+    Plotly.newPlot(plotAreaId, traces, _.defaultsDeep(layout, defaultScatterLayout));
+}
+
 export function scatterPlot(data, fields, x, y, colorField, splitField, plotAreaId, layout, options) {
     let datas = [data];
     let traces = [{
@@ -69,7 +115,7 @@ export function scatterPlot(data, fields, x, y, colorField, splitField, plotArea
     if (colorField !== null) {
         layout.title = colorField
     }
-
+    console.log(traces[0])
     Plotly.newPlot(plotAreaId, traces, _.defaultsDeep(layout, defaultScatterLayout));
 }
 

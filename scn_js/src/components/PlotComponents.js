@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {barHistPlot, scatterPlot, violinPlot} from "../utils/Plotting";
+import {barHistPlot, densityPlot, scatterPlot, violinPlot} from "../utils/Plotting";
 import {connect} from "react-redux";
 import {Dimmer, Grid, Loader} from 'semantic-ui-react';
 import _ from "lodash";
@@ -13,6 +13,13 @@ const pathwayColorScale = [
     ['0.8', 'rgb(139,0,0)'], //dark red
     ['1.0', 'rgb(139,62,47)'] //coral4
 ];
+
+const customColorScale = [
+    [-3, 'rgb(0,0,139)'], [-2, 'rgb(0,0,255)'],
+    [-1, 'rgb(100,100,200)'], [0, 'rgb(200, 200, 200)'],
+    [1, 'rgb(255,102,102)'], [2, 'rgb(255,0,0)'],
+    [3, 'rgb(139,0,0)']
+]
 
 
 const getChosenAnnotations = (annotations, plot) => {
@@ -58,7 +65,7 @@ class _ScatterPlotComponentOverview extends PlotComponents {
         let width = document.documentElement.clientWidth * 0.6;
         let zz = Math.min(height, width);
 
-        const {x, y, color, split, showPlotGrid, plotPointSize, fontSize} = this.props.plot;
+        const {x, y, color, split, useDensity, showPlotGrid, plotPointSize, fontSize} = this.props.plot;
         let chosenAnnotations = getChosenAnnotations(this.props.annotations, this.props.plot);
 
         let layout = {
@@ -70,14 +77,28 @@ class _ScatterPlotComponentOverview extends PlotComponents {
             }
         };
 
-        scatterPlot(this.props.data,
-            this.props.fields,
-            x, y, color, split,
-            plotAreaId, layout,
-            {
-                showPlotGrid,
-                plotPointSize,
-                annotations: chosenAnnotations});
+        console.log(this.props.plot);
+        if (useDensity) {
+            densityPlot(this.props.data,
+                this.props.fields,
+                x, y, split,
+                plotAreaId, layout,
+                {
+                    showPlotGrid,
+                    plotPointSize,
+                    annotations: chosenAnnotations});
+        } else {
+            scatterPlot(this.props.data,
+                this.props.fields,
+                x, y, color, split,
+                plotAreaId, layout,
+                {
+                    showPlotGrid,
+                    plotPointSize,
+                    annotations: chosenAnnotations});
+        }
+
+
     }
 
 }
@@ -315,6 +336,7 @@ class _ScatterPlotPathwayComponent extends PlotComponents {
         let chosenAnnotations = getChosenAnnotations(this.props.annotations, this.props.plot);
 
 
+        let actualColorScale = _.cloneDeep(customColorScale);
         if (pathwayData !== undefined && pathwayData !== null && pathway !== null ) {
 
             let geneMin = _.min(pathwayData);
@@ -326,6 +348,26 @@ class _ScatterPlotPathwayComponent extends PlotComponents {
 
             this.props.fields.numericRanges[pathway] = [geneMin, geneMax];
             plotFieldsFull.numericRanges[pathway] = [geneMin, geneMax];
+
+            let lastColor = 'rgb(0,0,139)';
+            while (geneMin >= actualColorScale[0][0]) {
+                lastColor = actualColorScale[0][1];
+                actualColorScale = _.tail(actualColorScale);
+
+            }
+            actualColorScale.unshift([geneMin, lastColor]);
+
+            lastColor = 'rgb(139,0,0)';
+            while (geneMax <= actualColorScale[actualColorScale.length - 1][0]) {
+                lastColor = actualColorScale[actualColorScale.length - 1][1];
+                actualColorScale = _.take(actualColorScale, actualColorScale.length - 1);
+            }
+            actualColorScale.push([geneMax, lastColor]);
+
+            let toRangeValues = (value) => (value - geneMin) / (geneMax - geneMin);
+            let toColorArray = (l) => [toRangeValues(l[0]), l[1]];
+            actualColorScale = _.map(actualColorScale, toColorArray);
+
         }
 
 
@@ -339,14 +381,14 @@ class _ScatterPlotPathwayComponent extends PlotComponents {
             }
         };
 
-
+        console.log(actualColorScale);
         scatterPlot(this.props.data, this.props.fields,
             x, y, pathway, split,
             plotAreaId, layout,
             {
                 showPlotGrid,
                 plotPointSize,
-                colorscale: pathwayColorScale,
+                colorscale: actualColorScale,
                 annotations: chosenAnnotations});
     }
 }

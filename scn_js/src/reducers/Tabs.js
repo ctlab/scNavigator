@@ -53,6 +53,7 @@ const generatePlotState = (dataset) => {
 export const generateOverviewState = (dataset) => {
     let plotState = generatePlotState(dataset);
     plotState.plot.color = null;
+    plotState.plot.useDensity = false;
     return plotState;
 };
 
