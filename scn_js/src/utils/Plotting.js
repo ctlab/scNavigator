@@ -28,7 +28,10 @@ export function densityPlot(data, fields, x, y, splitField, plotAreaId, layout, 
         colorscale: 'Hot',
         reversescale: true,
         showscale: false,
-        type: 'histogram2dcontour'
+        type: 'histogram2dcontour',
+        line: {
+            width: 0
+        }
     }];
 
     let axisXLayout = _.defaults({
