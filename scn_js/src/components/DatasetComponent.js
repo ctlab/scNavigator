@@ -8,21 +8,27 @@ class DatasetComponent extends Component {
     componentDidMount() {
 
         // removing first slash, so fetch takes relative path
-        let plotDataUrl = _.get(this.props, "plotDataFile", "/").substr(1);
-        let markersDataUrl = _.get(this.props, "markersFile", "/").substr(1);
-        let expDataUrl = _.get(this.props, "expressionFile", "/").substr(1);
+        let plotDataUrl = _.get(this.props, "plotDataFile");
+        let markersDataUrl = _.get(this.props, "markersFile");
+        let expDataUrl = _.get(this.props, "expressionFile");
 
-        fetch(plotDataUrl, {headers: {'Accept-Encoding': 'gzip'}})
-            .then(res => res.json())
-            .then(data => this.props.loadedPlotData(this.props.token, data));
+        if (!_.isNull(plotDataUrl) && !_.isUndefined(plotDataUrl)) {
+            fetch(plotDataUrl.substr(1), {headers: {'Accept-Encoding': 'gzip'}})
+                .then(res => res.json())
+                .then(data => this.props.loadedPlotData(this.props.token, data));
+        }
 
-        fetch(markersDataUrl, {headers: {'Accept-Encoding': 'gzip'}})
-            .then(res => res.json())
-            .then(data => this.props.loadedMarkersData(this.props.token, data));
+        if (!_.isNull(markersDataUrl) && !_.isUndefined(markersDataUrl)) {
+            fetch(markersDataUrl.substr(1), {headers: {'Accept-Encoding': 'gzip'}})
+                .then(res => res.json())
+                .then(data => this.props.loadedMarkersData(this.props.token, data));
+        }
 
-        fetch(expDataUrl, {headers: {'Accept-Encoding': 'gzip'}})
-            .then(res => res.json())
-            .then(data => this.props.loadedExpData(this.props.token, data));
+        if (!_.isNull(expDataUrl) && !_.isUndefined(expDataUrl)) {
+            fetch(expDataUrl.substr(1), {headers: {'Accept-Encoding': 'gzip'}})
+                .then(res => res.json())
+                .then(data => this.props.loadedExpData(this.props.token, data));
+        }
 
         // TODO: this is unnecessary call for each dataset
         fetch("scn/getPathwayNames", {headers: {'Accept-Encoding': 'gzip'}})
