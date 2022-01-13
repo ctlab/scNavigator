@@ -1,15 +1,49 @@
 import React from 'react';
-import {Grid, Form, Divider, Checkbox} from 'semantic-ui-react';
+import {Grid, Form, Divider, Checkbox, Button} from 'semantic-ui-react';
 import { getFields, getFieldsAndNull} from "../utils/Utils";
 import {DropDownComponent} from "./InputComponents";
 import {inputChanged} from "../actions";
 import {connect} from "react-redux";
 import OtherOptionsComponent from "./OtherOptionsComponent";
 import {HistogramPlotComponent} from "./PlotComponents";
-
+import {parse} from "json2csv";
+import fileDownload from "js-file-download";
+import _ from "lodash";
+import {getHistData, getBarData} from "../utils/GetPlotData";
 
 
 const _DatasetHistogramInputs = ({token, tab, x, split, percent, fields, dispatch}) => {
+
+    let plotArea = token.concat(tab)
+    let handleDownloadClick = () => {
+        let fieldsCSV = [];
+        let dataCSV = [];
+
+        if (_.includes(fields.factor, x)) {
+            if (!_.isNull(split)) fieldsCSV.push({label: split, value: "split"})
+            fieldsCSV.push({label: x, value: "x"});
+            if (percent) {
+                fieldsCSV.push({label: "Ratio", value: "y"})
+            } else fieldsCSV.push({label: "Count", value: "y"});
+            dataCSV = getBarData(plotArea);
+
+        } else {
+            if (!_.isNull(split)) fieldsCSV.push({label: split, value: "split"})
+            fieldsCSV.push({label: x + "_start", value: "x_start"});
+            fieldsCSV.push({label: x + "_end", value: "x_end"});
+            if (percent) {
+                fieldsCSV.push({label: "Ratio", value: "y"})
+            } else fieldsCSV.push({label: "Count", value: "y"});
+            dataCSV = getHistData(plotArea);
+        }
+
+        let csv = parse(dataCSV, {fields: fieldsCSV});
+        let fileNameParts = _.concat(token, _.map(fieldsCSV, x => x.label));
+        let fileName = fileNameParts.join("-") + '.csv';
+
+        fileDownload(csv, fileName);
+    };
+
     return (<Grid.Column width={3}>
         <Form>
             <Divider horizontal>Bar plot inputs</Divider>
@@ -21,6 +55,13 @@ const _DatasetHistogramInputs = ({token, tab, x, split, percent, fields, dispatc
 
             <Divider horizontal>Other</Divider>
             <OtherOptionsComponent token={token} tab={tab} />
+
+            <Divider horizontal>Downloads</Divider>
+            <Button className={"fluid"}
+                onClick={handleDownloadClick}
+            >
+                Download current data
+            </Button>
         </Form>
 
     </Grid.Column>);
