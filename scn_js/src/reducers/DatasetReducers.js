@@ -68,7 +68,7 @@ const createDefaultDataset = (token) => {
 
         pathways: null,
         pathwaysLoaded: false,
-        cachedPathways: {},
+        pathwayValues: [],
 
         files: [],
         filesLoaded: false,
@@ -390,14 +390,23 @@ export function datasetsByTokens(state = {}, action) {
             newFields = _.clone(newDataset.fields);
             newPlot = _.clone(newTab.plot);
 
-            if (!_.has(newDataset.cachedPathways, action.pathwayValue)) {
-                newDataset.cachedPathways[action.pathwayValue] = action.pathwayData;
 
-                let range = [_.min(action.pathwayData), _.max(action.pathwayData)];
+            newDataset.pathwayValues = action.pathwayData.averageExpression;
+            newTab.genesInRequest = action.pathwayData.allGenes;
+            newTab.genesExpressed = action.pathwayData.expressedGenes;
 
+            if (newTab.genesInRequest.length > 0 && newTab.genesExpressed.length === 0) {
+                newTab.plotError = true;
+                newTab.plotErrorMessage = "None of the queried genes are expressed or found in the dataset";
+            } else {
+                newTab.plotError = false;
+                newTab.plotErrorMessage = "";
+            }
+
+            if (!_.includes(newFields.numeric, action.pathwayValue)) {
+                let range = [_.min(action.pathwayData.averageExpression), _.max(action.pathwayData.averageExpression)];
                 newDataset.fieldsFull.numeric.push(action.pathwayValue);
                 newDataset.fieldsFull.numericRanges[action.pathwayValue] = range;
-
                 newFields.numeric.push(action.pathwayValue);
                 newFields.numericRanges[action.pathwayValue] = range;
             }
@@ -447,16 +456,24 @@ export function datasetsByTokens(state = {}, action) {
 
 
             newTab.plotLoading = false;
-            newPlot.pathway = action.genes.join(", ");
+            newPlot.pathway = action.pathwayData.expressedGenes.join(", ");
 
-            if (!_.has(newDataset.cachedPathways, newPlot.pathway)) {
-                newDataset.cachedPathways[newPlot.pathway] = action.pathwayData;
+            newDataset.pathwayValues = action.pathwayData.averageExpression;
+            newTab.genesInRequest = action.pathwayData.allGenes;
+            newTab.genesExpressed = action.pathwayData.expressedGenes;
 
-                let range = [_.min(action.pathwayData), _.max(action.pathwayData)];
+            if (newTab.genesInRequest.length > 0 && newTab.genesExpressed.length === 0) {
+                newTab.plotError = true;
+                newTab.plotErrorMessage = "None of the queried genes are expressed or found in the dataset";
+            } else {
+                newTab.plotError = false;
+                newTab.plotErrorMessage = "";
+            }
 
+            if (!_.includes(newFields.numeric, newPlot.pathway)) {
+                let range = [_.min(action.pathwayData.averageExpression), _.max(action.pathwayData.averageExpression)];
                 newDataset.fieldsFull.numeric.push(newPlot.pathway);
                 newDataset.fieldsFull.numericRanges[newPlot.pathway] = range;
-
                 newFields.numeric.push(newPlot.pathway);
                 newFields.numericRanges[newPlot.pathway] = range;
             }

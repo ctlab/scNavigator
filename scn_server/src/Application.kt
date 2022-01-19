@@ -43,8 +43,10 @@ val database: MongoDatabase = client.getDatabase(mongoDB)
 val pathways: Map<String, List<String>> = ObjectMapper().readValue(object {}.javaClass.getResource("/pathways.json"))
 
 fun main(args: Array<String>) {
-    while (!database.listCollectionNames().contains(mongoDBCollection)) {
-        Log.info("Collection $mongoDBCollection does not exist yet, waiting")
+    while (!database.listCollectionNames().contains(mongoDBCollection) ||
+        !database.listCollectionNames().contains(mongoDBCollectionExpressionName) ||
+        !database.listCollectionNames().contains(mongoDBCollectionMarkersName)) {
+        Log.info("Some of MongoDB Collections do not exist yet, waiting")
         Thread.sleep(5000L)
 
 
@@ -73,6 +75,39 @@ suspend fun checkToken(call: ApplicationCall): SCDataset? {
     val queryParameters = call.request.queryParameters
     val token = queryParameters["token"]
     return checkToken(call, token)
+}
+
+suspend fun getGeneSetExpression(call: ApplicationCall, dataset: SCDataset, genes: List<String>) {
+    val collectionExpression = database.getCollection<SCDatasetExpression>(mongoDBCollectionExpressionName)
+    val scExpressionDataset = collectionExpression.findOne { SCDatasetExpression::token eq dataset.token }
+    val filePath = dataset.expH5Table
+    val featureCounts = scExpressionDataset?.featureCounts
+    val features = scExpressionDataset?.features
+
+    if ((filePath === null) ||
+        (scExpressionDataset === null) ||
+        (featureCounts === null) ||
+        (features === null)
+    ) {
+        call.respond(HttpStatusCode.NotFound, "No expression data for this dataset")
+    } else {
+        val expressionDataset = H5ExpressionDataset.getDataset(filePath)
+        val allGenes = features.map { it.lowercase(Locale.getDefault()) }
+        val expressedGenes = featureCounts.mapKeys { it.key.lowercase(Locale.getDefault()) }
+        val genesFromInput = genes.map { it.lowercase(Locale.getDefault()) }
+
+        val genesFound = genesFromInput
+            .map { Pair(it, allGenes.indexOf(it))  }
+            .filter { it.second >= 0 }
+            .filter { expressedGenes[it.first]!! > 0 }
+
+        call.respond(mapOf(
+            "allGenes" to genesFromInput,
+            "expressedGenes" to genesFound.map { it.first },
+            "averageExpression" to expressionDataset.getFeaturesAverage(genesFound.map { it.second })
+        ))
+
+    }
 }
 
 @Suppress("unused") // Referenced in application.conf
@@ -161,39 +196,17 @@ fun Application.module(testing: Boolean = false) {
             get("getPathway") {
                 val dataset = checkToken(call)
                 val pathway = call.request.queryParameters["pathway"]
-                var pathwayGenes = pathways[pathway]
+                val pathwayGenes = pathways[pathway]
 
-                if (pathwayGenes !== null) {
-                    if (dataset !== null) {
-                        val expFile = dataset.expressionFile
-                        val filePath = dataset.expH5Table
-
-                        if (filePath === null || expFile === null) {
-                            call.respond(HttpStatusCode.NotFound, "No expression data for this dataset")
-                        } else {
-                            val expressionDataset = H5ExpressionDataset.getDataset(filePath)
-                            val expData: Map<String, Any> = ObjectMapper().readValue(File(expFile).readText())
-                            var allGenes = expData["features"]
-
-
-                            when (allGenes) {
-                                null -> {
-                                    call.respond(HttpStatusCode.InternalServerError)
-                                }
-                                else -> {
-                                    allGenes as List<String>
-                                    pathwayGenes = pathwayGenes.map { it.lowercase(Locale.getDefault()) }
-                                    allGenes = allGenes.map { it.lowercase(Locale.getDefault()) }
-                                    val pathwayIds = pathwayGenes.map { (allGenes as List<String>).indexOf(it) }.filter { it >= 0}
-                                    call.respond(expressionDataset.getFeaturesAverage(pathwayIds))
-                                }
-                            }
-
-
-
-                        }
+                if (dataset !== null) {
+                    if (pathwayGenes === null) {
+                        call.respond(HttpStatusCode.NotFound, "Pathway not found")
+                    } else {
+                        getGeneSetExpression(call, dataset, pathwayGenes)
                     }
                 }
+
+
             }
 
             post("getGeneset") {
@@ -201,16 +214,8 @@ fun Application.module(testing: Boolean = false) {
                 val dataset = checkToken(call, body.token)
 
                 if (dataset !== null) {
-                    val expFile = dataset.expressionFile
-                    val filePath = dataset.expH5Table
-
-                    if (filePath === null || expFile === null) {
-                        call.respond(HttpStatusCode.NotFound, "No expression data for this dataset")
-                    } else {
-                        val expressionDataset = H5ExpressionDataset.getDataset(filePath)
-                        val genes: List<Int> = body.genes
-                        call.respond(expressionDataset.getFeaturesAverage(genes))
-                    }
+                    val genes = body.bulkGeneSet.trim().split(Regex("\\s+"))
+                    getGeneSetExpression(call, dataset, genes)
                 }
             }
 

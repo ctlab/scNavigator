@@ -36,6 +36,9 @@ const generatePlotState = (dataset) => {
     return {
         height: null,
         width: null,
+        plotLoading: false,
+        plotError: false,
+        plotErrorMessage: "",
         plot: {
             x: getDefaultX(dataset.fields.numeric),
             y: getDefaultY(dataset.fields.numeric),
@@ -63,7 +66,6 @@ export const generateExpressionScatterState = (dataset) => {
     plotState.geneValue = "";
     plotState.geneResults = [];
     plotState.isGeneLoading = false;
-    plotState.plotLoading = false;
 
     plotState.plot.gene = null;
     plotState.plot.geneData = null;
@@ -85,10 +87,14 @@ export const generatePathwaysState = (dataset) => {
     plotState.pathwayValue = "";
     plotState.pathwayResults = [];
     plotState.isPathwayLoading = false;
-    plotState.plotLoading = false;
+
     plotState.plot.pathway = null;
     plotState.plot.pathwayData = null;
     plotState.bulkGenes = "";
+
+    plotState.genesInRequest = [];
+    plotState.genesExpressed = [];
+
     return plotState;
 };
 

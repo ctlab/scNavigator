@@ -176,15 +176,10 @@ export const fetchPathwayData = (token, tab, pathwayValue) => {
     return function(dispatch, getState) {
         dispatch(pathwaySubmitted(token, tab, pathwayValue));
 
-        let cachedPathways = getState().datasetsByTokens[token].cachedPathways;
-        if (_.has(cachedPathways, pathwayValue)) {
-            dispatch(pathwayLoadedData(token, tab, pathwayValue, cachedPathways[pathwayValue]));
-        } else {
-            let pathwayString = encodeURIComponent(pathwayValue);
-            fetch("scn/getPathway?token=" + token + "&pathway=" + pathwayString)
-                .then(res => res.json())
-                .then(data => dispatch(pathwayLoadedData(token, tab, pathwayValue, data)));
-        }
+        let pathwayString = encodeURIComponent(pathwayValue);
+        fetch("scn/getPathway?token=" + token + "&pathway=" + pathwayString)
+            .then(res => res.json())
+            .then(data => dispatch(pathwayLoadedData(token, tab, pathwayValue, data)));
 
     }
 };
@@ -207,10 +202,10 @@ export const bulkSubmitted = (token, tab, bulkValue) => {
 
 
 export const BULK_LOADED_DATA = "BULK_LOADED_DATA";
-export const bulkLoadedData = (token, tab, genes, pathwayData) => {
+export const bulkLoadedData = (token, tab, bulkValue, pathwayData) => {
     return {
         type: BULK_LOADED_DATA,
-        token, tab, genes, pathwayData
+        token, tab, bulkValue, pathwayData
     }
 };
 
@@ -218,19 +213,9 @@ export const fetchBulkData = (token, tab, bulkValue) => {
     return function(dispatch, getState) {
         dispatch(bulkSubmitted(token, tab, bulkValue));
 
-        let genes = bulkValue;
-        let allGenes = getState().datasetsByTokens[token].expData.features;
-
-        genes = genes.toLowerCase();
-        allGenes = allGenes.map(gene => gene.toLowerCase());
-        genes = genes.trim().split(/\s+/);
-
-        let indices = genes.map(gene => allGenes.indexOf(gene));
-        indices = _.filter(indices, a => a >= 0);
-
         let postData = {
             token: token,
-            genes: indices
+            bulkGeneSet: bulkValue
         };
 
         fetch("scn/getGeneset", {
@@ -238,7 +223,7 @@ export const fetchBulkData = (token, tab, bulkValue) => {
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(postData)
           }).then(res => res.json())
-            .then(data => dispatch(bulkLoadedData(token, tab, genes, data)));
+            .then(data => dispatch(bulkLoadedData(token, tab, bulkValue, data)));
     }
 
 };

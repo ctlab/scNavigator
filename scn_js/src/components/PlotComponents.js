@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import {barHistPlot, densityPlot, scatterPlot, violinPlot} from "../utils/Plotting";
 import {connect} from "react-redux";
-import {Dimmer, Grid, Loader} from 'semantic-ui-react';
+import {Dimmer, Grid, Loader, Message} from 'semantic-ui-react';
 import _ from "lodash";
 import {mean, std} from "mathjs/src/entry/pureFunctionsAny.generated";
 
@@ -38,22 +38,40 @@ const getChosenAnnotations = (annotations, plot) => {
 
 class PlotComponents extends Component {
     componentDidUpdate(prevProps, prevState, snapshot) {
-        this.plotData();
+        if (!this.props.plotLoading && !this.props.plotError) {
+            this.plotData();
+        }
+
     }
 
     componentDidMount() {
-        this.plotData();
-        window.addEventListener("resize", () => this.plotData());
+        if (!this.props.plotLoading && !this.props.plotError) {
+            this.plotData();
+            window.addEventListener("resize", () => this.plotData());
+        }
     };
 
     render() {
         // console.log("PLOT RENDERING");
         // console.log(this.props.tab);
-        return (<Grid.Column width={13} id={this.props.plotAreaId}>
-            <Dimmer active={this.props.plotLoading} inverted>
-                <Loader size='medium'>Loading</Loader>
-            </Dimmer>
-        </Grid.Column>);
+        if (this.props.plotLoading) {
+            return (<Grid.Column width={13} id={this.props.plotAreaId}>
+                <Dimmer active inverted>
+                    <Loader size='medium'>Loading</Loader>
+                </Dimmer>
+            </Grid.Column>)
+        } else if (this.props.plotError) {
+            return (<Grid.Column width={13} id={this.props.plotAreaId}>
+                <Dimmer active inverted>
+                    <Message negative floating>
+                        <Message.Header>The genes you provided are not expressed or not present in this dataset.</Message.Header>
+                    </Message>
+                </Dimmer>
+            </Grid.Column>)
+        } else {
+            return (<Grid.Column width={13} id={this.props.plotAreaId} />)
+        }
+
     }
 }
 
@@ -110,6 +128,7 @@ class _ScatterPlotComponentOverview extends PlotComponents {
 const mapOverviewStateToProps = (state, ownProps) => {
     let dataset = state.datasetsByTokens[ownProps.token];
     let tab = dataset.tabs[ownProps.tab];
+    let { plotLoading, plotError, plotErrorMessage } = tab;
     let plot = tab.plot;
     let annotations = dataset.annotations;
 
@@ -117,7 +136,7 @@ const mapOverviewStateToProps = (state, ownProps) => {
         data: dataset.plotData,
         fields: dataset.fields,
         plot, annotations,
-        plotLoading: false,
+        plotLoading, plotError, plotErrorMessage,
         ...ownProps
     }
 };
@@ -194,6 +213,7 @@ class _ExpressionScatterPlot extends PlotComponents {
 const mapExpressionStateToProps = (state, ownProps) => {
     let dataset = state.datasetsByTokens[ownProps.token];
     let tab = dataset.tabs[ownProps.tab];
+    let { plotLoading, plotError, plotErrorMessage } = tab;
     let plot = tab.plot;
     let { annotations, expData } = dataset ;
     let cachedGenes = dataset.cachedGenes;
@@ -204,7 +224,7 @@ const mapExpressionStateToProps = (state, ownProps) => {
         data: dataset.plotData,
         fields: dataset.fields,
         plot, annotations, expData, cachedGenes,
-        plotLoading: tab.plotLoading,
+        plotLoading, plotError, plotErrorMessage,
         ...ownProps
     }
 };
@@ -241,13 +261,14 @@ class _HistogramPlotComponent extends PlotComponents {
 const mapHistogramStateToProps = (state, ownProps) => {
     let dataset = state.datasetsByTokens[ownProps.token];
     let tab = dataset.tabs[ownProps.tab];
+    let { plotLoading, plotError, plotErrorMessage } = tab;
     let plot = tab.plot;
 
     return {
         data: dataset.plotData,
         fields: dataset.fields,
         plot,
-        plotLoading: false,
+        plotLoading, plotError, plotErrorMessage,
         ...ownProps
     }
 };
@@ -330,7 +351,7 @@ class _ScatterPlotPathwayComponent extends PlotComponents {
         let zz = Math.min(height, width);
 
         const {x, y, pathway, split, showPlotGrid, plotPointSize, fontSize} = this.props.plot;
-        const pathwayData = this.props.cachedPathways[pathway];
+        const pathwayData = this.props.pathwayValues;
         let plotDataFull = this.props.plotDataFull;
         let plotFieldsFull = this.props.fieldsFull;
         let chosenAnnotations = getChosenAnnotations(this.props.annotations, this.props.plot);
@@ -396,6 +417,7 @@ class _ScatterPlotPathwayComponent extends PlotComponents {
 const mapPathwayStateToProps = (state, ownProps) => {
     let dataset = state.datasetsByTokens[ownProps.token];
     let tab = dataset.tabs[ownProps.tab];
+    let { plotLoading, plotError, plotErrorMessage } = tab;
     let plot = tab.plot;
 
     let { annotations, expData } = dataset ;
@@ -405,8 +427,8 @@ const mapPathwayStateToProps = (state, ownProps) => {
         data: dataset.plotData,
         fields, fieldsFull, plotDataFull,
         plot, annotations, expData,
-        plotLoading: tab.plotLoading,
-        cachedPathways: dataset.cachedPathways,
+        plotLoading, plotError, plotErrorMessage,
+        pathwayValues: dataset.pathwayValues,
         ...ownProps
     }
 };
