@@ -1,5 +1,5 @@
 import React from 'react';
-import {Grid, Form, Divider, Search, TextArea, Button, Label, Modal, Segment, Container} from 'semantic-ui-react';
+import {Grid, Form, Divider, Search, TextArea, Button, Modal, Segment} from 'semantic-ui-react';
 import {getFields, getFieldsAndNull} from "../utils/Utils";
 import {DropDownComponent} from "./InputComponents";
 import {fetchPathwayData, pathwaySearchResults, fetchBulkData, inputChanged, bulkChanged} from "../actions";

@@ -170,6 +170,15 @@ export const _filterChangedNumeric = (token, name, range) => {
     }
 };
 
+export const FILTER_CHANGED_CELLS_SHOWN = "FILTER_CHANGED_CELLS_SHOWN";
+export const _filterChangedCellsShown = (token, value) => {
+    return {
+        type: FILTER_CHANGED_CELLS_SHOWN,
+        token,
+        value
+    }
+}
+
 export const filterChangedNumeric = (token, name, range) => {
     return function(dispatch, getState) {
         dispatch(filterLoading(token));
@@ -178,3 +187,12 @@ export const filterChangedNumeric = (token, name, range) => {
         })
     }
 };
+
+export const filterChangedCellsShown = (token, value) => {
+    return function(dispatch, getState) {
+        dispatch(filterLoading(token));
+        setTimeout(() => {
+            dispatch(_filterChangedCellsShown(token, value))
+        })
+    }
+}

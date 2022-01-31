@@ -1,5 +1,4 @@
 import {SINGLE_GENE_SUBMIT, SINGLE_GENE_RESULTS_LOADED, SINGLE_GENE_INPUT_CHANGED} from "../actions";
-import _ from "lodash";
 
 export const singleGeneSearch = (state, action) => {
     switch (action.type) {

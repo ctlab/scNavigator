@@ -154,7 +154,8 @@ tabMenuItems[INFO] = (props) => {
         <Header as='h4'>Information</Header>
         <p>Token: {props.token} <br/>
             Species: {speciesMapping[props.species]} <br/>
-            Number of cells: {props.cells} <br/>
+            Cells shown: {props.cellsShown} / {props.cells} <br/>
+            Total number of cells: {props.cells} <br/>
             Dataset is public: {props.public ? "yes" : "no"} <br/>
         </p>
     </Menu.Item>)

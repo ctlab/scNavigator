@@ -18,7 +18,8 @@ import {
     PATHWAY_SUBMITTED,
     PATHWAY_LOADED_DATA,
     BULK_SUBMITTED,
-    BULK_LOADED_DATA, BULK_CHANGED, FILTER_CHANGED_FACTOR, FILTER_LOADING, FILTER_CHANGED_NUMERIC
+    BULK_LOADED_DATA, BULK_CHANGED, FILTER_CHANGED_FACTOR, FILTER_LOADING, FILTER_CHANGED_NUMERIC,
+    FILTER_CHANGED_CELLS_SHOWN
 } from "../actions";
 
 import _ from "lodash";
@@ -40,10 +41,21 @@ export function datasetsTokens(state = [], action) {
     }
 }
 
+const DEFAULT_CELLS_SHOWN = 50000;
 const createDefaultDataset = (token) => {
     return {
         token: token,
         loaded: false,
+
+        name: "",
+        description: "",
+        link: "",
+        species: "",
+        cells: 0,
+        public: false,
+        curated: false,
+        debug: false,
+
 
         fields: null,
         plotData: null,
@@ -51,6 +63,8 @@ const createDefaultDataset = (token) => {
         plotDataFull: null,
         fieldsFull: null,
         plotDataOrder: null,
+
+        cellsShown: 0,
 
         filterLoaded: true,
 
@@ -119,8 +133,10 @@ export function datasetsByTokens(state = {}, action) {
             newDataset.plotDataFull = action.data.data;
             newDataset.fieldsFull = parseFields(action.data.fields);
             newDataset.fields = generateFilteringOptions(newDataset.fieldsFull);
-            indices = getFilteredIndices(newDataset.plotDataFull, newDataset.fields);
-            newDataset.plotDataOrder = _.shuffle(indices);
+
+            indices = getFilteredIndices(newDataset.plotDataFull, newDataset.fields, DEFAULT_CELLS_SHOWN);
+            newDataset.cellsShown = _.min([DEFAULT_CELLS_SHOWN, indices.length])
+            newDataset.plotDataOrder = _.slice(_.shuffle(indices), 0, newDataset.cellsShown);
             newDataset.plotData = _.map(newDataset.plotDataOrder, (x) => newDataset.plotDataFull[x]);
             newDataset.annotations = action.data.annotations;
 
@@ -224,7 +240,8 @@ export function datasetsByTokens(state = {}, action) {
             newFields.factorLevels = newFactorLevels;
             newDataset.fields = newFields;
             indices = getFilteredIndices(newDataset.plotDataFull, newDataset.fields);
-            newDataset.plotDataOrder = _.shuffle(indices);
+            newDataset.cellsShown = _.min([newDataset.cellsShown, indices.length])
+            newDataset.plotDataOrder = _.slice(_.shuffle(indices), 0, newDataset.cellsShown);
             newDataset.plotData = _.map(newDataset.plotDataOrder, (x) => newDataset.plotDataFull[x]);
             newDataset.filterLoaded = true;
             newState[action.token] = newDataset;
@@ -239,12 +256,23 @@ export function datasetsByTokens(state = {}, action) {
             newFields.numericRanges = newNumericRanges;
             newDataset.fields = newFields;
             indices = getFilteredIndices(newDataset.plotDataFull, newDataset.fields);
-            newDataset.plotDataOrder = _.shuffle(indices);
+            newDataset.cellsShown = _.min([newDataset.cellsShown, indices.length])
+            newDataset.plotDataOrder = _.slice(_.shuffle(indices), 0, newDataset.cellsShown);
             newDataset.plotData = _.map(newDataset.plotDataOrder, (x) => newDataset.plotDataFull[x]);
             newDataset.filterLoaded = true;
             newState[action.token] = newDataset;
             return newState;
 
+        case FILTER_CHANGED_CELLS_SHOWN:
+            newState = _.clone(state);
+            newDataset = _.clone(newState[action.token]);
+            indices = getFilteredIndices(newDataset.plotDataFull, newDataset.fields);
+            newDataset.cellsShown = _.min([action.value, indices.length])
+            newDataset.plotDataOrder = _.slice(_.shuffle(indices), 0, newDataset.cellsShown);
+            newDataset.plotData = _.map(newDataset.plotDataOrder, (x) => newDataset.plotDataFull[x]);
+            newDataset.filterLoaded = true;
+            newState[action.token] = newDataset;
+            return newState;
 
         // GENES PARTS
 

@@ -4,7 +4,6 @@ import _ from 'lodash';
 import {caseInsensetiveRegexpFiltering} from "../utils/Utils";
 import {FilterLabel} from "../utils/Utils"
 import ReactTable from "react-table";
-import {speciesMapping} from "../utils/Constants";
 
 
 export default class SingleGeneComponent extends Component {

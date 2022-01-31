@@ -5,14 +5,14 @@ import {Dimmer, Grid, Loader, Message} from 'semantic-ui-react';
 import _ from "lodash";
 import {mean, std} from "mathjs/src/entry/pureFunctionsAny.generated";
 
-const pathwayColorScale = [
-    ['0.0', 'rgb(0,0,139)'], // dark blue
-    ['0.2', 'rgb(0,255,255)'], //cyan
-    ['0.4', 'rgb(255,255,0)'], // yellow
-    ['0.6', 'rgb(255,0,0)'], // red
-    ['0.8', 'rgb(139,0,0)'], //dark red
-    ['1.0', 'rgb(139,62,47)'] //coral4
-];
+// const pathwayColorScale = [
+//     ['0.0', 'rgb(0,0,139)'], // dark blue
+//     ['0.2', 'rgb(0,255,255)'], //cyan
+//     ['0.4', 'rgb(255,255,0)'], // yellow
+//     ['0.6', 'rgb(255,0,0)'], // red
+//     ['0.8', 'rgb(139,0,0)'], //dark red
+//     ['1.0', 'rgb(139,62,47)'] //coral4
+// ];
 
 const customColorScale = [
     [-3, 'rgb(0,0,139)'], [-2, 'rgb(0,0,255)'],

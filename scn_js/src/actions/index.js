@@ -5,7 +5,8 @@ import {
     LOADED_PLOT_DATA, LOADED_EXP_DATA, LOADED_MARKERS_DATA, LOADED_PATHWAYS_DATA,
     loadedPlotData, loadedExpData, loadedMarkersData, loadedPathwaysData, loadedFilesData,
     INPUT_CHANGED, inputChanged, tabChanged, TAB_CHANGED,
-    FILTER_CHANGED_NUMERIC, FILTER_CHANGED_FACTOR, FILTER_LOADING, filterChangedFactor, filterChangedNumeric
+    FILTER_CHANGED_NUMERIC, FILTER_CHANGED_FACTOR, FILTER_LOADING, filterChangedFactor, filterChangedNumeric,
+    FILTER_CHANGED_CELLS_SHOWN, filterChangedCellsShown
 } from "./DatasetActions";
 import {
     changeCurrentWindow, closeWindow,
@@ -72,6 +73,7 @@ export {
     SINGLE_GENE_INPUT_CHANGED, singleGeneInputChanged,
     SINGLE_GENE_RESULTS_LOADED, singleGeneResultsLoaded,
     SINGLE_GENE_SUBMIT, singleGeneSubmit,
-    fetchSingleGeneCounts, showSingleGene
+    fetchSingleGeneCounts, showSingleGene,
+    FILTER_CHANGED_CELLS_SHOWN, filterChangedCellsShown
 };
 
