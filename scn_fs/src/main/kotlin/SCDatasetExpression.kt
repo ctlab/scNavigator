@@ -2,11 +2,11 @@ package ru.itmo.scn.fs
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.json.Json
 import org.litote.kmongo.Id
 import org.litote.kmongo.newId
 import java.io.File
 import java.nio.file.Path
+
 
 @Serializable
 data class SCExpressionJson (
@@ -19,7 +19,7 @@ data class SCExpressionJson (
     companion object Factory {
         fun fromJsonFile(filePath: Path): SCExpressionJson {
             val stringContent = File(filePath.toString()).readText()
-            return Json.decodeFromString(stringContent)
+            return format.decodeFromString(stringContent)
         }
     }
 }
@@ -37,7 +37,7 @@ data class SCDatasetExpression (
     companion object Factory {
         fun fromJsonFile(filePath: String, token: String): SCDatasetExpression {
             val stringContent = File(filePath).readText()
-            val scExpressionJson = Json.decodeFromString<SCExpressionJson>(stringContent)
+            val scExpressionJson = format.decodeFromString<SCExpressionJson>(stringContent)
 
             return SCDatasetExpression(
                 token = token,

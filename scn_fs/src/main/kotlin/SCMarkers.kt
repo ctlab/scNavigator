@@ -3,11 +3,9 @@ package ru.itmo.scn.fs
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.json.Json
 import org.litote.kmongo.Id
 import org.litote.kmongo.newId
 import java.io.File
-
 
 @Serializable
 data class MarkerCollection(
@@ -16,7 +14,7 @@ data class MarkerCollection(
     companion object Factory {
         fun fromJsonFile(filePath: String): MarkerCollection {
             val stringContent = File(filePath).readText()
-            val collection = Json.decodeFromString<Map<String, List<MarkerEntry>>>(stringContent)
+            val collection = format.decodeFromString<Map<String, List<MarkerEntry>>>(stringContent)
             return MarkerCollection(collection)
         }
     }

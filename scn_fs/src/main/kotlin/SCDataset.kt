@@ -14,6 +14,8 @@ import java.nio.file.Paths
 // But this was 2014, so maybe it can be done now
 // Implementation below is ugly, but hopefully I will be able to rewrite it
 
+val format = Json { ignoreUnknownKeys = true }
+
 @Serializable
 data class SCJson (
     val token: String,
@@ -29,7 +31,7 @@ data class SCJson (
     companion object Factory {
         fun fromJsonFile(filePath: Path): SCJson {
             val stringContent = File(filePath.toString()).readText()
-            return Json.decodeFromString(stringContent)
+            return format.decodeFromString(stringContent)
         }
     }
 }
@@ -61,7 +63,7 @@ data class SCDataset (
     companion object Factory {
         fun fromJsonFile(filePath: Path): SCDataset {
             val stringContent = File(filePath.toString()).readText()
-            val scJson = Json.decodeFromString<SCJson>(stringContent)
+            val scJson = format.decodeFromString<SCJson>(stringContent)
 
             val workingDir = filePath.parent.toString()
             val plotDataFile = Paths.get(workingDir, PLOT_DATA_FILE_NAME)
