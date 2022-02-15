@@ -58,8 +58,8 @@ class DatasetMarkers extends Component {
         }, {
             Header: "Cluster",
             accessor: 'cluster',
-            Filter: FilterLabel("="),
-            filterMethod: (filter, row) => String(row[filter.id]) === filter.value
+            Filter: FilterLabel("~"),
+            filterMethod: caseInsensetiveRegexpFiltering
         }, {
             Header: "Av. log-fold change",
             accessor: 'avg_logFC',
