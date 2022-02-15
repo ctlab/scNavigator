@@ -231,6 +231,8 @@ fun Application.module(testing: Boolean = false) {
   { $match: { "$fieldString": {$gt: 0} } },
   { $lookup: { from: "$mongoDBCollection", localField: "token", foreignField: "token", as: "details"} },
   { $ addFields: { details: {$ first: "$ details"} } }, 
+  { $ addFields: { public: "$ details.public"} },
+  { $match: { public: true } },
   { $project: {
       token: 1,
       count: "$ $fieldString",
@@ -262,7 +264,8 @@ fun Application.module(testing: Boolean = false) {
   { $match: { "gene": {$eq: "$gene"}, "pvalueAdjusted": {$lte: 0.01} } }, 
   { $lookup: { from: "$mongoDBCollection", localField: "token", foreignField: "token", as: "details"} },
   { $ addFields: { details: {$ first: "$ details"} } }, 
-  { $ addFields: { name: "$ details.name", description: "$ details.description", link: "$ details.link"} },
+  { $ addFields: { name: "$ details.name", description: "$ details.description", link: "$ details.link", public: "$ details.public"} },
+  { $match: { public: true } },
   { $sort: { token: 1, pvalueAdjusted: 1 } },
   { $group: {
       _id: "$ token",
