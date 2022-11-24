@@ -5,17 +5,15 @@ RUN mkdir /genequery
 RUN mkdir /downloads
 RUN mkdir /genequery/data-files
 
-RUN apt update && apt install -y git
-
 #Install everything for the back-end
 
-ARG COMMITSHA=b704606d2da7d58858295a66c5ddea970488258a
+ARG COMMITSHA=4e8090367b003849de8ed9779fe599eee7a4b6d2
 RUN cd /genequery && git clone https://github.com/konsolerr/genequery-kotlin.git
 RUN cd /genequery/genequery-kotlin && git checkout ${COMMITSHA}
-RUN cd /genequery/genequery-kotlin && gradle build
+RUN cd /genequery/genequery-kotlin && ./gradlew build
 
-RUN cp /genequery/genequery-kotlin/genequery-rest/build/libs/genequery-rest-1.1-SNAPSHOT.jar /genequery/
-RUN mv /genequery/genequery-rest-1.1-SNAPSHOT.jar /genequery/gq-rest.jar
+RUN cp /genequery/genequery-kotlin/genequery-rest/build/libs/genequery-rest-1.2-SNAPSHOT.jar /genequery/
+RUN mv /genequery/genequery-rest-1.2-SNAPSHOT.jar /genequery/gq-rest.jar
 
 # Configs
 
