@@ -90,10 +90,7 @@ fun main(args: Array<String>) {
         mongoDBCollectionExp, mongoDBCollectionMarkers) }
     GlobalScope.launch { fileDeleteHandler(deletedChannel, mongoDBCollection,
         mongoDBCollectionExp, mongoDBCollectionMarkers) }
-
-    Thread.sleep(10000)
-    Log.info("Now touching all the dataset.json files in the directory")
-    touchEveryFile(File(directoryToWatch))
+    GlobalScope.launch { pushDescriptorsToQueue(File(directoryToWatch), pathChangesChannel) }
 
     Thread.sleep(30000)
     Log.info("Now generating GMTs and annotations")
