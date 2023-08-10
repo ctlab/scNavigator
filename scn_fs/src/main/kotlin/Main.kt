@@ -21,6 +21,7 @@ import java.nio.file.WatchEvent
 import java.nio.file.Files
 import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.delay
+import kotlinx.css.time
 
 val mongoDBHost: String =  System.getenv("MONGODB_HOST") ?: "mongodb://mongo:27017"
 val mongoDB: String = System.getenv("MONGODB_DATABASE") ?: "scn"
@@ -71,7 +72,6 @@ suspend fun CollectionCreator(
     Files.createDirectories(Paths.get(tmpPath))
     generateGMTs(mongoDBCollection, tmpPath)
     generateAnnotationJSONs(mongoDBCollection, tmpPath)
-    Log.info("%% RENAME " + mongoDBCollection.namespace + " INTO " + MongoNamespace(database.name, mongoDBCollectionName ))
     mongoDBCollection.renameCollection(MongoNamespace(database.name, mongoDBCollectionName ), RenameCollectionOptions().dropTarget(true))
     mongoDBCollectionExp.renameCollection(MongoNamespace(database.name, mongoDBCollectionExpressionName ), RenameCollectionOptions().dropTarget(true))
     mongoDBCollectionMarkers.renameCollection(MongoNamespace(database.name, mongoDBCollectionMarkersName ), RenameCollectionOptions().dropTarget(true))
@@ -94,15 +94,13 @@ fun main(args: Array<String>) {
 
 
     GlobalScope.launch { 
-        var k = 0
         while (true) {
-            Log.info("!!!!!!!!!!!!!!!!! TRY RECREATE MONGO" + k +" !!!!!!!!!!!!!!!!!!!!!!!!!")
+            val begin = System.currentTimeMillis()
             CollectionCreator(directoryToWatch,  gmtOutDir , tmpPath + "/gmt/") 
-            k = k + 1
             delay(180000)
-           
+            val end = System.currentTimeMillis()
+            Log.info("Crecreate mongo in" + (end-begin)/1000 + " sec." )
         }
-      
     }
 
 
