@@ -78,7 +78,7 @@ suspend fun CollectionCreator(
 
 @ExperimentalTime
 fun main(args: Array<String>) {
-    args.forEach { item -> Log.info(item) }
+    args.forEach { item -> Log.error(item) }
     if (args.size != 3) {
         Log.error("FS module was run without directory to watch argument, try again")
         return
