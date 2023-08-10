@@ -78,6 +78,11 @@ suspend fun CollectionCreator(
 
 @ExperimentalTime
 fun main(args: Array<String>) {
+    if (args.size != 3) {
+        Log.error("FS module was run without directory to watch argument, try again")
+        return
+    }
+
 
     val directoryToWatch = args[0]
     val gmtOutDir = args[1]
@@ -88,7 +93,7 @@ fun main(args: Array<String>) {
         var k = 0
         while (true) {
             Log.info("!!!!!!!!!!!!!!!!! TRY RECREATE MONGO" + k +" !!!!!!!!!!!!!!!!!!!!!!!!!")
-            CollectionCreator(directoryToWatch,  gmtOutDir , tmpPath + "gmt") 
+            CollectionCreator(directoryToWatch,  gmtOutDir , tmpPath + "/gmt") 
             k = k + 1
             delay(180000)
            
