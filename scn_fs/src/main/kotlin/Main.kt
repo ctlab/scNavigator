@@ -71,8 +71,10 @@ suspend fun CollectionCreator(
     Files.createDirectories(Paths.get(tmpPath))
     generateGMTs(mongoDBCollection, tmpPath)
     generateAnnotationJSONs(mongoDBCollection, tmpPath)
-
+    Log.info("%% RENAME " + mongoDBCollection.namespace + " INTO " + MongoNamespace(database.name, mongoDBCollectionName ))
     mongoDBCollection.renameCollection(MongoNamespace(database.name, mongoDBCollectionName ), RenameCollectionOptions().dropTarget(true))
+    mongoDBCollectionExp.renameCollection(MongoNamespace(database.name, mongoDBCollectionExpressionName ), RenameCollectionOptions().dropTarget(true))
+    mongoDBCollectionMarkers.renameCollection(MongoNamespace(database.name, mongoDBCollectionMarkersName ), RenameCollectionOptions().dropTarget(true))
     Runtime.getRuntime().exec("rm -r -f" + gmtOutDir)
     val cmd = "mv -f -u  " + tmpPath + " " + gmtOutDir
     Runtime.getRuntime().exec(cmd)
