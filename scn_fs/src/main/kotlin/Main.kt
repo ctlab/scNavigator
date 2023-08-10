@@ -70,7 +70,7 @@ suspend fun CollectionCreator(
     generateGMTs(mongoDBCollection, tmpPath)
     generateAnnotationJSONs(mongoDBCollection, tmpPath)
 
-    mongoDBCollection.renameCollection(MongoNamespace(database.name,mongoDBCollectionName ), RenameCollectionOptions().dropTarget(true))
+    mongoDBCollection.renameCollection(MongoNamespace(database.name, mongoDBCollectionName ), RenameCollectionOptions().dropTarget(true))
     Runtime.getRuntime().exec("rm -r -f" + gmtOutDir)
     val cmd = "mv -f -u  " + tmpPath + " " + gmtOutDir
     Runtime.getRuntime().exec(cmd)
@@ -93,7 +93,7 @@ fun main(args: Array<String>) {
         var k = 0
         while (true) {
             Log.info("!!!!!!!!!!!!!!!!! TRY RECREATE MONGO" + k +" !!!!!!!!!!!!!!!!!!!!!!!!!")
-            CollectionCreator(directoryToWatch,  gmtOutDir , tmpPath + "/gmt") 
+            CollectionCreator(directoryToWatch,  gmtOutDir , tmpPath + "/gmt/") 
             k = k + 1
             delay(180000)
            
