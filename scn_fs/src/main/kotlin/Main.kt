@@ -18,6 +18,7 @@ import java.nio.file.FileSystems
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.WatchEvent
+import java.nio.file.Files
 import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.delay
 
@@ -67,6 +68,7 @@ suspend fun CollectionCreator(
             insertSCDataset(file.toPath(), mongoDBCollection, mongoDBCollectionExp, mongoDBCollectionMarkers)
     }
 
+    Files.createDirectories(Paths.get(tmpPath))
     generateGMTs(mongoDBCollection, tmpPath)
     generateAnnotationJSONs(mongoDBCollection, tmpPath)
 
