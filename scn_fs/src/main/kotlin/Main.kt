@@ -96,9 +96,10 @@ fun main(args: Array<String>) {
         while (true) {
             val begin = System.currentTimeMillis()
             CollectionCreator(directoryToWatch,  gmtOutDir , tmpPath + "/gmt/") 
-            delay(180000)
             val end = System.currentTimeMillis()
             Log.info("Recreate mongo in" + (end-begin)/1000 + " sec." )
+            delay(180000)
+
         }
     }
 
