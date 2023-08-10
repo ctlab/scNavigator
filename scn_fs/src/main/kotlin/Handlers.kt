@@ -14,6 +14,59 @@ import java.nio.file.Path
 import java.nio.file.Paths
 
 
+
+fun insertSCDataset(path: Path,
+                            mongoDBCollection: MongoCollection<SCDataset>,
+                            mongoDBCollectionExp: MongoCollection<SCDatasetExpression>,
+                            mongoDBCollectionMarkers: MongoCollection<SCMarkerEntry>) {
+
+    try{
+        val scDataset = SCDataset.fromJsonFile(path)
+        val datasetQuery = mongoDBCollection.findOne(SCDataset::token eq scDataset.token)
+        if (datasetQuery == null) {
+            Log.info("Inserting the dataset ${scDataset.token} into the mongo database")
+            mongoDBCollection.insertOne(scDataset)
+        } else {
+            Log.error("Dataset with token ${scDataset.token} already exists: ${datasetQuery.selfPath}. Not updating")
+            return
+        }
+        if (scDataset.expressionFile !== null) {
+            val scExp = SCDatasetExpression.fromJsonFile(scDataset.expressionFile, scDataset.token)
+            Log.info("Inserting the expression info for ${scExp.token} into the mongo database")
+            mongoDBCollectionExp.insertOne(scExp)
+
+        }
+
+        if (scDataset.markersFile !== null) {
+            val markersCollection = MarkerCollection.fromJsonFile(scDataset.markersFile)
+            val flatSCMarkerEntries: List<SCMarkerEntry> = markersCollection.collection.flatMap { entry ->
+                val tableName = entry.key
+                entry.value.map {
+                    SCMarkerEntry(
+                        token = scDataset.token,
+                        tableName = tableName,
+                        cluster = it.cluster,
+                        gene = it.gene,
+                        pct1 = it.pct1,
+                        pct2 = it.pct2,
+                        pValue = it.pValue,
+                        pValueAdjusted = it.pValueAdjusted,
+                        averageLogFoldChange = it.averageLogFoldChange
+                    )
+                }
+            }
+            Log.info("Updating the markers info for dataset ${scDataset.token} in the database")
+            mongoDBCollectionMarkers.deleteMany(SCMarkerEntry::token eq scDataset.token)
+            mongoDBCollectionMarkers.insertMany(flatSCMarkerEntries)
+        }
+    } catch (e: Exception) {
+        Log.error("Error while parsing $path. See exception text below")
+        Log.error(e.message.toString())
+    }                 
+
+}
+
+
 fun insertOrUpdateSCDataset(path: Path,
                             mongoDBCollection: MongoCollection<SCDataset>,
                             mongoDBCollectionExp: MongoCollection<SCDatasetExpression>,
@@ -83,6 +136,7 @@ fun insertOrUpdateSCDataset(path: Path,
         Log.error(e.message.toString())
     }
 }
+
 
 fun deleteSCDataset(path: Path,
                     mongoDBCollection: MongoCollection<SCDataset>,
