@@ -21,7 +21,6 @@ import java.nio.file.WatchEvent
 import java.nio.file.Files
 import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.delay
-import kotlinx.css.time
 
 val mongoDBHost: String =  System.getenv("MONGODB_HOST") ?: "mongodb://mongo:27017"
 val mongoDB: String = System.getenv("MONGODB_DATABASE") ?: "scn"
@@ -99,7 +98,7 @@ fun main(args: Array<String>) {
             CollectionCreator(directoryToWatch,  gmtOutDir , tmpPath + "/gmt/") 
             delay(180000)
             val end = System.currentTimeMillis()
-            Log.info("Crecreate mongo in" + (end-begin)/1000 + " sec." )
+            Log.info("Recreate mongo in" + (end-begin)/1000 + " sec." )
         }
     }
 
