@@ -51,11 +51,19 @@ suspend fun CollectionCreator(
     val mongoDBCollectionMarkers: MongoCollection<SCMarkerEntry>
 
     mongoDBCollection = database.getCollection<SCDataset>(tempMongoDBCollectionName)
-    mongoDBCollection.createIndex(Indexes.ascending("token", "selfPath"), IndexOptions().unique(true));
+
 
     mongoDBCollectionExp = database.getCollection<SCDatasetExpression>(tempMongoDBCollectionExpressionName)
-    mongoDBCollectionExp.createIndex(Indexes.ascending("token"), IndexOptions().unique(true));
+    
     mongoDBCollectionMarkers = database.getCollection<SCMarkerEntry>(tempMongoDBCollectionMarkersName)
+
+
+
+    for (file in directoryFileObject.walk().filter { item -> item.toString().endsWith("dataset.json") }) {
+            insertSCDataset(file.toPath(), mongoDBCollection, mongoDBCollectionExp, mongoDBCollectionMarkers)
+    }
+    mongoDBCollection.createIndex(Indexes.ascending("token", "selfPath"), IndexOptions().unique(true));
+    mongoDBCollectionExp.createIndex(Indexes.ascending("token"), IndexOptions().unique(true));
     mongoDBCollectionMarkers.createIndex(index(mapOf(
         SCMarkerEntry::token to true,
         SCMarkerEntry::tableName to true,
@@ -63,10 +71,6 @@ suspend fun CollectionCreator(
         SCMarkerEntry::gene to true
     )), IndexOptions().unique(true));
 
-
-    for (file in directoryFileObject.walk().filter { item -> item.toString().endsWith("dataset.json") }) {
-            insertSCDataset(file.toPath(), mongoDBCollection, mongoDBCollectionExp, mongoDBCollectionMarkers)
-    }
 
     Files.createDirectories(Paths.get(tmpPath))
     generateGMTs(mongoDBCollection, tmpPath)
