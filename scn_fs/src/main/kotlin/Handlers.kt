@@ -66,6 +66,50 @@ fun insertSCDataset(path: Path,
 
 }
 
+fun insertBulkSCDataset(paths: List<Path>,
+                            mongoDBCollection: MongoCollection<SCDataset>,
+                            mongoDBCollectionExp: MongoCollection<SCDatasetExpression>,
+                            mongoDBCollectionMarkers: MongoCollection<SCMarkerEntry>) {
+    val datasets:List<SCDataset> = paths.map{ item -> SCDataset.fromJsonFile(item) }
+    val exprs = datasets.filter{
+                                dataset -> dataset.expressionFile !== null
+                            }.map{ 
+                                dataset -> dataset.expressionFile?.let{
+                                SCDatasetExpression.fromJsonFile(dataset.expressionFile, dataset.token)}
+                            }
+
+    val markersCollections:Map<String,MarkerCollection> =  datasets.filter{
+                                                dataset -> dataset.markersFile !== null
+                                             }.map{ 
+                                                it.token to MarkerCollection.fromJsonFile(it.markersFile.toString())
+                                             }.toMap()    
+
+    val flatSCMarkerEntries: List<SCMarkerEntry> = markersCollections.flatMap { markersCollection ->
+        markersCollection.value.collection.flatMap { entry ->
+            val tableName = entry.key
+            entry.value.map {
+                SCMarkerEntry(
+                    token = markersCollection.key,
+                    tableName = tableName,
+                    cluster = it.cluster,
+                    gene = it.gene,
+                    pct1 = it.pct1,
+                    pct2 = it.pct2,
+                    pValue = it.pValue,
+                    pValueAdjusted = it.pValueAdjusted,
+                    averageLogFoldChange = it.averageLogFoldChange
+                )
+            }
+        }
+    }
+    mongoDBCollection.insertMany(datasets)
+    if (!exprs.isEmpty()){
+        mongoDBCollectionExp.insertMany(exprs)
+    }
+    if (!markersCollections.isEmpty()){
+        mongoDBCollectionMarkers.insertMany(flatSCMarkerEntries)
+    }
+}
 
 fun insertOrUpdateSCDataset(path: Path,
                             mongoDBCollection: MongoCollection<SCDataset>,
@@ -136,6 +180,10 @@ fun insertOrUpdateSCDataset(path: Path,
         Log.error(e.message.toString())
     }
 }
+
+
+
+
 
 
 fun deleteSCDataset(path: Path,
