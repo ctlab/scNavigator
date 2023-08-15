@@ -20,6 +20,8 @@ import java.nio.file.Paths
 import java.nio.file.WatchEvent
 import java.nio.file.Files
 import kotlin.time.ExperimentalTime
+import kotlin.collections.arrayListOf
+import kotlin.streams.toList
 import kotlinx.coroutines.delay
 
 val mongoDBHost: String =  System.getenv("MONGODB_HOST") ?: "mongodb://mongo:27017"
@@ -59,12 +61,19 @@ suspend fun CollectionCreator(
     
     Log.info("Starting at " + directoryToWatch)
 
-    Files.walk(Paths.get(directoryToWatch))
-        .filter { it.toString().endsWith("dataset.json")}
-        .forEach { 
-            Log.info("trying " + it)
-            insertSCDataset(it, mongoDBCollection, mongoDBCollectionExp, mongoDBCollectionMarkers)
-            Log.info("completed " + it)}
+    val a =  Files.walk(Paths.get(directoryToWatch))
+        .filter{ it.toString().endsWith("dataset.json")}.toList()
+    Log.info("Complete files list total length" + a.size)
+
+     
+    a.chunked(100).forEach{
+        Log.info("trying " + it)
+        //insertSCDataset(it, mongoDBCollection, mongoDBCollectionExp, mongoDBCollectionMarkers)
+        it.let{ insertBulkSCDataset(it, mongoDBCollection, mongoDBCollectionExp, mongoDBCollectionMarkers)}
+       
+            Log.info("completed " + it)
+        }
+
 
 
     mongoDBCollection.createIndex(Indexes.ascending("token", "selfPath"), IndexOptions().unique(true));
