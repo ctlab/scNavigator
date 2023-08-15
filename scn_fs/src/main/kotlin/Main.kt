@@ -41,7 +41,6 @@ suspend fun CollectionCreator(
     gmtOutDir: String,
     tmpPath: String
 ){
-    val directoryFileObject = File(directoryToWatch)
     val tempMongoDBCollectionName = mongoDBCollectionName + "_temp"
     val tempMongoDBCollectionExpressionName = mongoDBCollectionExpressionName + "_temp"
     val tempMongoDBCollectionMarkersName = mongoDBCollectionMarkersName + "_temp"
@@ -59,12 +58,15 @@ suspend fun CollectionCreator(
 
     
     Log.info("Starting at " + directoryToWatch)
-    val files:List<File> = directoryFileObject.walk().filter{ item -> item.toString().endsWith("dataset.json") }.toList()
-    for (paths in files.chunked(20)) {
-        Log.info("trying " + paths)
-        insertBulkSCDataset(paths.map{item -> item.toPath()}, mongoDBCollection, mongoDBCollectionExp, mongoDBCollectionMarkers)
-        Log.info("completed" + paths)
-    }     
+
+    Files.walk(Paths.get(directoryToWatch))
+        .filter { it.toString().endsWith("dataset.json")}.iterator().asSequence().chunked(20)
+        .forEach { 
+            Log.info("trying " + it)
+            insertBulkSCDataset(it, mongoDBCollection, mongoDBCollectionExp, mongoDBCollectionMarkers)
+            Log.info("completed " + it)}
+}
+
     mongoDBCollection.createIndex(Indexes.ascending("token", "selfPath"), IndexOptions().unique(true));
     mongoDBCollectionExp.createIndex(Indexes.ascending("token"), IndexOptions().unique(true));
     mongoDBCollectionMarkers.createIndex(index(mapOf(
