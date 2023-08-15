@@ -62,7 +62,10 @@ suspend fun CollectionCreator(
     Log.info("Starting at " + directoryToWatch)
 
     val a =  Files.walk(Paths.get(directoryToWatch))
-        .filter{ it.toString().endsWith("dataset.json")}.toList()
+    .toList()
+    .parallelStream()
+    .filter({ it.toString().endsWith("dataset.json")}).toList()
+
     Log.info("Complete files list total length" + a.size)
 
      
