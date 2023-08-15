@@ -63,20 +63,23 @@ suspend fun CollectionCreator(
     Log.info("Starting at " + directoryToWatch)
 
 
-    val a = Files.walk(Paths.get(directoryToWatch)).toList()
-    Log.info("files.walk " + a.size)
 
     var k = 0
     Files.walk(Paths.get(directoryToWatch)).asSequence().chunked(100).forEach({
+        Log.info("cur_k " + k)
         k = k + it.size
     })
-    Log.info("files.walk as seq chunk  " + a.size)
+    Log.info("files.walk as seq chunk  " + k)
 
     val directoryFileObject = File(directoryToWatch)
     k = 0
-    val c = directoryFileObject.walk().chunked(100).forEach { k = k + it.size }
-    Log.info("file walk chunk " + a.size)
+    val c = directoryFileObject.walk().chunked(100).forEach {
+        Log.info("cur_k " + k)
+         k = k + it.size }
+    Log.info("file walk chunk " + k)
     
+    val a = Files.walk(Paths.get(directoryToWatch)).toList()
+    Log.info("files.walk " + a.size)
 
 
     Files.walk(Paths.get(directoryToWatch)).asSequence().chunked(100).filter({ it.toString().endsWith("dataset.json")}).forEach { 
