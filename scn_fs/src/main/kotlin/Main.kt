@@ -60,10 +60,10 @@ suspend fun CollectionCreator(
     Log.info("Starting at " + directoryToWatch)
 
     Files.walk(Paths.get(directoryToWatch))
-        .filter { it.toString().endsWith("dataset.json")}.iterator().asSequence().chunked(100)
+        .filter { it.toString().endsWith("dataset.json")}
         .forEach { 
             Log.info("trying " + it)
-            insertBulkSCDataset(it, mongoDBCollection, mongoDBCollectionExp, mongoDBCollectionMarkers)
+            insertSCDataset(it, mongoDBCollection, mongoDBCollectionExp, mongoDBCollectionMarkers)
             Log.info("completed " + it)}
 
 
