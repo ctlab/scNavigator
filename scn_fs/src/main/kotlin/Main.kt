@@ -65,7 +65,7 @@ suspend fun CollectionCreator(
 
 
     var k = 0
-    Files.walk(Paths.get(directoryToWatch)).asSequence().chunked(1000).forEach({
+    Files.walk(Paths.get(directoryToWatch)).filter({ it.toString().endsWith("dataset.json")}).asSequence().chunked(1000).forEach({
         Log.info("cur_k " + k)
         k = k + it.size
     })
@@ -73,7 +73,7 @@ suspend fun CollectionCreator(
 
     val directoryFileObject = File(directoryToWatch)
     k = 0
-    val c = directoryFileObject.walk().chunked(1000).forEach {
+    val c = directoryFileObject.walk().filter({ it.toString().endsWith("dataset.json")}).chunked(1000).forEach {
         Log.info("cur_k " + k)
          k = k + it.size }
     Log.info("file walk chunk " + k)
