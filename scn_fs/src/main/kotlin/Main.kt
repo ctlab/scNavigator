@@ -59,8 +59,8 @@ suspend fun CollectionCreator(
 
     
     Log.info("Starting at " + directoryToWatch)
-    val files =  directoryFileObject.walk().filter { item -> item.toString().endsWith("dataset.json") }
-    for (paths in files.chunked(10)) {
+    val files:List<File> = directoryFileObject.walk().filter{ item -> item.toString().endsWith("dataset.json") }.toList()
+    for (paths in files.chunked(20)) {
         Log.info("trying " + paths)
         insertBulkSCDataset(paths.map{item -> item.toPath()}, mongoDBCollection, mongoDBCollectionExp, mongoDBCollectionMarkers)
         Log.info("completed" + paths)
