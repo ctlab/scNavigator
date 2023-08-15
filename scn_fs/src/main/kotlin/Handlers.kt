@@ -22,14 +22,10 @@ fun insertSCDataset(path: Path,
 
     try{
         val scDataset = SCDataset.fromJsonFile(path)
-        val datasetQuery = mongoDBCollection.findOne(SCDataset::token eq scDataset.token)
-        if (datasetQuery == null) {
+
             Log.info("Inserting the dataset ${scDataset.token} into the mongo database")
             mongoDBCollection.insertOne(scDataset)
-        } else {
-            Log.error("Dataset with token ${scDataset.token} already exists: ${datasetQuery.selfPath}. Not updating")
-            return
-        }
+
         if (scDataset.expressionFile !== null) {
             val scExp = SCDatasetExpression.fromJsonFile(scDataset.expressionFile, scDataset.token)
             Log.info("Inserting the expression info for ${scExp.token} into the mongo database")
