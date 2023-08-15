@@ -22,6 +22,7 @@ import java.nio.file.Files
 import kotlin.time.ExperimentalTime
 import kotlin.collections.arrayListOf
 import kotlin.streams.toList
+import kotlin.streams.asSequence
 import kotlinx.coroutines.delay
 
 val mongoDBHost: String =  System.getenv("MONGODB_HOST") ?: "mongodb://mongo:27017"
@@ -61,20 +62,35 @@ suspend fun CollectionCreator(
     
     Log.info("Starting at " + directoryToWatch)
 
-    val a =  Files.walk(Paths.get(directoryToWatch))
-    .toList()
-    .parallelStream()
-    .filter({ it.toString().endsWith("dataset.json")}).toList()
+
+    val a = Files.walk(Paths.get(directoryToWatch)).toList()
+    Log.info("files.walk " + a.size)
+
+    var k = 0
+    Files.walk(Paths.get(directoryToWatch)).asSequence().chunked(100).forEach({
+        k = k + it.size
+    })
+    Log.info("files.walk as seq chunk  " + a.size)
+
+    val directoryFileObject = File(directoryToWatch)
+    k = 0
+    val c = directoryFileObject.walk().chunked(100).forEach { k = k + it.size }
+    Log.info("file walk chunk " + a.size)
+    
+
+
+    Files.walk(Paths.get(directoryToWatch)).asSequence().chunked(100).filter({ it.toString().endsWith("dataset.json")}).forEach { 
+        Log.info("trying " + it)
+        //insertSCDataset(it, mongoDBCollection, mongoDBCollectionExp, mongoDBCollectionMarkers)
+        insertBulkSCDataset(it, mongoDBCollection, mongoDBCollectionExp, mongoDBCollectionMarkers)
+        Log.info("completed " + it)
+     }
 
     Log.info("Complete files list total length" + a.size)
 
      
     a.chunked(100).forEach{
-        Log.info("trying " + it)
-        //insertSCDataset(it, mongoDBCollection, mongoDBCollectionExp, mongoDBCollectionMarkers)
-        it.let{ insertBulkSCDataset(it, mongoDBCollection, mongoDBCollectionExp, mongoDBCollectionMarkers)}
-       
-            Log.info("completed " + it)
+     
         }
 
 
