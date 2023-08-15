@@ -58,7 +58,7 @@ suspend fun CollectionCreator(
     mongoDBCollectionMarkers = database.getCollection<SCMarkerEntry>(tempMongoDBCollectionMarkersName)
 
 
-    val files =  directoryFileObject.walk().filter { item -> item.toString().endsWith("dataset.json") })
+    val files =  directoryFileObject.walk().filter { item -> item.toString().endsWith("dataset.json") }
     for (paths in files.chunked(10)) {
         
         insertBulkSCDataset(paths.map{item -> item.toPath()}, mongoDBCollection, mongoDBCollectionExp, mongoDBCollectionMarkers)
