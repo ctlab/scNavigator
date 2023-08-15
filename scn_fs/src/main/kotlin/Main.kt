@@ -65,7 +65,7 @@ suspend fun CollectionCreator(
             Log.info("trying " + it)
             insertBulkSCDataset(it, mongoDBCollection, mongoDBCollectionExp, mongoDBCollectionMarkers)
             Log.info("completed " + it)}
-}
+
 
     mongoDBCollection.createIndex(Indexes.ascending("token", "selfPath"), IndexOptions().unique(true));
     mongoDBCollectionExp.createIndex(Indexes.ascending("token"), IndexOptions().unique(true));
