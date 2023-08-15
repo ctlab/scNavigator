@@ -65,7 +65,7 @@ suspend fun CollectionCreator(
 
 
     var k = 0
-    Files.walk(Paths.get(directoryToWatch)).asSequence().chunked(100).forEach({
+    Files.walk(Paths.get(directoryToWatch)).asSequence().chunked(1000).forEach({
         Log.info("cur_k " + k)
         k = k + it.size
     })
@@ -73,7 +73,7 @@ suspend fun CollectionCreator(
 
     val directoryFileObject = File(directoryToWatch)
     k = 0
-    val c = directoryFileObject.walk().chunked(100).forEach {
+    val c = directoryFileObject.walk().chunked(1000).forEach {
         Log.info("cur_k " + k)
          k = k + it.size }
     Log.info("file walk chunk " + k)
@@ -82,7 +82,7 @@ suspend fun CollectionCreator(
     Log.info("files.walk " + a.size)
 
 
-    Files.walk(Paths.get(directoryToWatch)).asSequence().chunked(100).filter({ it.toString().endsWith("dataset.json")}).forEach { 
+    Files.walk(Paths.get(directoryToWatch)).asSequence().chunked(1000).filter({ it.toString().endsWith("dataset.json")}).forEach { 
         Log.info("trying " + it)
         //insertSCDataset(it, mongoDBCollection, mongoDBCollectionExp, mongoDBCollectionMarkers)
         insertBulkSCDataset(it, mongoDBCollection, mongoDBCollectionExp, mongoDBCollectionMarkers)
