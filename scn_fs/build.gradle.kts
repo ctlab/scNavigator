@@ -41,7 +41,6 @@ dependencies {
     implementation("io.ktor:ktor-server-netty:$ktorVersion")
     implementation("io.ktor:ktor-server-core:$ktorVersion")
     implementation("io.ktor:ktor-jackson:$ktorVersion")
-    compile("com.box:box-java-sdk:2.32.0")
 }
 
 sourceSets {
