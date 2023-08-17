@@ -75,7 +75,7 @@ fun Application.module(testing: Boolean = false) {
 
         route("scn_fs") {
             get("test") {
-                call.respond("You are here!")
+                call.respondText("You are here!")
             }
 
         }
