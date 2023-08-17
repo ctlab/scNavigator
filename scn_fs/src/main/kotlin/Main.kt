@@ -4,11 +4,11 @@ import com.mongodb.client.MongoCollection
 import com.mongodb.client.MongoDatabase
 import com.mongodb.client.model.IndexOptions
 import com.mongodb.client.model.Indexes
-import com.mongodb.client.model.RenameCollectionOptions
-import com.mongodb.MongoNamespace
 import de.jupf.staticlog.Log
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
 import kotlinx.datetime.Instant
 import org.litote.kmongo.KMongo
 import org.litote.kmongo.getCollection
@@ -16,14 +16,9 @@ import org.litote.kmongo.index
 import java.io.File
 import java.nio.file.FileSystems
 import java.nio.file.Path
-import java.nio.file.Paths
 import java.nio.file.WatchEvent
-import java.nio.file.Files
 import kotlin.time.ExperimentalTime
-import kotlin.collections.arrayListOf
-import kotlin.streams.toList
-import kotlin.streams.asSequence
-import kotlinx.coroutines.delay
+import jdk.nashorn.internal.objects.Global
 
 val mongoDBHost: String =  System.getenv("MONGODB_HOST") ?: "mongodb://mongo:27017"
 val mongoDB: String = System.getenv("MONGODB_DATABASE") ?: "scn"
@@ -35,114 +30,73 @@ val gmtOutDir: String = System.getenv("GMT_PATH") ?: ""
 val client = KMongo.createClient(mongoDBHost)
 val database: MongoDatabase = client.getDatabase(mongoDB)
 
-
-
-
-
-suspend fun CollectionCreator(
-    directoryToWatch: String,
-    gmtOutDir: String,
-    tmpPath: String
-){
-    val tempMongoDBCollectionName = mongoDBCollectionName + "_temp"
-    val tempMongoDBCollectionExpressionName = mongoDBCollectionExpressionName + "_temp"
-    val tempMongoDBCollectionMarkersName = mongoDBCollectionMarkersName + "_temp"
+@ExperimentalTime
+fun main(args: Array<String>) {
+    if (args.size != 2) {
+        Log.error("FS module was run without directory to watch argument, try again")
+        return
+    }
 
     val mongoDBCollection: MongoCollection<SCDataset>;
     val mongoDBCollectionExp: MongoCollection<SCDatasetExpression>;
     val mongoDBCollectionMarkers: MongoCollection<SCMarkerEntry>
 
-    mongoDBCollection = database.getCollection<SCDataset>(tempMongoDBCollectionName)
-
-
-    mongoDBCollectionExp = database.getCollection<SCDatasetExpression>(tempMongoDBCollectionExpressionName)
-    
-    mongoDBCollectionMarkers = database.getCollection<SCMarkerEntry>(tempMongoDBCollectionMarkersName)
-
-    
-    Log.info("Starting at " + directoryToWatch)
-
-
-
-    var k = 0
-    Files.walk(Paths.get(directoryToWatch)).filter({ it.toString().endsWith("dataset.json")}).asSequence().chunked(1000).forEach({
-        Log.info("cur_k " + k)
-        k = k + it.size
-    })
-    Log.info("files.walk as seq chunk  " + k)
-
-    val directoryFileObject = File(directoryToWatch)
-    k = 0
-    val c = directoryFileObject.walk().filter({ it.toString().endsWith("dataset.json")}).chunked(1000).forEach {
-        Log.info("cur_k " + k)
-         k = k + it.size }
-    Log.info("file walk chunk " + k)
-    
-    val a = Files.walk(Paths.get(directoryToWatch)).toList()
-    Log.info("files.walk " + a.size)
-
-
-    Files.walk(Paths.get(directoryToWatch)).asSequence().chunked(1000).filter({ it.toString().endsWith("dataset.json")}).forEach { 
-        Log.info("trying " + it)
-        //insertSCDataset(it, mongoDBCollection, mongoDBCollectionExp, mongoDBCollectionMarkers)
-        insertBulkSCDataset(it, mongoDBCollection, mongoDBCollectionExp, mongoDBCollectionMarkers)
-        Log.info("completed " + it)
-     }
-
-    Log.info("Complete files list total length" + a.size)
-
-     
-    a.chunked(100).forEach{
-     
-        }
-
-
-
-    mongoDBCollection.createIndex(Indexes.ascending("token", "selfPath"), IndexOptions().unique(true));
-    mongoDBCollectionExp.createIndex(Indexes.ascending("token"), IndexOptions().unique(true));
-    mongoDBCollectionMarkers.createIndex(index(mapOf(
-        SCMarkerEntry::token to true,
-        SCMarkerEntry::tableName to true,
-        SCMarkerEntry::cluster to true,
-        SCMarkerEntry::gene to true
-    )), IndexOptions().unique(true));
-
-
-    Files.createDirectories(Paths.get(tmpPath))
-    generateGMTs(mongoDBCollection, tmpPath)
-    generateAnnotationJSONs(mongoDBCollection, tmpPath)
-    mongoDBCollection.renameCollection(MongoNamespace(database.name, mongoDBCollectionName ), RenameCollectionOptions().dropTarget(true))
-    mongoDBCollectionExp.renameCollection(MongoNamespace(database.name, mongoDBCollectionExpressionName ), RenameCollectionOptions().dropTarget(true))
-    mongoDBCollectionMarkers.renameCollection(MongoNamespace(database.name, mongoDBCollectionMarkersName ), RenameCollectionOptions().dropTarget(true))
-    Runtime.getRuntime().exec("rm -r -f" + gmtOutDir)
-    val cmd = "mv -f -u  " + tmpPath + " " + gmtOutDir
-    Runtime.getRuntime().exec(cmd)
-}
-
-@ExperimentalTime
-fun main(args: Array<String>) {
-    if (args.size != 3) {
-        Log.error("FS module was run without directory to watch argument, try again")
-        return
+    if (!database.listCollectionNames().contains(mongoDBCollectionName)) {
+        Log.info("Initializing MongoDB (dataset descriptors) for the first time")
+        mongoDBCollection = database.getCollection<SCDataset>(mongoDBCollectionName)
+        val indexOptions = IndexOptions().unique(true);
+        mongoDBCollection.createIndex(Indexes.ascending("token", "selfPath"), indexOptions);
+    } else {
+        mongoDBCollection = database.getCollection<SCDataset>(mongoDBCollectionName)
     }
 
+    if (!database.listCollectionNames().contains(mongoDBCollectionExpressionName)) {
+        Log.info("Initializing MongoDB (dataset expression info) for the first time")
+        mongoDBCollectionExp = database.getCollection<SCDatasetExpression>(mongoDBCollectionExpressionName)
+        val indexOptions = IndexOptions().unique(true);
+        mongoDBCollectionExp.createIndex(Indexes.ascending("token"), indexOptions);
+    } else {
+        mongoDBCollectionExp = database.getCollection<SCDatasetExpression>(mongoDBCollectionExpressionName)
+    }
 
+    if (!database.listCollectionNames().contains(mongoDBCollectionMarkersName)) {
+        Log.info("Initializing MongoDB (dataset markers info) for the first time")
+        mongoDBCollectionMarkers = database.getCollection<SCMarkerEntry>(mongoDBCollectionMarkersName)
+        val indexOptions = IndexOptions().unique(true);
+        mongoDBCollectionMarkers.createIndex(index(mapOf(
+            SCMarkerEntry::token to true,
+            SCMarkerEntry::tableName to true,
+            SCMarkerEntry::cluster to true,
+            SCMarkerEntry::gene to true
+        )), indexOptions);
+    } else {
+        mongoDBCollectionMarkers = database.getCollection<SCMarkerEntry>(mongoDBCollectionMarkersName)
+    }
+
+    val pathChangesChannel = Channel<Pair<Path, WatchEvent.Kind<Path>>>();
+    val watchService = FileSystems.getDefault().newWatchService()
+
+    val modifiedChannel = Channel<Path>();
+    val deletedChannel = Channel<Path>();
+    val fileChanges = HashMap<Path, Instant>();
+    val mutex = Mutex()
     val directoryToWatch = args[0]
     val gmtOutDir = args[1]
-    val tmpPath = args[2]
 
 
-    GlobalScope.launch { 
-        while (true) {
-            val begin = System.currentTimeMillis()
-            CollectionCreator(directoryToWatch,  gmtOutDir , tmpPath + "/gmt/") 
-            val end = System.currentTimeMillis()
-            Log.info("Recreate mongo in" + (end-begin)/1000 + " sec." )
-            delay(180000)
-
-        }
-    }
-
+    GlobalScope.launch { recursiveFSWatcher(watchService, directoryToWatch, pathChangesChannel) }
+    GlobalScope.launch { fsReceiver(pathChangesChannel, deletedChannel, fileChanges, mutex) }
+    GlobalScope.launch { delayedFSReceiver(modifiedChannel, fileChanges, mutex) }
+    GlobalScope.launch { fileChangeHandler(modifiedChannel, mongoDBCollection,
+        mongoDBCollectionExp, mongoDBCollectionMarkers) }
+    GlobalScope.launch { fileDeleteHandler(deletedChannel, mongoDBCollection,
+        mongoDBCollectionExp, mongoDBCollectionMarkers) }
+    GlobalScope.launch { pushDescriptorsToQueue(File(directoryToWatch), pathChangesChannel) }
+    GlobalScope.launch{ boxUpdateReceiver(args)}
+    Thread.sleep(30000)
+    Log.info("Now generating GMTs and annotations")
+    generateGMTs(mongoDBCollection, gmtOutDir)
+    generateAnnotationJSONs(mongoDBCollection, gmtOutDir)
 
     while (true) {
         Thread.sleep(10000)
