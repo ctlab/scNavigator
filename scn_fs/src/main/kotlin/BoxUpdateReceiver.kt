@@ -25,6 +25,8 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
     //outChannel: Channel<Pair<Path, WatchEvent.Kind<Path>>>,
     otherArgs: Array<String>) {
         Log.info("Probably run fs_server")
+        otherArgs.forEach { Log.info(it) }
+        
         io.ktor.server.netty.EngineMain.main(otherArgs)
                     
 }
