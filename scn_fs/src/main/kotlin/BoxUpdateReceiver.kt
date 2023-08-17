@@ -19,6 +19,7 @@ import io.ktor.server.netty.Netty
 import de.jupf.staticlog.Log
 import com.fasterxml.jackson.databind.SerializationFeature
 import java.text.DateFormat
+import org.slf4j.event.Level
 
 suspend fun boxUpdateReceiver( // boxDir:Path,
     //outChannel: Channel<Pair<Path, WatchEvent.Kind<Path>>>,
