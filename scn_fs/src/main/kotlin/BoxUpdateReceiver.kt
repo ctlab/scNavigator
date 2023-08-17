@@ -36,6 +36,7 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
 @Suppress("unused") // Referenced in application.conf
 @kotlin.jvm.JvmOverloads
 fun Application.module(testing: Boolean = false) {
+    Log.info("inside box ktor")
     install(Compression) {
         gzip {
             priority = 1.0
