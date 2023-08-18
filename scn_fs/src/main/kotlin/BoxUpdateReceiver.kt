@@ -21,77 +21,73 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import java.text.DateFormat
 import org.slf4j.event.Level
 
+
+
 suspend fun boxUpdateReceiver( // boxDir:Path,
-    //outChannel: Channel<Pair<Path, WatchEvent.Kind<Path>>>,
-    otherArgs: Array<String>) {
-        Log.info("Probably run fs_server")
-        otherArgs.forEach { Log.info(it) }
+    outChannel: Channel<Pair<Path, WatchEvent.Kind<Path>>>,
+    otherArgs: Array<String>) {   
         
+        embeddedServer(Netty, port = 8081) {
+            install(Compression) {
+                gzip {
+                    priority = 1.0
+                }
+                deflate {
+                    priority = 10.0
+                    minimumSize(1024) // condition
+                }
+            }
+        
+            install(CallLogging) {
+                level = Level.INFO
+                filter { call -> call.request.path().startsWith("/") }
+            }
+        
+            install(DefaultHeaders) {
+                header("X-Engine", "Ktor") // will send this header with each response
+            }
+        
+            install(ContentNegotiation) {
+                jackson {
+                    enable(SerializationFeature.INDENT_OUTPUT)
+                }
+            }
+        
+            val client = HttpClient(Apache) {
+            }
+            routing {
+
+                install(ContentNegotiation) {
+                    gson {
+                        setDateFormat(DateFormat.LONG)
+                        setPrettyPrinting()
+                    }
+                }
+        
+                route("scn_fs") {
+                    get("test") {
+                        Log.info(outChannel.toString())
+                        call.respondText("You are here!")
+        
+                    }
+        
+                }
+        
+                install(StatusPages) {
+                    exception<AuthenticationException> {
+                        call.respond(HttpStatusCode.Unauthorized)
+                    }
+                    exception<AuthorizationException> {
+                        call.respond(HttpStatusCode.Forbidden)
+                    }
+        
+                }
+            }
+        }.start(wait = true)
+
+
         io.ktor.server.netty.EngineMain.main(otherArgs)
                     
 }
-
-
-
-@Suppress("unused") // Referenced in application.conf
-@kotlin.jvm.JvmOverloads
-fun Application.module(testing: Boolean = false) {
-    Log.info("inside box ktor")
-    install(Compression) {
-        gzip {
-            priority = 1.0
-        }
-        deflate {
-            priority = 10.0
-            minimumSize(1024) // condition
-        }
-    }
-
-    install(CallLogging) {
-        level = Level.INFO
-        filter { call -> call.request.path().startsWith("/") }
-    }
-
-    install(DefaultHeaders) {
-        header("X-Engine", "Ktor") // will send this header with each response
-    }
-
-    install(ContentNegotiation) {
-        jackson {
-            enable(SerializationFeature.INDENT_OUTPUT)
-        }
-    }
-
-    val client = HttpClient(Apache) {
-    }
-
-    routing {
-
-        install(ContentNegotiation) {
-            gson {
-                setDateFormat(DateFormat.LONG)
-                setPrettyPrinting()
-            }
-        }
-
-        route("scn_fs") {
-            get("test") {
-                call.respondText("You are here!")
-            }
-
-        }
-
-        install(StatusPages) {
-            exception<AuthenticationException> {
-                call.respond(HttpStatusCode.Unauthorized)
-            }
-            exception<AuthorizationException> {
-                call.respond(HttpStatusCode.Forbidden)
-            }
-
-        }
-    }
-}
-
 class AuthenticationException : RuntimeException()
 class AuthorizationException : RuntimeException()
