@@ -112,6 +112,7 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                             headers.get("BOX-DELIVERY-TIMESTAMP")
                         );
 
+
                         if (isValidMessage) {
                             // Message is valid, handle it
                             Log.info("POST:  " + body)
@@ -119,6 +120,14 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                         } else {
                             // Message is invalid, reject it
                             Log.info("POST:  BAD request")
+                            Log.info("HEADERS: ")
+                            headers.get("BOX-SIGNATURE-VERSION")?.let{ Log.info(it)}
+                            headers.get("BOX-SIGNATURE-ALGORITHM")?.let{ Log.info(it)}
+                            headers.get("BOX-SIGNATURE-PRIMARY")?.let{ Log.info(it)}
+                            headers.get("BOX-SIGNATURE-SECONDARY")?.let{ Log.info(it)}
+                            headers.get("BOX-DELIVERY-TIMESTAMP")?.let{ Log.info(it)}
+                            Log.info("BODY :")
+                            Log.info(body)
                             call.respondText("OK")
                         }
 
