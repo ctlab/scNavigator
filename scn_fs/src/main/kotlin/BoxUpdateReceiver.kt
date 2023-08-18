@@ -121,11 +121,8 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                             // Message is invalid, reject it
                             Log.info("POST:  BAD request")
                             Log.info("HEADERS: ")
-                            headers.get("BOX-SIGNATURE-VERSION")?.let{ Log.info(it)}
-                            headers.get("BOX-SIGNATURE-ALGORITHM")?.let{ Log.info(it)}
-                            headers.get("BOX-SIGNATURE-PRIMARY")?.let{ Log.info(it)}
-                            headers.get("BOX-SIGNATURE-SECONDARY")?.let{ Log.info(it)}
-                            headers.get("BOX-DELIVERY-TIMESTAMP")?.let{ Log.info(it)}
+
+                            headers.forEach { name:String, value:List<String> -> Log.info(name + "     :    " + value) }
                             Log.info("BODY :")
                             Log.info(body)
                             call.respondText("OK")
