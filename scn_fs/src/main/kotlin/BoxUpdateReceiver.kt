@@ -1,6 +1,7 @@
 package ru.itmo.scn.fs
 
 import kotlinx.coroutines.channels.Channel
+import kotlinx.serialization.json.internal.STRING
 import java.nio.file.WatchEvent
 import java.nio.file.Path
 import io.ktor.application.*
@@ -20,13 +21,21 @@ import de.jupf.staticlog.Log
 import com.fasterxml.jackson.databind.SerializationFeature
 import java.text.DateFormat
 import org.slf4j.event.Level
-
+import com.box.sdk.BoxAPIConnection;
+import com.box.sdk.BoxFolder;
+import com.box.sdk.BoxItem;
+import com.box.sdk.BoxLogger;
+import com.box.sdk.BoxUser;
+import com.box.sdk.BoxWebHookSignatureVerifier
 
 
 suspend fun boxUpdateReceiver( // boxDir:Path,
     outChannel: Channel<Pair<Path, WatchEvent.Kind<Path>>>,
     otherArgs: Array<String>) {   
         
+        val primaryKey = "hijb1paa3j6v5tw53gyomkwc42346jlq";
+        val secondaryKey = "u3JxvmB5PhauVXJpQCG3r7CFYoHsaz6d";
+
         embeddedServer(Netty, port = 8081) {
             install(Compression) {
                 gzip {
@@ -65,6 +74,56 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                 }
         
                 route("scn_fs") {
+                    get("file_deleted"){
+
+                        val headers = call.response.headers
+                        val body = call.receive<String>();
+                        val verifier:BoxWebHookSignatureVerifier = BoxWebHookSignatureVerifier(primaryKey, secondaryKey);
+                        val isValidMessage = verifier.verify(
+                            headers.get("BOX-SIGNATURE-VERSION"),
+                            headers.get("BOX-SIGNATURE-ALGORITHM"),
+                            headers.get("BOX-SIGNATURE-PRIMARY"),
+                            headers.get("BOX-SIGNATURE-SECONDARY"),
+                            body,
+                            headers.get("BOX-DELIVERY-TIMESTAMP")
+                        );
+
+                        if (isValidMessage) {
+                            // Message is valid, handle it
+                            Log.info("GET:  " + body)
+                            call.respondText("OK")
+                        } else {
+                            // Message is invalid, reject it
+                            Log.info("GET:  BAD response")
+                            call.respondText("OK")
+                        }
+
+
+                    }
+                    post("file_deleted"){
+                        val headers = call.response.headers
+                        val body = call.receive<String>();
+                        val verifier:BoxWebHookSignatureVerifier = BoxWebHookSignatureVerifier(primaryKey, secondaryKey);
+                        val isValidMessage = verifier.verify(
+                            headers.get("BOX-SIGNATURE-VERSION"),
+                            headers.get("BOX-SIGNATURE-ALGORITHM"),
+                            headers.get("BOX-SIGNATURE-PRIMARY"),
+                            headers.get("BOX-SIGNATURE-SECONDARY"),
+                            body,
+                            headers.get("BOX-DELIVERY-TIMESTAMP")
+                        );
+
+                        if (isValidMessage) {
+                            // Message is valid, handle it
+                            Log.info("POST:  " + body)
+                            call.respondText("OK")
+                        } else {
+                            // Message is invalid, reject it
+                            Log.info("POST:  BAD response")
+                            call.respondText("OK")
+                        }
+
+                    }
                     get("test") {
                         Log.info(outChannel.toString())
                         call.respondText("You are here!")
