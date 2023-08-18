@@ -122,7 +122,9 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                             Log.info("POST:  BAD request")
                             Log.info("HEADERS: ")
                             headers.forEach { name:String, value:List<String> -> Log.info(name + "     :    " + value) }
-
+                            
+                            Log.info("Cookies: ")
+                            Log.info(call.request.cookies.toString())
                             Log.info("PARAMS: ")
                             call.request.queryParameters.forEach { name:String, value:List<String> -> Log.info(name + "     :    " + value) }
                             Log.info("BODY :")
