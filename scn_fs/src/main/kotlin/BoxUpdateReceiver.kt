@@ -121,8 +121,10 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                             // Message is invalid, reject it
                             Log.info("POST:  BAD request")
                             Log.info("HEADERS: ")
-
                             headers.forEach { name:String, value:List<String> -> Log.info(name + "     :    " + value) }
+
+                            Log.info("PARAMS: ")
+                            call.request.queryParameters.forEach { name:String, value:List<String> -> Log.info(name + "     :    " + value) }
                             Log.info("BODY :")
                             Log.info(body)
                             call.respondText("OK")
