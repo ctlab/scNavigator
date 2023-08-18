@@ -93,14 +93,14 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                             call.respondText("OK")
                         } else {
                             // Message is invalid, reject it
-                            Log.info("GET:  BAD response")
+                            Log.info("GET:  BAD request")
                             call.respondText("OK")
                         }
 
 
                     }
                     post("file_deleted"){
-                        val headers = call.response.headers
+                        val headers = call.request.headers
                         val body = call.receive<String>();
                         val verifier:BoxWebHookSignatureVerifier = BoxWebHookSignatureVerifier(primaryKey, secondaryKey);
                         val isValidMessage = verifier.verify(
@@ -118,7 +118,7 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                             call.respondText("OK")
                         } else {
                             // Message is invalid, reject it
-                            Log.info("POST:  BAD response")
+                            Log.info("POST:  BAD request")
                             call.respondText("OK")
                         }
 
