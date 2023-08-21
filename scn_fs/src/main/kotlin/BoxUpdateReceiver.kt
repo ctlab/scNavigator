@@ -73,33 +73,7 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                 }
         
                 route("scn_fs") {
-                    get("file_deleted"){
-
-                        val headers = call.response.headers
-                        val body = call.receive<String>();
-                        val verifier:BoxWebHookSignatureVerifier = BoxWebHookSignatureVerifier(primaryKey, secondaryKey);
-                        val isValidMessage = verifier.verify(
-                            headers.get("BOX-SIGNATURE-VERSION"),
-                            headers.get("BOX-SIGNATURE-ALGORITHM"),
-                            headers.get("BOX-SIGNATURE-PRIMARY"),
-                            headers.get("BOX-SIGNATURE-SECONDARY"),
-                            body,
-                            headers.get("BOX-DELIVERY-TIMESTAMP")
-                        );
-
-                        if (isValidMessage) {
-                            // Message is valid, handle it
-                            Log.info("GET:  " + body)
-                            call.respondText("OK")
-                        } else {
-                            // Message is invalid, reject it
-                            Log.info("GET:  BAD request")
-                            call.respondText("OK")
-                        }
-
-
-                    }
-                    post("file_deleted"){
+                    post("file_updates"){
                         val headers = call.request.headers
                         val body = call.receive<String>();
                         val verifier:BoxWebHookSignatureVerifier = BoxWebHookSignatureVerifier(primaryKey, secondaryKey);
