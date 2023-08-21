@@ -32,8 +32,8 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
     outChannel: Channel<Pair<Path, WatchEvent.Kind<Path>>>,
     otherArgs: Array<String>) {   
         
-        val primaryKey = "hijb1paa3j6v5tw53gyomkwc42346jlq";
-        val secondaryKey = "u3JxvmB5PhauVXJpQCG3r7CFYoHsaz6d";
+        val primaryKey = "R3KnKQSiCgq9gCH8hiFPqfR6WWKSolYE";
+        val secondaryKey = "cXqXlBx6LAeOxfBb7rWWMy8u5Ojz4lEu";
 
         embeddedServer(Netty, port = 8081) {
             install(Compression) {
@@ -89,22 +89,24 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
 
                         if (isValidMessage) {
                             // Message is valid, handle it
-                            Log.info("POST:  " + body)
+                            Log.info("POST:  success" +)
                             call.respondText("OK")
                         } else {
                             // Message is invalid, reject it
                             Log.info("POST:  BAD request")
-                            Log.info("HEADERS: ")
-                            headers.forEach { name:String, value:List<String> -> Log.info(name + "     :    " + value) }
                             
-                            Log.info("Cookies: ")
-                            Log.info(call.request.cookies.toString())
-                            Log.info("PARAMS: ")
-                            call.request.queryParameters.forEach { name:String, value:List<String> -> Log.info(name + "     :    " + value) }
-                            Log.info("BODY :")
-                            Log.info(body)
-                            call.respondText("OK")
                         }
+                        Log.info("HEADERS: ")
+                        headers.forEach { name:String, value:List<String> -> Log.info(name + "     :    " + value) }
+                        
+                        Log.info("Cookies: ")
+                        Log.info(call.request.cookies.toString())
+                        Log.info("PARAMS: ")
+                        call.request.queryParameters.forEach { name:String, value:List<String> -> Log.info(name + "     :    " + value) }
+                        Log.info("BODY :")
+                        Log.info(body)
+                        call.respondText("OK")
+                        Log.info("=======================================================================================")
 
                     }
                     get("test") {
