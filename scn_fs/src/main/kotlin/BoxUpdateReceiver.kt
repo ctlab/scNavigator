@@ -89,7 +89,7 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
 
                         if (isValidMessage) {
                             // Message is valid, handle it
-                            Log.info("POST:  success" +)
+                            Log.info("POST:  success")
                             call.respondText("OK")
                         } else {
                             // Message is invalid, reject it
