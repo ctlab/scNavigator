@@ -75,47 +75,48 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                 route("scn_fs") {
                     post("file_updates"){
                         val headers = call.request.headers
-                        val body = call.receive<WebhookMessage>();
-                        
-                        val verifier:BoxWebHookSignatureVerifier = BoxWebHookSignatureVerifier(primaryKey, secondaryKey);
-                        val isValidMessage = verifier.verify(
-                            headers.get("BOX-SIGNATURE-VERSION"),
-                            headers.get("BOX-SIGNATURE-ALGORITHM"),
-                            headers.get("BOX-SIGNATURE-PRIMARY"),
-                            headers.get("BOX-SIGNATURE-SECONDARY"),
-                            body.toString(),
-                            headers.get("BOX-DELIVERY-TIMESTAMP")
-                        );
+                        try {
+                            val body = call.receive<WebhookMessage>();
+                            
+                            val verifier:BoxWebHookSignatureVerifier = BoxWebHookSignatureVerifier(primaryKey, secondaryKey);
+                            val isValidMessage = verifier.verify(
+                                headers.get("BOX-SIGNATURE-VERSION"),
+                                headers.get("BOX-SIGNATURE-ALGORITHM"),
+                                headers.get("BOX-SIGNATURE-PRIMARY"),
+                                headers.get("BOX-SIGNATURE-SECONDARY"),
+                                body.toString(),
+                                headers.get("BOX-DELIVERY-TIMESTAMP")
+                            );
 
 
-                        if (isValidMessage) {
-                            // Message is valid, handle it
-                            Log.info("POST:  success")
-                            Log.info(body.toString())
-                            try {
+                            if (isValidMessage) {
+                                // Message is valid, handle it
+                                Log.info("POST:  success")
+                                Log.info(body.toString())
+                                
                                 Log.info(body.trigger)
                                 Log.info("------------------------")
                                 Log.info(body.source.getName())
     
                                 Log.info("+++++++++++++++++++++++++++++")
-                            }
-                            catch(e:Exception) {
-
-                                Log.error(e.message.toString())
-
-                                
-                            }
+                          
                    
 
 
-                            call.respondText("OK")
-                            
-                        } else {
-                            // Message is invalid, reject it
-                            Log.info("POST:  BAD box message")
-                            call.respond(HttpStatusCode.BadRequest)
-                        }
+                                call.respondText("OK")
+                                
+                            } else {
+                                // Message is invalid, reject it
+                                Log.info("POST:  BAD box message")
+                                call.respond(HttpStatusCode.BadRequest)
+                            }
+                    }
+                    catch(e:Exception) {
 
+                        Log.error(e.message.toString())
+
+                        
+                    }
                     }
                     get("test") {
                         Log.info(outChannel.toString())
