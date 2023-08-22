@@ -32,8 +32,8 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
     outChannel: Channel<Pair<Path, WatchEvent.Kind<Path>>>,
     otherArgs: Array<String>) {   
         
-        val primaryKey = "R3KnKQSiCgq9gCH8hiFPqfR6WWKSolYE";
-        val secondaryKey = "cXqXlBx6LAeOxfBb7rWWMy8u5Ojz4lEu";
+        val primaryKey = "xnZXCpICEjEQb5gKRcfaJ2TcM1jzsEZS";
+        val secondaryKey = "PpGelWNY56S2yBAhuHvQxxFEGoR7IV9y";
 
         embeddedServer(Netty, port = 8081) {
             install(Compression) {
@@ -76,6 +76,7 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                     post("file_updates"){
                         val headers = call.request.headers
                         val body = call.receive<String>();
+                    
                         val verifier:BoxWebHookSignatureVerifier = BoxWebHookSignatureVerifier(primaryKey, secondaryKey);
                         val isValidMessage = verifier.verify(
                             headers.get("BOX-SIGNATURE-VERSION"),
@@ -90,23 +91,21 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                         if (isValidMessage) {
                             // Message is valid, handle it
                             Log.info("POST:  success")
+                            val msg = call.receive<WebhookMessage>();
+                            Log.info(msg.trigger)
+                            Log.info("------------------------")
+                            Log.info(msg.source.getName())
+
+                            Log.info("+++++++++++++++++++++++++++++")
+
+                            Log.info(body)
                             call.respondText("OK")
+                            
                         } else {
                             // Message is invalid, reject it
-                            Log.info("POST:  BAD request")
-                            
+                            Log.info("POST:  BAD box message")
+                            call.respond(HttpStatusCode.BadRequest)
                         }
-                        Log.info("HEADERS: ")
-                        headers.forEach { name:String, value:List<String> -> Log.info(name + "     :    " + value) }
-                        
-                        Log.info("Cookies: ")
-                        Log.info(call.request.cookies.toString())
-                        Log.info("PARAMS: ")
-                        call.request.queryParameters.forEach { name:String, value:List<String> -> Log.info(name + "     :    " + value) }
-                        Log.info("BODY :")
-                        Log.info(body)
-                        call.respondText("OK")
-                        Log.info("=======================================================================================")
 
                     }
                     get("test") {
