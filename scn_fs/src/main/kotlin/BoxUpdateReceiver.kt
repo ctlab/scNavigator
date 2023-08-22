@@ -75,15 +75,15 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                 route("scn_fs") {
                     post("file_updates"){
                         val headers = call.request.headers
-                        val body = call.receive<String>();
-                    
+                        val body = call.receive<WebhookMessage>();
+                        
                         val verifier:BoxWebHookSignatureVerifier = BoxWebHookSignatureVerifier(primaryKey, secondaryKey);
                         val isValidMessage = verifier.verify(
                             headers.get("BOX-SIGNATURE-VERSION"),
                             headers.get("BOX-SIGNATURE-ALGORITHM"),
                             headers.get("BOX-SIGNATURE-PRIMARY"),
                             headers.get("BOX-SIGNATURE-SECONDARY"),
-                            body,
+                            body.toString(),
                             headers.get("BOX-DELIVERY-TIMESTAMP")
                         );
 
@@ -91,12 +91,11 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                         if (isValidMessage) {
                             // Message is valid, handle it
                             Log.info("POST:  success")
-                            Log.info(body)
+                            Log.info(body.toString())
                             try {
-                                val msg = call.receive<WebhookMessage>();
-                                Log.info(msg.trigger)
+                                Log.info(body.trigger)
                                 Log.info("------------------------")
-                                Log.info(msg.source.getName())
+                                Log.info(body.source.getName())
     
                                 Log.info("+++++++++++++++++++++++++++++")
                             }
