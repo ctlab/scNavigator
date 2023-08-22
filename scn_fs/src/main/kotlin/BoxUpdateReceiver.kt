@@ -66,10 +66,7 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
             routing {
 
                 install(ContentNegotiation) {
-                    gson {
-                        setDateFormat(DateFormat.LONG)
-                        setPrettyPrinting()
-                    }
+                    jackson()
                 }
         
                 route("scn_fs") {
