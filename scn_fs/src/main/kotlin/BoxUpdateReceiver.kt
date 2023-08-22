@@ -91,12 +91,21 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                         if (isValidMessage) {
                             // Message is valid, handle it
                             Log.info("POST:  success")
-                            val msg = call.receive<WebhookMessage>();
-                            Log.info(msg.trigger)
-                            Log.info("------------------------")
-                            Log.info(msg.source.getName())
+                            try {
+                                val msg = call.receive<WebhookMessage>();
+                                Log.info(msg.trigger)
+                                Log.info("------------------------")
+                                Log.info(msg.source.getName())
+    
+                                Log.info("+++++++++++++++++++++++++++++")
+                            }
+                            catch(e:Exception) {
 
-                            Log.info("+++++++++++++++++++++++++++++")
+                                Log.error(e.message.toString())
+
+                                
+                            }
+                   
 
                             Log.info(body)
                             call.respondText("OK")
