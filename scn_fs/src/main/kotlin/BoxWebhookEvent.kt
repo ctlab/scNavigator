@@ -21,6 +21,7 @@ data class BoxSource(
 )
 
 data class BoxPath constructor (val path_lengh:Long, val path_entries:List<String>){
+    @JsonCreator()
     constructor(@JsonProperty("entries") entries:List<Map<String, String>>, @JsonProperty("total_count") total_count:Long):
     this(total_count, entries.map{it["name"].toString()})
 }
