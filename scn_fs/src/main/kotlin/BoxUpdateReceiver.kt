@@ -26,6 +26,7 @@ import com.box.sdk.BoxItem;
 import com.box.sdk.BoxLogger;
 import com.box.sdk.BoxUser;
 import com.box.sdk.BoxWebHookSignatureVerifier
+import com.box.sdk.BoxFile
 
 
 suspend fun boxUpdateReceiver( // boxDir:Path,
@@ -74,7 +75,7 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                         val headers = call.request.headers
                         try {
                             val body = call.receive<WebhookMessage>();
-                            
+                            body.source.path.path_entries.forEach { item -> Log.info(item) }
                             val verifier:BoxWebHookSignatureVerifier = BoxWebHookSignatureVerifier(primaryKey, secondaryKey);
                             val isValidMessage = verifier.verify(
                                 headers.get("BOX-SIGNATURE-VERSION"),
@@ -93,7 +94,10 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                                 
                                 Log.info(body.trigger)
                                 Log.info("------------------------")
-                                Log.info(body.source.getName())
+                                Log.info(body.source.toString())
+                                body.source.path.path_entries.forEach { item -> Log.info(item) }
+                                //body.source.path.entries.forEach({item -> Log.info(item.name)})
+                            
     
                                 Log.info("+++++++++++++++++++++++++++++")
                           
