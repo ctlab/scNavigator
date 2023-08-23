@@ -17,7 +17,8 @@ import io.ktor.server.engine.commandLineEnvironment
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import de.jupf.staticlog.Log
-import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import java.text.DateFormat
 import org.slf4j.event.Level
 import com.box.sdk.BoxAPIConnection;
@@ -58,7 +59,6 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
         
             install(ContentNegotiation) {
                 jackson {
-                    enable(SerializationFeature.INDENT_OUTPUT)
                 }
             }
         
@@ -74,8 +74,8 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                     post("file_updates"){
                         val headers = call.request.headers
                         try {
-                            val body = call.receive<WebhookMessage>();
-                            body.source.path.path_entries.forEach { item -> Log.info(item) }
+                            val body = call.receive<String>();
+                            
                             val verifier:BoxWebHookSignatureVerifier = BoxWebHookSignatureVerifier(primaryKey, secondaryKey);
                             val isValidMessage = verifier.verify(
                                 headers.get("BOX-SIGNATURE-VERSION"),
@@ -92,10 +92,12 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                                 Log.info("POST:  success")
                                 Log.info(body.toString())
                                 
-                                Log.info(body.trigger)
+                                val msg:WebhookMessage = jacksonObjectMapper().readValue<WebhookMessage>(body)
+                                
+                                Log.info(msg.trigger)
                                 Log.info("------------------------")
-                                Log.info(body.source.toString())
-                                body.source.path.path_entries.forEach { item -> Log.info(item) }
+                                Log.info(msg.source.toString())
+                                msg.source.path.path_entries.forEach { item -> Log.info(item) }
                                 //body.source.path.entries.forEach({item -> Log.info(item.name)})
                             
     
