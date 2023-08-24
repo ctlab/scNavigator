@@ -97,7 +97,8 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                                 Log.info(msg.trigger)
                                 Log.info("------------------------")
                                 Log.info(msg.source.toString())
-                                msg.source.path.path_entries.forEach { item -> Log.info(item) }
+
+                                msg.source.path?.let{it.path_entries.forEach { item -> Log.info(item) }}
                                 //body.source.path.entries.forEach({item -> Log.info(item.name)})
                             
     
