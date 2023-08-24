@@ -4,6 +4,7 @@ import com.box.sdk.BoxFile
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonInclude
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 
@@ -32,9 +33,15 @@ data class BoxPath constructor (val path_lengh:Long, val path_entries:List<Strin
 
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class WebhookMessage(
+data class WebhookMessage constructor(
     val trigger: String,
     val source: BoxSource,
-    val additional_info:JsonObject
+    val additional_info:BoxInfo
+)
 
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
+data class BoxInfo(
+    val old_name:String,
+    val before: BoxSource,
+    val after: BoxSource
 )
