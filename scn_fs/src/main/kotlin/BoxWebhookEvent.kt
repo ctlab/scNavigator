@@ -7,8 +7,17 @@ import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonObject
+import com.google.gson.JsonObject
+
+
+
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
+sealed class BoxInfo{
+    val type = this::class.java.simpleName
+}
+data class RenameInfo @JsonCreator constructor(@JsonProperty("old_name") val old_name :String):BoxInfo()
+data class  MoveInfo @JsonCreator constructor(@JsonProperty("before") val before:BoxSource, @JsonProperty("after") val after:BoxSource):BoxInfo()
+data class EmptyInfo@JsonCreator constructor(val value:List<Any>):BoxInfo()   
 
 
 
