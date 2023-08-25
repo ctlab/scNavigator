@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 
@@ -39,11 +41,12 @@ data class WebhookMessage constructor(
     val additional_info:BoxInfo
 )
 
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
 sealed class BoxInfo{
-    class RenameInfo (val old_name :String):BoxInfo()
-    class MoveInfo(val before:BoxSource, val after:BoxSource)
-    class EmptyInfo(val value:List<Any>)
-    
+    val type = this::class.java.simpleName
 }
+data class RenameInfo @JsonCreator constructor(@JsonProperty("old_name") val old_name :String):BoxInfo()
+data class  MoveInfo @JsonCreator constructor(@JsonProperty("before") val before:BoxSource, @JsonProperty("after") val after:BoxSource):BoxInfo()
+data class EmptyInfo @JsonCreator constructor(val value:List<Any>):BoxInfo()   
 
 
