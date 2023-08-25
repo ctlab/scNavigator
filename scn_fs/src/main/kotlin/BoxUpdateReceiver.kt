@@ -101,7 +101,13 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                                 msg.source.path?.let{it.path_entries.forEach { item -> Log.info(item) }}
                                 //body.source.path.entries.forEach({item -> Log.info(item.name)})
                             
-    
+                                Log.info(msg.additional_info.toString())
+                                when(msg.additional_info){
+                                    is RenameInfo -> Log.info("Rename! olda_name is " + msg.additional_info.old_name)
+                                    is MoveInfo -> Log.info("Move !" + msg.additional_info.toString() )
+                                    is EmptyInfo -> Log.info( "Info is empty")
+                                }
+                          
                                 Log.info("+++++++++++++++++++++++++++++")
                           
                    
