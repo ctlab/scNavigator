@@ -36,19 +36,14 @@ data class BoxPath constructor (val path_lengh:Long, val path_entries:List<Strin
 data class WebhookMessage constructor(
     val trigger: String,
     val source: BoxSource,
-    val additional_info:Map<String,BoxInfo>
+    val additional_info:BoxInfo
 )
 
 sealed class BoxInfo{
+    class RenameInfo (val old_name :String):BoxInfo()
+    class MoveInfo(val before:BoxSource, val after:BoxSource)
+    class EmptyInfo(val value:List<Any>)
+    
 }
-
-
-data class RenameInfo(
-    val value:String?
-):BoxInfo()
-
-data class MoveInfo(
-    val value:BoxSource
-):BoxInfo()
 
 
