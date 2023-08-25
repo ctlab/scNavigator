@@ -11,9 +11,8 @@ import com.google.gson.JsonObject
 
 
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
 sealed class BoxInfo{
-    val type = this::class.java.simpleName
 }
 data class RenameInfo @JsonCreator constructor(@JsonProperty("old_name") val old_name :String):BoxInfo()
 data class  MoveInfo @JsonCreator constructor(@JsonProperty("before") val before:BoxSource, @JsonProperty("after") val after:BoxSource):BoxInfo()
@@ -47,6 +46,5 @@ data class BoxPath constructor (val path_lengh:Long, val path_entries:List<Strin
 data class WebhookMessage constructor(
     val trigger: String,
     val source: BoxSource,
-    val additional_info:JsonObject
+    val additional_info:Map<String,BoxInfo>
 )
-
