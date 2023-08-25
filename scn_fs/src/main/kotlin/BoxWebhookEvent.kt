@@ -7,19 +7,15 @@ import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import com.fasterxml.jackson.databind.JsonDeserializer
+import com.fasterxml.jackson.databind.DeserializationContext
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import com.fasterxml.jackson.core.JsonParser
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.google.gson.JsonObject
-
-
-
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
-sealed class BoxInfo{
-}
-data class RenameInfo @JsonCreator constructor(@JsonProperty("old_name") val old_name :String):BoxInfo()
-data class  MoveInfo @JsonCreator constructor(@JsonProperty("before") val before:BoxSource, @JsonProperty("after") val after:BoxSource):BoxInfo()
-data class EmptyInfo@JsonCreator constructor(val value:List<Any>):BoxInfo()   
-
-
-
+import kotlin.reflect.KClass
 
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -46,5 +42,29 @@ data class BoxPath constructor (val path_lengh:Long, val path_entries:List<Strin
 data class WebhookMessage constructor(
     val trigger: String,
     val source: BoxSource,
-    val additional_info:Map<String,BoxInfo>
+    val additional_info:BoxInfo
 )
+
+@JsonDeserialize(using = InfoDeserializer::class)
+sealed class BoxInfo{
+}
+data class RenameInfo @JsonCreator constructor(@JsonProperty("old_name") val old_name :String):BoxInfo()
+data class  MoveInfo @JsonCreator constructor(@JsonProperty("before") val before:BoxSource, @JsonProperty("after") val after:BoxSource):BoxInfo()
+data class EmptyInfo@JsonCreator constructor(val value:Any):BoxInfo()   
+
+
+
+
+class InfoDeserializer : JsonDeserializer<BoxInfo>() {
+    override fun deserialize(jsonParser: JsonParser, ctxt: DeserializationContext?): BoxInfo {
+        val node = jsonParser.codec.readTree<JsonNode>(jsonParser)
+        if (node.has("after")){
+            return( MoveInfo(BoxSource(type = node.get("before").get("type").asText(), id = node.get("before").get("id").asText()),
+            BoxSource(type = node.get("after").get("type").asText(), id = node.get("after").get("id").asText())))
+        }
+        if (node.has("old_name")){
+            return(RenameInfo(node.get("old_name").asText()))
+        }
+        return EmptyInfo(node);
+    }
+ }
