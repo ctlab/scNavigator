@@ -3,6 +3,7 @@ package ru.itmo.scn.fs
 import kotlinx.coroutines.channels.Channel
 import java.nio.file.WatchEvent
 import java.nio.file.Path
+import java.nio.file.Paths
 import io.ktor.application.*
 import io.ktor.client.*
 import io.ktor.client.engine.apache.*
@@ -28,15 +29,21 @@ import com.box.sdk.BoxLogger;
 import com.box.sdk.BoxUser;
 import com.box.sdk.BoxWebHookSignatureVerifier
 import com.box.sdk.BoxFile
+import com.box.sdk.BoxTrash
+import com.box.sdk.BoxAPIResponseException
 
 
 suspend fun boxUpdateReceiver( // boxDir:Path,
     outChannel: Channel<Pair<Path, WatchEvent.Kind<Path>>>,
     otherArgs: Array<String>) {   
         
-        val primaryKey = "xnZXCpICEjEQb5gKRcfaJ2TcM1jzsEZS";
-        val secondaryKey = "PpGelWNY56S2yBAhuHvQxxFEGoR7IV9y";
+        val webhook_key = "xnZXCpICEjEQb5gKRcfaJ2TcM1jzsEZS";
+        val webhoor_sec_key = "PpGelWNY56S2yBAhuHvQxxFEGoR7IV9y";
+        val verifier:BoxWebHookSignatureVerifier = BoxWebHookSignatureVerifier(webhook_key, webhoor_sec_key);
 
+        val api_key = "aprdjeuciqnlp1yo9d4ttwpy2zgb7ibd"
+        val api_secret = "PyU8Kq4ZpboQ7GEGzGmeZxaF84JHadEg"
+        val api = BoxAPIConnection(api_key, api_secret) 
         embeddedServer(Netty, port = 8081) {
             install(Compression) {
                 gzip {
@@ -75,8 +82,6 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                         val headers = call.request.headers
                         try {
                             val body = call.receive<String>();
-                            
-                            val verifier:BoxWebHookSignatureVerifier = BoxWebHookSignatureVerifier(primaryKey, secondaryKey);
                             val isValidMessage = verifier.verify(
                                 headers.get("BOX-SIGNATURE-VERSION"),
                                 headers.get("BOX-SIGNATURE-ALGORITHM"),
@@ -110,7 +115,12 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                           
                                 Log.info("+++++++++++++++++++++++++++++")
                           
-                   
+                                when(msg.source.type){
+                                    "file" -> {
+                                        val test_file = BoxFile(api, msg.source.id)
+                                        val p_test = getBoxPath(test_file)
+                                    }
+                                }
 
 
                                 call.respondText("OK")
@@ -154,3 +164,39 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
 }
 class AuthenticationException : RuntimeException()
 class AuthorizationException : RuntimeException()
+
+fun getBoxPath(item:BoxItem):Path{
+    val api = item.getAPI()
+    val trash:BoxTrash  = BoxTrash(api);   
+    var cur_item_info:BoxItem.Info? = try {
+                                            when (item){
+                                                is BoxFile -> trash.getFileInfo(item.id)
+                                                else ->  trash.getFolderInfo(item.id)
+                                            }
+                                        } catch (e:BoxAPIResponseException){
+                                            item.getInfo()
+                                        } catch(e:Exception){
+                                            null
+                                        }
+    if (cur_item_info == null){
+        throw(Exception("Error! Unable to get info for id: " + item.id ))
+    } 
+    val name_list = mutableListOf<String>(cur_item_info.name) 
+
+    while(true){
+        val parent_id = cur_item_info!!.getParent().getID()
+        try{
+            cur_item_info = trash.getFolderInfo(parent_id)
+            name_list.add(0, cur_item_info.name)
+        } catch (e:BoxAPIResponseException){
+            cur_item_info = BoxFolder(api, parent_id).getInfo()
+            break
+        } 
+    }
+    cur_item_info?.pathCollection?.forEach({
+        name_list.add(0, it.name)
+    })
+    return Paths.get( "" ,*name_list.toTypedArray())
+
+
+}
