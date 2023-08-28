@@ -117,6 +117,7 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                           
                                 when(msg.source.type){
                                     "file" -> {
+                                        Log.info("_____________START BUILD PATH_________")
                                         val test_file = BoxFile(api, msg.source.id)
                                         val p_test = getBoxPath(test_file)
                                     }
@@ -174,6 +175,7 @@ fun getBoxPath(item:BoxItem):Path{
                                                 else ->  trash.getFolderInfo(item.id)
                                             }
                                         } catch (e:BoxAPIResponseException){
+                                            Log.info("exist")
                                             item.getInfo()
                                         } catch(e:Exception){
                                             null
@@ -181,19 +183,26 @@ fun getBoxPath(item:BoxItem):Path{
     if (cur_item_info == null){
         throw(Exception("Error! Unable to get info for id: " + item.id ))
     } 
+    Log.info("____first name_" + cur_item_info.name)
     val name_list = mutableListOf<String>(cur_item_info.name) 
 
     while(true){
         val parent_id = cur_item_info!!.getParent().getID()
+        Log.info("try id: " + parent_id)
         try{
+     
             cur_item_info = trash.getFolderInfo(parent_id)
+            Log.info("deleted")
+            Log.info("____cur name_" + cur_item_info.name)
             name_list.add(0, cur_item_info.name)
         } catch (e:BoxAPIResponseException){
             cur_item_info = BoxFolder(api, parent_id).getInfo()
+            Log.info("exist")
             break
         } 
     }
     cur_item_info?.pathCollection?.forEach({
+        Log.info("exist-tail name " + it.name)
         name_list.add(0, it.name)
     })
     return Paths.get( "" ,*name_list.toTypedArray())
