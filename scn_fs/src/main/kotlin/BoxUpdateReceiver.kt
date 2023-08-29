@@ -124,6 +124,12 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                                         val p_test = getBoxPath(test_file)
                                         Log.info(p_test.toString()) 
                                     }
+                                    "folder" -> {
+                                        Log.info("_____________START BUILD PATH_________")
+                                        val test_file = BoxFolder(api, msg.source.id)
+                                        val p_test = getBoxPath(test_file)
+                                        Log.info(p_test.toString()) 
+                                    }
                                 }
 
 
