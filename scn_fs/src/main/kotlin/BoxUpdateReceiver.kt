@@ -204,7 +204,7 @@ fun getBoxPath(item:BoxItem):Path{
             Log.info("Item status: " + cur_item_info.getItemStatus())
             name_list.add(0, cur_item_info.name)
             Log.info(name_list.toString())
-            if (cur_item_info.getItemStatus().compareTo("Active") == 0){
+            if (cur_item_info.getItemStatus().compareTo("active") == 0){
                 Log.info("found not trashed")
                 break
             }
