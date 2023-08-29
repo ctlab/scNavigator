@@ -32,7 +32,7 @@ val database: MongoDatabase = client.getDatabase(mongoDB)
 
 @ExperimentalTime
 fun main(args: Array<String>) {
-    if (args.size != 2) {
+    if (args.size < 4) {
         Log.error("FS module was run without directory to watch argument, try again")
         return
     }
@@ -83,6 +83,10 @@ fun main(args: Array<String>) {
     val directoryToWatch = args[0]
     val gmtOutDir = args[1]
 
+    val box_dir_path = args[2] // "All Files/test_dir"
+    val fisrt_key = args[3] //"aprdjeuciqnlp1yo9d4ttwpy2zgb7ibd"
+    
+    val second_key = if (args.size == 5) {args[4]} else {""} //"PyU8Kq4ZpboQ7GEGzGmeZxaF84JHadEg"
 
     GlobalScope.launch { recursiveFSWatcher(watchService, directoryToWatch, pathChangesChannel) }
     GlobalScope.launch { fsReceiver(pathChangesChannel, deletedChannel, fileChanges, mutex) }
@@ -92,7 +96,7 @@ fun main(args: Array<String>) {
     GlobalScope.launch { fileDeleteHandler(deletedChannel, mongoDBCollection,
         mongoDBCollectionExp, mongoDBCollectionMarkers) }
     GlobalScope.launch { pushDescriptorsToQueue(File(directoryToWatch), pathChangesChannel) }
-    GlobalScope.launch{ boxUpdateReceiver( pathChangesChannel, args)}
+    GlobalScope.launch{ boxUpdateReceiver( pathChangesChannel, fisrt_key, second_key)}
     Thread.sleep(30000)
     Log.info("Now generating GMTs and annotations")
     generateGMTs(mongoDBCollection, gmtOutDir)

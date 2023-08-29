@@ -46,7 +46,7 @@ services:
       - "$DATASET_PATH:/var/datasets"
       - "$GMT_PATH:/vat/gmt"
       - "$TMP_PATH:/var/tmp"
-    command: ["java", "-Djava.library.path=./", "-jar", "fs.jar", "/var/datasets", "/vat/gmt"]
+    command: ["java", "-Djava.library.path=./", "-jar", "fs.jar", "/var/datasets", "/vat/gmt", "All Files/test_dir", "$BOX_DEV_KEY"]
 
   web:
     env_file:

@@ -35,17 +35,22 @@ import com.box.sdk.BoxAPIResponseException
 
 suspend fun boxUpdateReceiver( // boxDir:Path,
     outChannel: Channel<Pair<Path, WatchEvent.Kind<Path>>>,
-    otherArgs: Array<String>) {   
+    first_key:String, 
+    second_key:String,
+    ) {   
         
         val webhook_key = "xnZXCpICEjEQb5gKRcfaJ2TcM1jzsEZS";
         val webhoor_sec_key = "PpGelWNY56S2yBAhuHvQxxFEGoR7IV9y";
         val verifier:BoxWebHookSignatureVerifier = BoxWebHookSignatureVerifier(webhook_key, webhoor_sec_key);
 
-        val api_key = "aprdjeuciqnlp1yo9d4ttwpy2zgb7ibd"
-        val api_secret = "PyU8Kq4ZpboQ7GEGzGmeZxaF84JHadEg"
-        val dev_key = "pqbxjt5zwk3zHFNhRdlsf0fGrqcoScDD"
         //val api = BoxAPIConnection(api_key, api_secret) 
-        val api = BoxAPIConnection(dev_key)
+        val api:BoxAPIConnection
+        if (second_key.length == 0){
+            api = BoxAPIConnection(first_key)
+        } else{
+            api = BoxAPIConnection(first_key, second_key)
+        }
+         
         embeddedServer(Netty, port = 8081) {
             install(Compression) {
                 gzip {
@@ -96,41 +101,30 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
 
                             if (isValidMessage) {
                                 // Message is valid, handle it
-                                Log.info("POST:  success")
                                 Log.info(body.toString())
-                                
-                                val msg:WebhookMessage = jacksonObjectMapper().readValue<WebhookMessage>(body)
-                                
-                                Log.info(msg.trigger)
                                 Log.info("------------------------")
-                                Log.info(msg.source.toString())
-
-                                msg.source.path?.let{it.path_entries.forEach { item -> Log.info(item) }}
-                                //body.source.path.entries.forEach({item -> Log.info(item.name)})
-                            
+                                val msg:WebhookMessage = jacksonObjectMapper().readValue<WebhookMessage>(body)
+                                Log.info("________________" + msg.trigger + "__________________")
+                                Log.info(msg.source.toString())                            
                                 Log.info(msg.additional_info.toString())
                                 when(msg.additional_info){
                                     is RenameInfo -> Log.info("Rename! olda_name is " + msg.additional_info.old_name)
                                     is MoveInfo -> Log.info("Move !" + msg.additional_info.toString() )
                                     is EmptyInfo -> Log.info( "Info is empty")
                                 }
-                          
                                 Log.info("+++++++++++++++++++++++++++++")
-                          
-                                when(msg.source.type){
-                                    "file" -> {
-                                        Log.info("_____________START BUILD PATH_________")
-                                        val test_file = BoxFile(api, msg.source.id)
-                                        val p_test = getBoxPath(test_file)
-                                        Log.info(p_test.toString()) 
-                                    }
-                                    "folder" -> {
-                                        Log.info("_____________START BUILD PATH_________")
-                                        val test_file = BoxFolder(api, msg.source.id)
-                                        val p_test = getBoxPath(test_file)
-                                        Log.info(p_test.toString()) 
-                                    }
+                                val curItem:BoxItem = when (msg.source.type){
+                                    "file" -> BoxFile(api, msg.source.id)
+                                     else -> BoxFolder(api, msg.source.id)
                                 }
+                                val boxItemPath = getBoxPath(curItem)
+                                when(msg.trigger){
+                                    "FOLDER.TRASHED", "FILE.TRASHED"-> {}
+                                    "FOLDER.UPLOADED", "FILE.UPLOADED" -> {}
+                                    "FOLDER.RENAMED", "FILE.RENAMED" -> {}
+                                    "FOLDER.MOVED", "FILE.MOVED" -> {}
+                                }
+
 
 
                                 call.respondText("OK")
@@ -167,9 +161,6 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                 }
             }
         }.start(wait = true)
-
-
-        io.ktor.server.netty.EngineMain.main(otherArgs)
                     
 }
 class AuthenticationException : RuntimeException()
@@ -192,12 +183,11 @@ fun getBoxPath(item:BoxItem):Path{
     if (cur_item_info == null){
         throw(Exception("Error! Unable to get info for id: " + item.id ))
     } 
-    Log.info("____first name_ : " + cur_item_info.name)
+    //Log.info("____first name_ : " + cur_item_info.name)
     val name_list = mutableListOf<String>(cur_item_info.name) 
-    Log.info(name_list.toString())
     while(true){
         val parent_id = cur_item_info!!.getParent().getID()
-        Log.info("try id: " + parent_id)
+        //Log.info("try id: " + parent_id)
         cur_item_info = try{
            trash.getFolderInfo(parent_id)
         } catch (e:BoxAPIResponseException){
@@ -206,26 +196,24 @@ fun getBoxPath(item:BoxItem):Path{
             null
         }
         if (cur_item_info != null){
-            Log.info("____cur name_ : " + cur_item_info.name)
-            Log.info("Item status: " + cur_item_info.getItemStatus())
+            //Log.info("____cur name_ : " + cur_item_info.name)
+            //Log.info("Item status: " + cur_item_info.getItemStatus())
             name_list.add(0, cur_item_info.name)
-            Log.info(name_list.toString())
             if (cur_item_info.getItemStatus().compareTo("active") == 0){
-                Log.info("found not trashed")
+                //Log.info("found not trashed")
                 break
             }
         }
         else{
-            Log.info("Box api doesn't work for id " + parent_id)
+            Log.error("Box api doesn't work for id " + parent_id)
             break
         }
     }
     cur_item_info?.pathCollection?.forEachIndexed { index, it ->
-        Log.info("exist-tail name " + it.name)
+        //Log.info("exist-tail name " + it.name)
         name_list.add( index, it.name)
-        Log.info(name_list.toString())
     }
-    Log.info("final list: " + name_list.toString())
+    //Log.info("final list: " + name_list.toString())
     return Paths.get( "" ,*name_list.toTypedArray())
 
 
