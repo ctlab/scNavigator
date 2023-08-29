@@ -43,7 +43,7 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
 
         val api_key = "aprdjeuciqnlp1yo9d4ttwpy2zgb7ibd"
         val api_secret = "PyU8Kq4ZpboQ7GEGzGmeZxaF84JHadEg"
-        val dev_key = "Aj6woqFFF40uLjnRC4g5aYg8PGcwWXVx"
+        val dev_key = "IK4sYEPyDOBCBND5V4SqalBKcUFnH7FK"
         //val api = BoxAPIConnection(api_key, api_secret) 
         val api = BoxAPIConnection(dev_key)
         embeddedServer(Netty, port = 8081) {
