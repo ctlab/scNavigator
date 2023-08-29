@@ -50,7 +50,8 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
         } else{
             api = BoxAPIConnection(first_key, second_key)
         }
-         
+        Log.info("Use first_key:"  + first_key)
+        Log.info("Use second_key:"  + second_key)
         embeddedServer(Netty, port = 8081) {
             install(Compression) {
                 gzip {
