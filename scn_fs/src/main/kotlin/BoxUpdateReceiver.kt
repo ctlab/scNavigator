@@ -186,25 +186,32 @@ fun getBoxPath(item:BoxItem):Path{
     if (cur_item_info == null){
         throw(Exception("Error! Unable to get info for id: " + item.id ))
     } 
-    Log.info("____first name_" + cur_item_info.name)
+    Log.info("____first name_ : " + cur_item_info.name)
     val name_list = mutableListOf<String>(cur_item_info.name) 
     Log.info(name_list.toString())
     while(true){
         val parent_id = cur_item_info!!.getParent().getID()
         Log.info("try id: " + parent_id)
-        try{
-     
-            cur_item_info = trash.getFolderInfo(parent_id)
-            Log.info("deleted")
-            Log.info("____cur name_" + cur_item_info.name)
+        cur_item_info = try{
+           trash.getFolderInfo(parent_id)
+        } catch (e:BoxAPIResponseException){
+           BoxFolder(api, parent_id).getInfo()
+        } catch(e:Exception){
+            null
+        }
+        if (cur_item_info == null){
+            Log.info("Box api doesn't work for id " + parent_id)
+            break
+        }
+        cur_item_info.let{
+            Log.info("____cur name_ : " + cur_item_info.name)
             name_list.add(0, cur_item_info.name)
             Log.info(name_list.toString())
-        } catch (e:BoxAPIResponseException){
-            cur_item_info = BoxFolder(api, parent_id).getInfo()
-            Log.info("exist")
-            Log.info(name_list.toString())
-            break
-        } 
+            if (cur_item_info.getItemStatus().compareTo("Active") == 0){
+                Log.info("found not trashed")
+                break
+            }
+        }
     }
     cur_item_info?.pathCollection?.forEachIndexed { index, it ->
         Log.info("exist-tail name " + it.name)
