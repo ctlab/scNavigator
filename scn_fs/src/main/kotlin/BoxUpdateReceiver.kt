@@ -199,11 +199,7 @@ fun getBoxPath(item:BoxItem):Path{
         } catch(e:Exception){
             null
         }
-        if (cur_item_info == null){
-            Log.info("Box api doesn't work for id " + parent_id)
-            break
-        }
-        cur_item_info.let{
+        if (cur_item_info != null){
             Log.info("____cur name_ : " + cur_item_info.name)
             name_list.add(0, cur_item_info.name)
             Log.info(name_list.toString())
@@ -211,6 +207,10 @@ fun getBoxPath(item:BoxItem):Path{
                 Log.info("found not trashed")
                 break
             }
+        }
+        else{
+            Log.info("Box api doesn't work for id " + parent_id)
+            break
         }
     }
     cur_item_info?.pathCollection?.forEachIndexed { index, it ->
