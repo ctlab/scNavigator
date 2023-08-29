@@ -206,7 +206,7 @@ fun getBoxPath(item:BoxItem):Path{
     }
     cur_item_info?.pathCollection?.forEach({
         Log.info("exist-tail name " + it.name)
-        name_list.add( it.name)
+        name_list.add( 0 , it.name)
     })
     return Paths.get( "" ,*name_list.toTypedArray())
 
