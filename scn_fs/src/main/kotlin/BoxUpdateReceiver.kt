@@ -201,6 +201,7 @@ fun getBoxPath(item:BoxItem):Path{
         }
         if (cur_item_info != null){
             Log.info("____cur name_ : " + cur_item_info.name)
+            Log.info("Item status: " + cur_item_info.getItemStatus())
             name_list.add(0, cur_item_info.name)
             Log.info(name_list.toString())
             if (cur_item_info.getItemStatus().compareTo("Active") == 0){
