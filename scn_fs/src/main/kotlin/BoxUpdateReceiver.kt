@@ -122,6 +122,7 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                                         Log.info("_____________START BUILD PATH_________")
                                         val test_file = BoxFile(api, msg.source.id)
                                         val p_test = getBoxPath(test_file)
+                                        Log.info(p_test.toString()) 
                                     }
                                 }
 
@@ -205,7 +206,7 @@ fun getBoxPath(item:BoxItem):Path{
     }
     cur_item_info?.pathCollection?.forEach({
         Log.info("exist-tail name " + it.name)
-        name_list.add(0, it.name)
+        name_list.add( it.name)
     })
     return Paths.get( "" ,*name_list.toTypedArray())
 
