@@ -188,7 +188,7 @@ fun getBoxPath(item:BoxItem):Path{
     } 
     Log.info("____first name_" + cur_item_info.name)
     val name_list = mutableListOf<String>(cur_item_info.name) 
-
+    Log.info(name_list.toString())
     while(true){
         val parent_id = cur_item_info!!.getParent().getID()
         Log.info("try id: " + parent_id)
@@ -198,16 +198,20 @@ fun getBoxPath(item:BoxItem):Path{
             Log.info("deleted")
             Log.info("____cur name_" + cur_item_info.name)
             name_list.add(0, cur_item_info.name)
+            Log.info(name_list.toString())
         } catch (e:BoxAPIResponseException){
             cur_item_info = BoxFolder(api, parent_id).getInfo()
             Log.info("exist")
+            Log.info(name_list.toString())
             break
         } 
     }
     cur_item_info?.pathCollection?.forEach({
         Log.info("exist-tail name " + it.name)
-        name_list.add( -1, it.name)
+        name_list.add( 0, it.name)
+        Log.info(name_list.toString())
     })
+    Log.info("final list: " + name_list.toString())
     return Paths.get( "" ,*name_list.toTypedArray())
 
 
