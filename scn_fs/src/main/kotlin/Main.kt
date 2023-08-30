@@ -20,7 +20,6 @@ import java.nio.file.WatchEvent
 import java.nio.file.WatchKey
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.time.ExperimentalTime
-import jdk.nashorn.internal.objects.Global
 
 val mongoDBHost: String =  System.getenv("MONGODB_HOST") ?: "mongodb://mongo:27017"
 val mongoDB: String = System.getenv("MONGODB_DATABASE") ?: "scn"
