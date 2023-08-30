@@ -157,6 +157,7 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                             } else {
                                 // Message is invalid, reject it
                                 Log.info("POST:  BAD box message")
+                                Log.info(body)
                                 call.respond(HttpStatusCode.BadRequest)
                             }
                     }
