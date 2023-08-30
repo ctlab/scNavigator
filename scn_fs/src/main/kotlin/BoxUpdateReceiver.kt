@@ -49,8 +49,8 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
     second_key:String    
     ) {   
         
-        val webhook_key = "xnZXCpICEjEQb5gKRcfaJ2TcM1jzsEZS";
-        val webhook_sec_key = "PpGelWNY56S2yBAhuHvQxxFEGoR7IV9y";
+        val webhook_key = "2APuppKR82qdck4G527dpelA7D1YHBTM";
+        val webhook_sec_key = "hNL8IZQWEN7geXDF9N4mHHMDVWf33gUv";
         val verifier:BoxWebHookSignatureVerifier = BoxWebHookSignatureVerifier(webhook_key, webhook_sec_key);
 
         //val api = BoxAPIConnection(api_key, api_secret) 
