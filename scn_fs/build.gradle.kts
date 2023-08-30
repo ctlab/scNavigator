@@ -47,7 +47,7 @@ dependencies {
     implementation("io.ktor:ktor-client-core-jvm:$ktorVersion")
     implementation("io.ktor:ktor-client-apache:$ktorVersion")
     implementation("io.ktor:ktor-gson:$ktorVersion")
-    implementation("com.box:box-java-sdk:4.3.0")
+    implementation("com.box:box-java-sdk:4.4.0")
 }
 
 sourceSets {
