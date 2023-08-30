@@ -17,6 +17,8 @@ import java.io.File
 import java.nio.file.FileSystems
 import java.nio.file.Path
 import java.nio.file.WatchEvent
+import java.nio.file.WatchKey
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.time.ExperimentalTime
 import jdk.nashorn.internal.objects.Global
 
@@ -88,7 +90,9 @@ fun main(args: Array<String>) {
     
     val second_key = if (args.size == 5) {args[4]} else {""} //"PyU8Kq4ZpboQ7GEGzGmeZxaF84JHadEg"
 
-    GlobalScope.launch { recursiveFSWatcher(watchService, directoryToWatch, pathChangesChannel) }
+    val pathKeys =  ConcurrentHashMap<String, WatchKey>()
+    
+    GlobalScope.launch { recursiveFSWatcher(watchService, directoryToWatch, pathChangesChannel, pathKeys) }
     GlobalScope.launch { fsReceiver(pathChangesChannel, deletedChannel, fileChanges, mutex) }
     GlobalScope.launch { delayedFSReceiver(modifiedChannel, fileChanges, mutex) }
     GlobalScope.launch { fileChangeHandler(modifiedChannel, mongoDBCollection,
@@ -96,7 +100,7 @@ fun main(args: Array<String>) {
     GlobalScope.launch { fileDeleteHandler(deletedChannel, mongoDBCollection,
         mongoDBCollectionExp, mongoDBCollectionMarkers) }
     GlobalScope.launch { pushDescriptorsToQueue(File(directoryToWatch), pathChangesChannel) }
-    GlobalScope.launch{ boxUpdateReceiver( pathChangesChannel, fisrt_key, second_key)}
+    GlobalScope.launch{ boxUpdateReceiver( pathChangesChannel,watchService,pathKeys, directoryToWatch, box_dir_path, fisrt_key, second_key)}
     Thread.sleep(30000)
     Log.info("Now generating GMTs and annotations")
     generateGMTs(mongoDBCollection, gmtOutDir)

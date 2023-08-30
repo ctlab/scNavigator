@@ -4,6 +4,9 @@ import kotlinx.coroutines.channels.Channel
 import java.nio.file.WatchEvent
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.nio.file.WatchService
+import java.nio.file.WatchKey
+import java.nio.file.StandardWatchEventKinds
 import io.ktor.application.*
 import io.ktor.client.*
 import io.ktor.client.engine.apache.*
@@ -21,6 +24,7 @@ import de.jupf.staticlog.Log
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import java.text.DateFormat
+import java.util.concurrent.ConcurrentHashMap
 import org.slf4j.event.Level
 import com.box.sdk.BoxAPIConnection;
 import com.box.sdk.BoxFolder;
@@ -31,17 +35,23 @@ import com.box.sdk.BoxWebHookSignatureVerifier
 import com.box.sdk.BoxFile
 import com.box.sdk.BoxTrash
 import com.box.sdk.BoxAPIResponseException
+import kotlin.io.path.isDirectory
+import kotlin.io.path.absolutePathString
 
 
 suspend fun boxUpdateReceiver( // boxDir:Path,
     outChannel: Channel<Pair<Path, WatchEvent.Kind<Path>>>,
+    watchService: WatchService,
+    pathKeys:ConcurrentHashMap<String, WatchKey>,
+    directoryToWatch:String
+    box_dir_path:String
     first_key:String, 
-    second_key:String,
+    second_key:String    
     ) {   
         
         val webhook_key = "xnZXCpICEjEQb5gKRcfaJ2TcM1jzsEZS";
-        val webhoor_sec_key = "PpGelWNY56S2yBAhuHvQxxFEGoR7IV9y";
-        val verifier:BoxWebHookSignatureVerifier = BoxWebHookSignatureVerifier(webhook_key, webhoor_sec_key);
+        val webhook_sec_key = "PpGelWNY56S2yBAhuHvQxxFEGoR7IV9y";
+        val verifier:BoxWebHookSignatureVerifier = BoxWebHookSignatureVerifier(webhook_key, webhook_sec_key);
 
         //val api = BoxAPIConnection(api_key, api_secret) 
         val api:BoxAPIConnection
@@ -119,11 +129,25 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                                      else -> BoxFolder(api, msg.source.id)
                                 }
                                 val boxItemPath = getBoxPath(curItem)
+                                val boxPrefix = Paths.get(box_dir_path)
+                                val fsPath = Paths.get(directoryToWatch)
+                                val rclonePath = boxItemPath.relativize(boxPrefix)
+
+                                Log.info("rclonePath path " + rclonePath.toString())
+
+                                //rclone rc vfs/forget file="test.json" fs="remote:test_dir"
                                 when(msg.trigger){
-                                    "FOLDER.TRASHED", "FILE.TRASHED"-> {}
+                                    "FILE.TRASHED"-> {
+                                        val cmd = "rclone rc vfs/forget file='" + rclonePath +"' fs='remote:test_dir'"
+                                        Runtime.getRuntime().exec(cmd)
+                                        SyncWatcher(fsPath.resolve(rclonePath.toString()) , 
+                                        StandardWatchEventKinds.ENTRY_DELETE, watchService, pathKeys, outChannel)
+                                    }
+                                    "FOLDER.TRASHED"-> {}
                                     "FOLDER.UPLOADED", "FILE.UPLOADED" -> {}
                                     "FOLDER.RENAMED", "FILE.RENAMED" -> {}
                                     "FOLDER.MOVED", "FILE.MOVED" -> {}
+                                    "FOLDER.CREATED", "FILE.CREATED" -> {}
                                 }
 
 
@@ -218,4 +242,33 @@ fun getBoxPath(item:BoxItem):Path{
     return Paths.get( "" ,*name_list.toTypedArray())
 
 
+}
+
+
+
+suspend fun SyncWatcher(fullPath:Path, 
+                event_kind:WatchEvent.Kind<Path>, 
+                watchService:WatchService, 
+                pathKeys:ConcurrentHashMap<String, WatchKey>
+                outChannel:Channel<Pair<Path, WatchEvent.Kind<Path>>>){
+            if (fullPath.isDirectory()) {
+                when (event_kind) {
+                    StandardWatchEventKinds.ENTRY_CREATE -> {
+                        pathKeys[fullPath.absolutePathString()] = fullPath.register(watchService,
+                            StandardWatchEventKinds.ENTRY_CREATE,
+                            StandardWatchEventKinds.ENTRY_MODIFY,
+                            StandardWatchEventKinds.ENTRY_DELETE
+                        )
+                        Log.info("Now also watching directory ${fullPath.toString()}")
+                    }
+                    StandardWatchEventKinds.ENTRY_DELETE -> {
+                        pathKeys[fullPath.absolutePathString()]?.cancel()
+                        pathKeys.remove(fullPath.absolutePathString())
+                        Log.info("Directory ${fullPath.toString()} is deleted, no longer watching it")
+                    }
+                }
+            } else {
+                // Log.info("SENDING EVENT TO FSReciever")
+                outChannel.send(Pair(fullPath, event_kind));
+            }
 }

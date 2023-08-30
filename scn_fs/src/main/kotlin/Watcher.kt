@@ -4,15 +4,16 @@ import de.jupf.staticlog.Log
 import kotlinx.coroutines.channels.Channel
 import java.io.File
 import java.nio.file.*
+import java.util.concurrent.ConcurrentHashMap
 
 suspend fun recursiveFSWatcher(
     watchService: WatchService,
     directoryToWatch: String,
-    outChannel: Channel<Pair<Path, WatchEvent.Kind<Path>>>) {
+    outChannel: Channel<Pair<Path, WatchEvent.Kind<Path>>>,
+    pathKeys:ConcurrentHashMap<String, WatchKey>) {
     val directoryFileObject = File(directoryToWatch)
     val pathToWatch = directoryFileObject.toPath()
 
-    val pathKeys = hashMapOf<String, WatchKey>()
         //TODO : use NIO
     for (file in directoryFileObject.walk()) {
         if (file.isDirectory) {
