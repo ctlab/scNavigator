@@ -43,8 +43,8 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
     outChannel: Channel<Pair<Path, WatchEvent.Kind<Path>>>,
     watchService: WatchService,
     pathKeys:ConcurrentHashMap<String, WatchKey>,
-    directoryToWatch:String
-    box_dir_path:String
+    directoryToWatch:String,
+    box_dir_path:String,
     first_key:String, 
     second_key:String    
     ) {   
@@ -249,7 +249,7 @@ fun getBoxPath(item:BoxItem):Path{
 suspend fun SyncWatcher(fullPath:Path, 
                 event_kind:WatchEvent.Kind<Path>, 
                 watchService:WatchService, 
-                pathKeys:ConcurrentHashMap<String, WatchKey>
+                pathKeys:ConcurrentHashMap<String, WatchKey>,
                 outChannel:Channel<Pair<Path, WatchEvent.Kind<Path>>>){
             if (fullPath.isDirectory()) {
                 when (event_kind) {
