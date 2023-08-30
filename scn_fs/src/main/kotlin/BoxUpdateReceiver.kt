@@ -74,7 +74,7 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
             }
         
             install(CallLogging) {
-                level = Level.ERROR
+                level = Level.INFO
                 filter { call -> call.request.path().startsWith("/") }
             }
         
@@ -191,6 +191,7 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
 }
 class AuthenticationException : RuntimeException()
 class AuthorizationException : RuntimeException()
+
 
 fun getBoxPath(item:BoxItem):Path{
     val api = item.getAPI()
