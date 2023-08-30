@@ -10,7 +10,7 @@ suspend fun recursiveFSWatcher(
     watchService: WatchService,
     directoryToWatch: String,
     outChannel: Channel<Pair<Path, WatchEvent.Kind<Path>>>,
-    pathKeys:ConcurrentHashMap<String, WatchKey>) {
+    pathKeys:HashMap<String, WatchKey>) {
         val directoryFileObject = File(directoryToWatch)
         val pathToWatch = directoryFileObject.toPath()
     
