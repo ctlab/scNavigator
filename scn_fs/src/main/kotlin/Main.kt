@@ -30,8 +30,6 @@ val gmtOutDir: String = System.getenv("GMT_PATH") ?: ""
 
 val client = KMongo.createClient(mongoDBHost)
 val database: MongoDatabase = client.getDatabase(mongoDB)
-Log.info("_____________   " + it.value.toString())
-Log.info("NOW NOW NOW NOW NOW   " + Clock.System.now().toString())
 @ExperimentalTime
 fun main(args: Array<String>) {
     if (args.size < 4) {
