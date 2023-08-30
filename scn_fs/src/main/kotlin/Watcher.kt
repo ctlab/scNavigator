@@ -14,8 +14,6 @@ suspend fun recursiveFSWatcher(
         val directoryFileObject = File(directoryToWatch)
         val pathToWatch = directoryFileObject.toPath()
     
-        val pathKeys = hashMapOf<String, WatchKey>()
-    
         for (file in directoryFileObject.walk()) {
             if (file.isDirectory) {
                 Log.info(file.absolutePath)
