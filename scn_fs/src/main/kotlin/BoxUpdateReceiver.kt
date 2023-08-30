@@ -72,6 +72,12 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                     minimumSize(1024) // condition
                 }
             }
+        
+            install(CallLogging) {
+                level = Level.ERROR
+                filter { call -> call.request.path().startsWith("/") }
+            }
+        
             install(DefaultHeaders) {
                 header("X-Engine", "Ktor") // will send this header with each response
             }
