@@ -56,6 +56,7 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
         //val api = BoxAPIConnection(api_key, api_secret) 
         val api:BoxAPIConnection
         if (second_key.length == 0){
+            Log.info("********USE DEV KEY ************")
             api = BoxAPIConnection(first_key)
         } else{
             api = BoxAPIConnection(first_key, second_key)
@@ -129,7 +130,7 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                                     "file" -> BoxFile(api, msg.source.id)
                                      else -> BoxFolder(api, msg.source.id)
                                 }
-                                val boxItemPath = getBoxPathsdf(curItem)
+                                val boxItemPath = getBoxPath(curItem)
                                 val boxPrefix = Paths.get(box_dir_path)
                                 val fsPath = Paths.get(directoryToWatch)
                                 val rclonePath = boxItemPath.relativize(boxPrefix)
@@ -141,7 +142,7 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                                     "FILE.TRASHED"-> {
                                         val cmd = "rclone rc vfs/forget file='" + rclonePath +"' fs='remote:test_dir'"
                                         Runtime.getRuntime().exec(cmd)
-                                        mySyncWatcher(fsPath.resolve(rclonePath.toString()) , 
+                                        SyncWatcher(fsPath.resolve(rclonePath.toString()) , 
                                         StandardWatchEventKinds.ENTRY_DELETE, watchService, pathKeys, outChannel)
                                     }
                                     "FOLDER.TRASHED"-> {}
@@ -194,7 +195,7 @@ class AuthenticationException : RuntimeException()
 class AuthorizationException : RuntimeException()
 
 
-fun getBoxPathsdf(item:BoxItem):Path{
+fun getBoxPath(item:BoxItem):Path{
     val api = item.getAPI()
     val trash:BoxTrash  = BoxTrash(api);   
     var cur_item_info:BoxItem.Info? = try {
@@ -249,7 +250,7 @@ fun getBoxPathsdf(item:BoxItem):Path{
 
 
 
-suspend fun mySyncWatcher(fullPath:Path, 
+suspend fun SyncWatcher(fullPath:Path, 
                 event_kind:WatchEvent.Kind<Path>, 
                 watchService:WatchService, 
                 pathKeys:ConcurrentHashMap<String, WatchKey>,
