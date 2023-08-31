@@ -99,7 +99,7 @@ fun main(args: Array<String>) {
     GlobalScope.launch { fileDeleteHandler(deletedChannel, mongoDBCollection,
         mongoDBCollectionExp, mongoDBCollectionMarkers) }
     GlobalScope.launch { pushDescriptorsToQueue(File(directoryToWatch), pathChangesChannel) }
-    //GlobalScope.launch{ boxUpdateReceiver( pathChangesChannel,watchService,pathKeys, directoryToWatch, box_dir_path, fisrt_key, second_key)}
+    GlobalScope.launch{ boxUpdateReceiver( pathChangesChannel,watchService,pathKeys, directoryToWatch, box_dir_path, fisrt_key, second_key)}
     Thread.sleep(30000)
     Log.info("Now generating GMTs and annotations")
     generateGMTs(mongoDBCollection, gmtOutDir)

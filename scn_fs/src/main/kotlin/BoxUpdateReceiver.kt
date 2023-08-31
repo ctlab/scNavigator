@@ -51,7 +51,7 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
 
         val webhook_key = "2APuppKR82qdck4G527dpelA7D1YHBTM";
         val webhook_sec_key = "hNL8IZQWEN7geXDF9N4mHHMDVWf33gUv";
-        val verifier:BoxWebHookSignatureVerifier = BoxWebHookSignatureVerifier(webhook_key, webhook_sec_key);
+        
 
         //val api = BoxAPIConnection(api_key, api_secret) 
         val api:BoxAPIConnection
@@ -97,6 +97,7 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
 
                 route("scn_fs") {
                     post("file_updates"){
+                        val verifier:BoxWebHookSignatureVerifier = BoxWebHookSignatureVerifier(webhook_key, webhook_sec_key);
                         val headers = call.request.headers
                         try {
                             val body = call.receive<String>();
