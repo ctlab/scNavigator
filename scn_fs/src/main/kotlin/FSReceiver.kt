@@ -64,9 +64,9 @@ suspend fun delayedFSReceiver(modifiedChannel: Channel<Path>,
                 val dif = Clock.System.now() - it.value
                 Log.info( dif::class.toString())                       
                 Log.info( dif::class.qualifiedName.toString())           
-                Log.info(dif::class.simpleName.toString())
+                Log.info(now::class.simpleName.toString())
 
-                (Clock.System.now() - it.value).toDouble(DurationUnit.SECONDS) > TIMEDELTA_THRESHOLD
+                (Clock.System.now() - it.value).toDouble(kotlin.time.DurationUnit.SECONDS) > TIMEDELTA_THRESHOLD
             }
             var pathChangePairs: List<Pair<Path, Instant>> = changes.toList()
             pathChangePairs = pathChangePairs.sortedBy { it.second }
