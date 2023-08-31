@@ -128,7 +128,7 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                                     "file" -> BoxFile(api, msg.source.id)
                                      else -> BoxFolder(api, msg.source.id)
                                 }
-                                val boxItemPath = getBoxPath(curItem)
+                                val boxItemPath = getBoxPathsdf(curItem)
                                 val boxPrefix = Paths.get(box_dir_path)
                                 val fsPath = Paths.get(directoryToWatch)
                                 val rclonePath = boxItemPath.relativize(boxPrefix)
@@ -140,7 +140,7 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                                     "FILE.TRASHED"-> {
                                         val cmd = "rclone rc vfs/forget file='" + rclonePath +"' fs='remote:test_dir'"
                                         Runtime.getRuntime().exec(cmd)
-                                        SyncWatcher(fsPath.resolve(rclonePath.toString()) , 
+                                        mySyncWatcher(fsPath.resolve(rclonePath.toString()) , 
                                         StandardWatchEventKinds.ENTRY_DELETE, watchService, pathKeys, outChannel)
                                     }
                                     "FOLDER.TRASHED"-> {}
@@ -193,7 +193,7 @@ class AuthenticationException : RuntimeException()
 class AuthorizationException : RuntimeException()
 
 
-fun getBoxPath(item:BoxItem):Path{
+fun getBoxPathsdf(item:BoxItem):Path{
     val api = item.getAPI()
     val trash:BoxTrash  = BoxTrash(api);   
     var cur_item_info:BoxItem.Info? = try {
@@ -248,7 +248,7 @@ fun getBoxPath(item:BoxItem):Path{
 
 
 
-suspend fun SyncWatcher(fullPath:Path, 
+suspend fun mySyncWatcher(fullPath:Path, 
                 event_kind:WatchEvent.Kind<Path>, 
                 watchService:WatchService, 
                 pathKeys:ConcurrentHashMap<String, WatchKey>,
