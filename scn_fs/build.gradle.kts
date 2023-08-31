@@ -23,20 +23,10 @@ repositories {
     maven(url = "https://kotlin.bintray.com/kotlinx/")
 }
 
-
-
-
-val boxConf by configurations.creating {
-    extendsFrom(configurations.implementation.get())
-}
-
-
-
-
-
 dependencies {
     val mongoVersion: String by System.getProperties()
     val ktorVersion: String by System.getProperties()
+    implementation("com.box:box-java-sdk:4.4.0")
     implementation(kotlin("stdlib"))
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
     implementation("org.jetbrains.kotlinx:kotlinx-datetime-jvm:0.3.0")
@@ -58,7 +48,7 @@ dependencies {
     implementation("io.ktor:ktor-client-core-jvm:$ktorVersion")
     implementation("io.ktor:ktor-client-apache:$ktorVersion")
     implementation("io.ktor:ktor-gson:$ktorVersion")
-    boxConf("com.box:box-java-sdk:4.4.0")
+   
 }
 
 sourceSets {
