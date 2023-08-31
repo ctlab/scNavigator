@@ -11,6 +11,7 @@ import io.ktor.application.*
 import io.ktor.client.*
 import io.ktor.client.engine.apache.*
 import io.ktor.client.request.request
+import io.ktor.client.statement.HttpStatement
 import io.ktor.features.*
 import io.ktor.gson.*
 import io.ktor.http.*
@@ -28,7 +29,6 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import java.text.DateFormat
 import java.util.concurrent.ConcurrentHashMap
 import org.slf4j.event.Level
-import org.eclipse.jetty.client.HttpResponse
 import com.box.sdk.BoxAPIConnection;
 import com.box.sdk.BoxFolder;
 import com.box.sdk.BoxItem;
@@ -146,13 +146,13 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                                 //rclone rc vfs/forget file="test.json" fs="remote:test_dir"
                                 when(msg.trigger){
                                     "FILE.TRASHED"-> {
-                                        val response: HttpResponse = client.request("http://rclone_fs:5533/vfs/forget") {
+                                        val statement: HttpStatement = client.request("http://rclone_fs:5533/vfs/forget") {
                                             method = HttpMethod.Post
                                             url{
                                                 parameters.append("file", rclonePath.toString())
                                             }
                                         }
-                                     
+                                        val response = statement.execute()
                                         Log.info(response.toString())
 
                                         SyncWatcher(fsPath.resolve(rclonePath.toString()) , 
