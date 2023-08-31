@@ -18,7 +18,7 @@ import java.nio.file.FileSystems
 import java.nio.file.Path
 import java.nio.file.WatchEvent
 import java.nio.file.WatchKey
-//import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.time.ExperimentalTime
 
 val mongoDBHost: String =  System.getenv("MONGODB_HOST") ?: "mongodb://mongo:27017"
@@ -30,6 +30,7 @@ val gmtOutDir: String = System.getenv("GMT_PATH") ?: ""
 
 val client = KMongo.createClient(mongoDBHost)
 val database: MongoDatabase = client.getDatabase(mongoDB)
+
 @ExperimentalTime
 fun main(args: Array<String>) {
     if (args.size < 4) {
@@ -88,7 +89,7 @@ fun main(args: Array<String>) {
     
     val second_key = if (args.size == 5) {args[4]} else {""} //"PyU8Kq4ZpboQ7GEGzGmeZxaF84JHadEg"
 
-    val pathKeys =  hashMapOf<String, WatchKey>()
+    val pathKeys =  ConcurrentHashMap<String, WatchKey>()
     
     GlobalScope.launch { recursiveFSWatcher(watchService, directoryToWatch, pathChangesChannel, pathKeys) }
     GlobalScope.launch { fsReceiver(pathChangesChannel, deletedChannel, fileChanges, mutex) }
