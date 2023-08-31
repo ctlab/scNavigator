@@ -10,6 +10,7 @@ import java.nio.file.StandardWatchEventKinds
 import io.ktor.application.*
 import io.ktor.client.*
 import io.ktor.client.engine.apache.*
+import io.ktor.client.request.request
 import io.ktor.features.*
 import io.ktor.gson.*
 import io.ktor.http.*
@@ -20,12 +21,14 @@ import io.ktor.routing.*
 import io.ktor.server.engine.commandLineEnvironment
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
+import io.ktor.util.url
 import de.jupf.staticlog.Log
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import java.text.DateFormat
 import java.util.concurrent.ConcurrentHashMap
 import org.slf4j.event.Level
+import org.eclipse.jetty.client.HttpResponse
 import com.box.sdk.BoxAPIConnection;
 import com.box.sdk.BoxFolder;
 import com.box.sdk.BoxItem;
@@ -131,8 +134,11 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                                      else -> BoxFolder(api, msg.source.id)
                                 }
                                 val boxItemPath = getBoxPath(curItem)
+                                Log.info(boxItemPath.toString())
                                 val boxPrefix = Paths.get(box_dir_path)
+                                Log.info(boxPrefix.toString())
                                 val fsPath = Paths.get(directoryToWatch)
+                                Log.info(fsPath.toString())
                                 val rclonePath = boxItemPath.relativize(boxPrefix)
 
                                 Log.info("rclonePath path " + rclonePath.toString())
@@ -140,8 +146,15 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                                 //rclone rc vfs/forget file="test.json" fs="remote:test_dir"
                                 when(msg.trigger){
                                     "FILE.TRASHED"-> {
-                                        val cmd = "rclone rc vfs/forget file='" + rclonePath +"' fs='remote:test_dir'"
-                                        Runtime.getRuntime().exec(cmd)
+                                        val response: HttpResponse = client.request("http://rclone_fs:5533/vfs/forget") {
+                                            method = HttpMethod.Post
+                                            url{
+                                                parameters.append("file", rclonePath.toString())
+                                            }
+                                        }
+                                     
+                                        Log.info(response.toString())
+
                                         SyncWatcher(fsPath.resolve(rclonePath.toString()) , 
                                         StandardWatchEventKinds.ENTRY_DELETE, watchService, pathKeys, outChannel)
                                     }

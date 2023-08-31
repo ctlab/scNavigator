@@ -59,3 +59,24 @@ services:
       - "$DATASET_PATH:/var/datasets"
       - "./scn_js:/scn/scn_js"
     command: ["java", "-Djava.library.path=./", "-jar", "server.jar"]
+
+  rclone_fs:
+    env_file:
+      - .env
+    restart: always
+    depends_on:
+      - fs
+    image:  rclone/rclone
+    volumes:
+      - "~/.config/rclone:/config/rclone"
+      - "~/data:/data:shared"
+      - "/etc/passwd:/etc/passwd:ro"
+      - "/etc/group:/etc/group:ro"
+    user: $(id -u):$(id -g)
+    ports: "5533:5572"
+    device: "/dev/fuse --cap-add SYS_ADMIN --security-opt apparmor:unconfined"
+    command: ["rclone", "--vfs-cache-mode full", "--cache-dir ~/box-cache", "--vfs-cache-max-age 10h", 
+    "--vfs-cache-poll-interval 120s", "--vfs-read-ahead 20M", "--buffer-size 2000M",  "--vfs-disk-space-total-size 10G", 
+    "mount remote:/test_dir ~/box_dir",
+    "--read-only", "--dir-cache-time 5m", "--poll-interval 60s",
+    "--allow-non-empty", "--allow-other", "-v", "--rc", "--rc-addr :5572"]
