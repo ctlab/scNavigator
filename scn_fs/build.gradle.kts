@@ -23,6 +23,17 @@ repositories {
     maven(url = "https://kotlin.bintray.com/kotlinx/")
 }
 
+
+
+
+val boxConf by configurations.creating {
+    extendsFrom(configurations.implementation.get())
+}
+
+
+
+
+
 dependencies {
     val mongoVersion: String by System.getProperties()
     val ktorVersion: String by System.getProperties()
@@ -38,16 +49,16 @@ dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test")
     testImplementation("junit", "junit", "4.12")
     testImplementation(kotlin("script-runtime"))
-    // implementation("io.ktor:ktor-server-netty:$ktorVersion")
-    // implementation("io.ktor:ktor-server-core:$ktorVersion")
-    // implementation("io.ktor:ktor-jackson:$ktorVersion")
-    // implementation("io.ktor:ktor-server-host-common:$ktorVersion")
-    // implementation("io.ktor:ktor-jackson:$ktorVersion")
-    // implementation("io.ktor:ktor-client-core:$ktorVersion")
-    // implementation("io.ktor:ktor-client-core-jvm:$ktorVersion")
-    // implementation("io.ktor:ktor-client-apache:$ktorVersion")
-    // implementation("io.ktor:ktor-gson:$ktorVersion")
-
+    implementation("io.ktor:ktor-server-netty:$ktorVersion")
+    implementation("io.ktor:ktor-server-core:$ktorVersion")
+    implementation("io.ktor:ktor-jackson:$ktorVersion")
+    implementation("io.ktor:ktor-server-host-common:$ktorVersion")
+    implementation("io.ktor:ktor-jackson:$ktorVersion")
+    implementation("io.ktor:ktor-client-core:$ktorVersion")
+    implementation("io.ktor:ktor-client-core-jvm:$ktorVersion")
+    implementation("io.ktor:ktor-client-apache:$ktorVersion")
+    implementation("io.ktor:ktor-gson:$ktorVersion")
+    boxConf("com.box:box-java-sdk:4.4.0")
 }
 
 sourceSets {
