@@ -38,7 +38,7 @@ suspend fun fsReceiver(inChannel: Channel<Pair<Path, WatchEvent.Kind<Path>>>,
                     fileChanges.remove(fullPath)
                 }
             }
-            StandardWatchEventKinds.ENTRY_CREATE,
+            StandardWatchEventKinds.ENTRY_CREATE,otlin.time.DurationUnit.SECONDS) 
             StandardWatchEventKinds.ENTRY_MODIFY -> {
                 mutex.withLock {
                     fileChanges[fullPath] = Clock.System.now()
@@ -66,7 +66,7 @@ suspend fun delayedFSReceiver(modifiedChannel: Channel<Path>,
                 Log.info( dif::class.qualifiedName.toString())           
                 Log.info(now::class.simpleName.toString())
 
-                (Clock.System.now() - it.value).toDouble(kotlin.time.DurationUnit.SECONDS) > TIMEDELTA_THRESHOLD
+                (Clock.System.now() - it.value).inWholeSeconds > TIMEDELTA_THRESHOLD
             }
             var pathChangePairs: List<Pair<Path, Instant>> = changes.toList()
             pathChangePairs = pathChangePairs.sortedBy { it.second }
