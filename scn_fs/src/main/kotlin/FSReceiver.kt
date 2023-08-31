@@ -38,7 +38,7 @@ suspend fun fsReceiver(inChannel: Channel<Pair<Path, WatchEvent.Kind<Path>>>,
                     fileChanges.remove(fullPath)
                 }
             }
-            StandardWatchEventKinds.ENTRY_CREATE,otlin.time.DurationUnit.SECONDS) 
+            StandardWatchEventKinds.ENTRY_CREATE,
             StandardWatchEventKinds.ENTRY_MODIFY -> {
                 mutex.withLock {
                     fileChanges[fullPath] = Clock.System.now()
