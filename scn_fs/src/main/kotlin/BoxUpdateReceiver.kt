@@ -146,17 +146,24 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                                 //rclone rc vfs/forget file="test.json" fs="remote:test_dir"
                                 when(msg.trigger){
                                     "FILE.TRASHED"-> {
-                                        val statement: HttpStatement = client.request("http://rclone_fs:5533/vfs/forget") {
-                                            method = HttpMethod.Post
-                                            url{
-                                                parameters.append("file", rclonePath.toString())
+                                        try {
+                                            val statement: HttpStatement = client.request("http://rclone_fs:5533/vfs/forget") {
+                                                method = HttpMethod.Post
+                                                url{
+                                                    parameters.append("file", rclonePath.toString())
+                                                }
                                             }
-                                        }
-                                        val response = statement.execute()
-                                        Log.info(response.toString())
+                                            val response = statement.execute()
+                                            Log.info(response.toString())
 
-                                        SyncWatcher(fsPath.resolve(rclonePath.toString()) , 
-                                        StandardWatchEventKinds.ENTRY_DELETE, watchService, pathKeys, outChannel)
+                                            SyncWatcher(fsPath.resolve(rclonePath.toString()) , 
+                                            StandardWatchEventKinds.ENTRY_DELETE, watchService, pathKeys, outChannel)
+                                        }
+                                        catch(e:Exception) {
+                                            Log.info(e.toString())
+                                        }
+                                  
+
                                     }
                                     "FOLDER.TRASHED"-> {}
                                     "FOLDER.UPLOADED", "FILE.UPLOADED" -> {}
