@@ -142,34 +142,24 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                                 val rclonePath = boxPrefix.relativize(boxItemPath)
 
                                 Log.info("rclonePath path " + rclonePath.toString())
-
+                                forget(rclonePath, client)
                                 //rclone rc vfs/forget file="test.json" fs="remote:test_dir"
                                 when(msg.trigger){
-                                    "FILE.TRASHED"-> {
-                                        try {
-                                            val statement: HttpStatement = client.request("http://rclone_fs:5572/vfs/forget") {
-                                                method = HttpMethod.Post
-                                                url{
-                                                    parameters.append("file", rclonePath.toString())
-                                                }
-                                            }
-                                            val response = statement.execute()
-                                            Log.info(response.toString())
-
-                                            SyncWatcher(fsPath.resolve(rclonePath.toString()) , 
-                                            StandardWatchEventKinds.ENTRY_DELETE, watchService, pathKeys, outChannel)
-                                        }
-                                        catch(e:Exception) {
-                                            Log.info(e.toString())
-                                        }
-                                  
-
+                                    "FILE.TRASHED", "FILE.DELETED",  "FOLDER.UPLOADED","FOLDER.CREATED"-> {
+                                        SyncWatcher(fsPath.resolve(rclonePath.toString()), 
+                                                    StandardWatchEventKinds.ENTRY_DELETE, 
+                                                    watchService, pathKeys, 
+                                                    outChannel)
                                     }
-                                    "FOLDER.TRASHED"-> {}
-                                    "FOLDER.UPLOADED", "FILE.UPLOADED" -> {}
+                                    "FILE.RESTORED", "FILE.UPLOADED", "FILE.CREATED", "FOLDER.TRASHED" -> {
+                                        SyncWatcher(fsPath.resolve(rclonePath.toString()), 
+                                                    StandardWatchEventKinds.ENTRY_CREATE, 
+                                                    watchService,
+                                                    pathKeys,
+                                                    outChannel)
+                                    }
                                     "FOLDER.RENAMED", "FILE.RENAMED" -> {}
                                     "FOLDER.MOVED", "FILE.MOVED" -> {}
-                                    "FOLDER.CREATED", "FILE.CREATED" -> {}
                                 }
 
 
@@ -214,6 +204,18 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
 class AuthenticationException : RuntimeException()
 class AuthorizationException : RuntimeException()
 
+
+
+suspend fun forget(path:Path, client:HttpClient){
+    val statement: HttpStatement = client.request("http://rclone_fs:5572/vfs/forget") {
+        method = HttpMethod.Post
+        url{
+            parameters.append("file", path.toString())
+        }
+    }
+    val response = statement.execute()
+    Log.info(response.content.toString())
+}
 
 fun getBoxPath(item:BoxItem):Path{
     val api = item.getAPI()
