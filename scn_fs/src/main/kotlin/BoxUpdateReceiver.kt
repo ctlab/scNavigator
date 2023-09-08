@@ -139,7 +139,7 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                                 Log.info(boxPrefix.toString())
                                 val fsPath = Paths.get(directoryToWatch)
                                 Log.info(fsPath.toString())
-                                val rclonePath = boxItemPath.relativize(boxPrefix)
+                                val rclonePath = boxPrefix.relativize(boxItemPath)
 
                                 Log.info("rclonePath path " + rclonePath.toString())
 
