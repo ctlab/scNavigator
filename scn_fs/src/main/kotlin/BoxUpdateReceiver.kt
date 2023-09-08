@@ -147,7 +147,7 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                                 when(msg.trigger){
                                     "FILE.TRASHED"-> {
                                         try {
-                                            val statement: HttpStatement = client.request("http://rclone_fs:5533/vfs/forget") {
+                                            val statement: HttpStatement = client.request("http://rclone_fs:5572/vfs/forget") {
                                                 method = HttpMethod.Post
                                                 url{
                                                     parameters.append("file", rclonePath.toString())
@@ -174,13 +174,13 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
 
 
 
-                                call.respondText("OK")
+                                call.response.status(HttpStatusCode.OK)
 
                             } else {
                                 // Message is invalid, reject it
                                 Log.info("POST:  BAD box message")
                                 Log.info(body)
-                                call.respondText("OK")
+                                call.response.status(HttpStatusCode.OK)
                             }
                     }
                     catch(e:Exception) {
