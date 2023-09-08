@@ -12,6 +12,7 @@ import io.ktor.client.*
 import io.ktor.client.engine.apache.*
 import io.ktor.client.request.request
 import io.ktor.client.statement.HttpStatement
+import io.ktor.client.call.receive
 import io.ktor.features.*
 import io.ktor.gson.*
 import io.ktor.http.*
@@ -145,19 +146,21 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                                 forget(rclonePath, client)
                                 //rclone rc vfs/forget file="test.json" fs="remote:test_dir"
                                 when(msg.trigger){
-                                    "FILE.TRASHED", "FILE.DELETED",  "FOLDER.UPLOADED","FOLDER.CREATED"-> {
+                                    "FILE.TRASHED", "FILE.DELETED",  "FOLDER.DELETED","FOLDER.TRASHED"-> {
                                         SyncWatcher(fsPath.resolve(rclonePath.toString()), 
                                                     StandardWatchEventKinds.ENTRY_DELETE, 
                                                     watchService, pathKeys, 
                                                     outChannel)
                                     }
-                                    "FILE.RESTORED", "FILE.UPLOADED", "FILE.CREATED", "FOLDER.TRASHED" -> {
+                                    "FILE.RESTORED", "FILE.UPLOADED", "FILE.CREATED", "FOLDER.RESTORED" -> {
                                         SyncWatcher(fsPath.resolve(rclonePath.toString()), 
                                                     StandardWatchEventKinds.ENTRY_CREATE, 
                                                     watchService,
                                                     pathKeys,
                                                     outChannel)
                                     }
+
+                                    
                                     "FOLDER.RENAMED", "FILE.RENAMED" -> {}
                                     "FOLDER.MOVED", "FILE.MOVED" -> {}
                                 }
@@ -207,14 +210,19 @@ class AuthorizationException : RuntimeException()
 
 
 suspend fun forget(path:Path, client:HttpClient){
-    val statement: HttpStatement = client.request("http://rclone_fs:5572/vfs/forget") {
-        method = HttpMethod.Post
-        url{
-            parameters.append("file", path.toString())
+    try{
+        val statement: HttpStatement = client.request("http://rclone_fs:5572/vfs/forget") {
+            method = HttpMethod.Post
+            url{
+                parameters.append("file", path.toString())
+            }
         }
+        val response = statement.execute()
+        Log.info(response.receive<String>())
+    } catch(e:Exception){
+        Log.info("fail forget: " + e.toString())
     }
-    val response = statement.execute()
-    Log.info(response.content.toString())
+
 }
 
 fun getBoxPath(item:BoxItem):Path{
