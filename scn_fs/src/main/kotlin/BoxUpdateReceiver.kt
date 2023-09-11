@@ -101,10 +101,10 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                 }
 
                 route("scn_fs") {
-                    post("file_updates"){
+                    post("box_updates"){
+                        call.response.status(HttpStatusCode.OK)
                         val verifier:BoxWebHookSignatureVerifier = BoxWebHookSignatureVerifier(webhook_key, webhook_sec_key);
                         val headers = call.request.headers
-                        
                         try {
                             val body = call.receive<String>();
                             val isValidMessage = verifier.verify(
@@ -114,24 +114,21 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                                 headers.get("BOX-SIGNATURE-SECONDARY"),
                                 body.toString(),
                                 headers.get("BOX-DELIVERY-TIMESTAMP")
-                            );
-
-
+                            )
+                            Log.info("_verified_")
                             if (isValidMessage) {
-                                call.response.status(HttpStatusCode.OK)
                                 // Message is valid, handle it
                                 Log.info(body.toString())
                                 Log.info("------------------------")
                                 val msg:WebhookMessage = jacksonObjectMapper().readValue<WebhookMessage>(body)
                                 Log.info("________________" + msg.trigger + "__________________")
                                 Log.info(msg.source.toString())                            
-                                Log.info(msg.additional_info.toString())
-                                when(msg.additional_info){
-                                    is RenameInfo -> Log.info("Rename! olda_name is " + msg.additional_info.old_name)
-                                    is MoveInfo -> Log.info("Move !" + msg.additional_info.toString() )
-                                    is EmptyInfo -> Log.info( "Info is empty")
-                                }
-                                Log.info("+++++++++++++++++++++++++++++")
+                                // when(msg.additional_info){
+                                //     is RenameInfo -> Log.info("Rename! olda_name is " + msg.additional_info.old_name)
+                                //     is MoveInfo -> Log.info("Move !" + msg.additional_info.toString() )
+                                //     is EmptyInfo -> Log.info( "Info is empty")
+                                // }
+                                Log.info("++++++++++++START PATH PROC+++++++++++++++++")
                                 val curItem:BoxItem = when (msg.source.type){
                                     "file" -> BoxFile(api, msg.source.id)
                                      else -> BoxFolder(api, msg.source.id)
@@ -166,10 +163,6 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                                     "FOLDER.RENAMED", "FILE.RENAMED" -> {}
                                     "FOLDER.MOVED", "FILE.MOVED" -> {}
                                 }
-
-
-
-
                             } else {
                                 // Message is invalid, reject it
                                 call.response.status(HttpStatusCode.OK)
@@ -226,22 +219,28 @@ suspend fun forget(path:Path, client:HttpClient){
 
 fun getBoxPath(item:BoxItem):Path{
     val api = item.getAPI()
+    Log.info("has API")
     val trash:BoxTrash  = BoxTrash(api);   
     var cur_item_info:BoxItem.Info? = try {
                                             when (item){
                                                 is BoxFile -> {
+                                                    Log.info("try file " + item.id)
                                                     val info = trash.getFileInfo(item.id)
                                                     Log.info("deleted file " + info.name)
                                                     info
                                                 }
                                                 else ->  {
+                                                    Log.info("try folder " + item.id)
                                                     val info = trash.getFolderInfo(item.id)
                                                     Log.info("deleted folder " + info.name)
                                                     info
                                                 }
                                             }
                                         } catch (e:BoxAPIResponseException){
-                                           
+                                            Log.info("_______________")
+                                            Log.info(e.toString())
+                                            Log.info("^^^^^^^^^^^^^^^")
+                                            Log.info("try existed(?) " + item.id)
                                             val info = item.getInfo()
                                             Log.info("exist " + info.name)
                                             info
