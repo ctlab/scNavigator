@@ -175,13 +175,10 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                                 Log.info(body)
                                 call.response.status(HttpStatusCode.OK)
                             }
-                    }
-                    catch(e:Exception) {
-
-                        Log.error(e.message.toString())
-
-
-                    }
+                        }
+                        catch(e:Exception) {
+                            Log.error(e.message.toString())
+                        }
                     }
                     get("test") {
                         Log.info(outChannel.toString())
@@ -230,27 +227,41 @@ fun getBoxPath(item:BoxItem):Path{
     val trash:BoxTrash  = BoxTrash(api);   
     var cur_item_info:BoxItem.Info? = try {
                                             when (item){
-                                                is BoxFile -> trash.getFileInfo(item.id)
-                                                else ->  trash.getFolderInfo(item.id)
+                                                is BoxFile -> {
+                                                    val info = trash.getFileInfo(item.id)
+                                                    Log.info("deleted file " + info.name)
+                                                    info
+                                                }
+                                                else ->  {
+                                                    val info = trash.getFolderInfo(item.id)
+                                                    Log.info("deleted folder " + info.name)
+                                                    info
+                                                }
                                             }
                                         } catch (e:BoxAPIResponseException){
-                                            Log.info("exist")
-                                            item.getInfo()
+                                           
+                                            val info = item.getInfo()
+                                            Log.info("exist " + info.name)
+                                            info
                                         } catch(e:Exception){
                                             null
                                         }
     if (cur_item_info == null){
         throw(Exception("Error! Unable to get info for id: " + item.id ))
     } 
-    //Log.info("____first name_ : " + cur_item_info.name)
+    Log.info("____first name_ : " + cur_item_info.name)
     val name_list = mutableListOf<String>(cur_item_info.name) 
     while(true){
         val parent_id = cur_item_info!!.getParent().getID()
-        //Log.info("try id: " + parent_id)
+        Log.info("try id: " + parent_id)
         cur_item_info = try{
-           trash.getFolderInfo(parent_id)
+           val info = trash.getFolderInfo(parent_id)
+           Log.info("removed with name " + info.name)
+           info
         } catch (e:BoxAPIResponseException){
-           BoxFolder(api, parent_id).getInfo()
+           val info = BoxFolder(api, parent_id).getInfo()
+           Log.info("exist with name " + info.name)
+           info
         } catch(e:Exception){
             null
         }
@@ -259,7 +270,7 @@ fun getBoxPath(item:BoxItem):Path{
             //Log.info("Item status: " + cur_item_info.getItemStatus())
             name_list.add(0, cur_item_info.name)
             if (cur_item_info.getItemStatus().compareTo("active") == 0){
-                //Log.info("found not trashed")
+                Log.info("found not trashed")
                 break
             }
         }
@@ -269,10 +280,10 @@ fun getBoxPath(item:BoxItem):Path{
         }
     }
     cur_item_info?.pathCollection?.forEachIndexed { index, it ->
-        //Log.info("exist-tail name " + it.name)
+        Log.info("exist-tail name " + it.name)
         name_list.add( index, it.name)
     }
-    //Log.info("final list: " + name_list.toString())
+    Log.info("final list: " + name_list.toString())
     return Paths.get( "" ,*name_list.toTypedArray())
 
 
