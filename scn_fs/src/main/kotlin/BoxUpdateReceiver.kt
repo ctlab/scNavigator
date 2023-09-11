@@ -104,6 +104,7 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                     post("file_updates"){
                         val verifier:BoxWebHookSignatureVerifier = BoxWebHookSignatureVerifier(webhook_key, webhook_sec_key);
                         val headers = call.request.headers
+                        
                         try {
                             val body = call.receive<String>();
                             val isValidMessage = verifier.verify(
@@ -117,6 +118,7 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
 
 
                             if (isValidMessage) {
+                                call.response.status(HttpStatusCode.OK)
                                 // Message is valid, handle it
                                 Log.info(body.toString())
                                 Log.info("------------------------")
@@ -167,17 +169,17 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
 
 
 
-                                call.response.status(HttpStatusCode.OK)
 
                             } else {
                                 // Message is invalid, reject it
+                                call.response.status(HttpStatusCode.OK)
                                 Log.info("POST:  BAD box message")
                                 Log.info(body)
-                                call.response.status(HttpStatusCode.OK)
                             }
                         }
                         catch(e:Exception) {
                             Log.error(e.message.toString())
+                            call.response.status(HttpStatusCode.OK)
                         }
                     }
                     get("test") {
