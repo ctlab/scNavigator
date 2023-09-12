@@ -42,6 +42,8 @@ import com.box.sdk.BoxTrash
 import com.box.sdk.BoxAPIResponseException
 import kotlin.io.path.isDirectory
 import kotlin.io.path.absolutePathString
+import kotlin.io.path.name
+import ru.itmo.scn.fs.SyncWatcherRecursive
 
 
 suspend fun boxUpdateReceiver( // boxDir:Path,
@@ -230,9 +232,35 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                                             }
                                         }
 
-                                        "FOLDER.MOVED", "FILE.MOVED" -> {
-                                            Log.info(body.toString())
-                                            
+                                        "FILE.MOVED" -> {
+                                            when(msg.additional_info){
+                                                is MoveInfo -> {
+                                                    val before_path = getBoxPath(BoxFolder(api, msg.additional_info.before.id)).resolve(rclonePath.name)
+                                                    SyncWatcherOne (
+                                                        fsPath.resolve(before_path.toString()), 
+                                                        StandardWatchEventKinds.ENTRY_DELETE, 
+                                                        watchService, pathKeys, 
+                                                        outChannel
+                                                    )
+                                                    forget(before_path, client)
+                                                }
+                                                else -> {Log.info("Missed info for " + msg.source.id + ". Ignored." )}
+                                            }
+                                        }
+                                        "FOLDER.MOVED" -> {
+                                            when(msg.additional_info){
+                                                is MoveInfo -> {
+                                                    val before_path = getBoxPath(BoxFolder(api, msg.additional_info.before.id)).resolve(rclonePath.name)
+                                                    SyncWatcherRecursive (
+                                                        fsPath.resolve(before_path.toString()), 
+                                                        StandardWatchEventKinds.ENTRY_DELETE, 
+                                                        watchService, pathKeys, 
+                                                        outChannel
+                                                    )
+                                                    forget(before_path, client)
+                                                }
+                                                else -> {Log.info("Missed info for " + msg.source.id + ". Ignored." )}
+                                            }
                                         }
                                     }
                                     
