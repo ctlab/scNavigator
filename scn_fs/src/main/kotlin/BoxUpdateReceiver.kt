@@ -230,7 +230,10 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                                             }
                                         }
 
-                                        "FOLDER.MOVED", "FILE.MOVED" -> {}
+                                        "FOLDER.MOVED", "FILE.MOVED" -> {
+                                            Log.info(body.toString())
+                                            
+                                        }
                                     }
                                     
                                     call.response.status(HttpStatusCode.OK)
