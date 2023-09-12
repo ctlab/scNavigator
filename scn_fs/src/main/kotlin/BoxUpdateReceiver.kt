@@ -250,7 +250,11 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                                         "FOLDER.MOVED" -> {
                                             when(msg.additional_info){
                                                 is MoveInfo -> {
+                                                    val boxParentPath = getBoxPath(BoxFolder(api, msg.additional_info.before.id))
+                                                    Log.info(boxParentPath.toString())
                                                     val before_path = getBoxPath(BoxFolder(api, msg.additional_info.before.id)).resolve(rclonePath.name)
+                                                    Log.info(before_path.toString())
+                                                    Log.info(fsPath.resolve(before_path.toString()).toString())
                                                     SyncWatcherRecursive (
                                                         fsPath.resolve(before_path.toString()), 
                                                         StandardWatchEventKinds.ENTRY_DELETE, 
