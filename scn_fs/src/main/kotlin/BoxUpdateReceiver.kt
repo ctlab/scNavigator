@@ -176,6 +176,16 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                                                 outChannel
                                             )
                                         }
+                                        "FOLDER.CREATED" -> {
+                                            forget(rclonePath, client)
+                                            SyncWatcherRecursive (
+                                                fsPath.resolve(rclonePath.toString()), 
+                                                StandardWatchEventKinds.ENTRY_CREATE, 
+                                                watchService,
+                                                pathKeys, 
+                                                outChannel
+                                            )
+                                        }
                                         "FOLDER.RENAMED" -> {
                                             when(msg.additional_info){
                                                 is RenameInfo -> {
