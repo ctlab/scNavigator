@@ -120,11 +120,7 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                                 val msg:WebhookMessage = jacksonObjectMapper().readValue<WebhookMessage>(body)
                                 Log.info("________________" + msg.trigger + "__________________")
                                 Log.info(msg.source.toString())                            
-                                // when(msg.additional_info){
-                                //     is RenameInfo -> Log.info("Rename! olda_name is " + msg.additional_info.old_name)
-                                //     is MoveInfo -> Log.info("Move !" + msg.additional_info.toString() )
-                                //     is EmptyInfo -> Log.info( "Info is empty")
-                                // }
+
                                 val curItem:BoxItem = when (msg.source.type){
                                     "file" -> BoxFile(api, msg.source.id)
                                      else -> BoxFolder(api, msg.source.id)
@@ -146,34 +142,92 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                                     val fsPath = Paths.get(directoryToWatch)
                                     val rclonePath = boxPrefix.relativize(boxItemPath)
                                     Log.info("rclonePath path " + rclonePath.toString())
-                                  
                                     //rclone rc vfs/forget file="test.json" fs="remote:test_dir"
                                     when(msg.trigger){
                                         "FOLDER.TRASHED",  "FOLDER.DELETED" -> {
-                                            SyncWatcherRecursive(fsPath.resolve(rclonePath.toString()), 
-                                            StandardWatchEventKinds.ENTRY_DELETE, 
-                                            watchService, pathKeys, 
-                                            outChannel)
+                                            SyncWatcherRecursive(
+                                                fsPath.resolve(rclonePath.toString()), 
+                                                StandardWatchEventKinds.ENTRY_DELETE, 
+                                                watchService,
+                                                pathKeys, 
+                                                outChannel
+                                            )
                                             forget(rclonePath, client)
                                         }
                                         "FILE.TRASHED", "FILE.DELETED" -> {
-                                            SyncWatcherOne(fsPath.resolve(rclonePath.toString()), 
-                                            StandardWatchEventKinds.ENTRY_DELETE, 
-                                            watchService, pathKeys, 
-                                            outChannel)
+                                            SyncWatcherOne(
+                                                fsPath.resolve(rclonePath.toString()), 
+                                                StandardWatchEventKinds.ENTRY_DELETE, 
+                                                watchService,
+                                                pathKeys, 
+                                                outChannel
+                                            )
                                             forget(rclonePath, client)
                                         }
                                         "FILE.RESTORED", "FILE.UPLOADED", "FILE.CREATED", "FOLDER.RESTORED" -> {
                                             forget(rclonePath, client)
-                                            SyncWatcherOne(fsPath.resolve(rclonePath.toString()), 
+                                            SyncWatcherOne(
+                                                fsPath.resolve(rclonePath.toString()), 
+                                                StandardWatchEventKinds.ENTRY_CREATE, 
+                                                watchService,
+                                                pathKeys,
+                                                outChannel
+                                            )
+                                        }
+                                        "FOLDER.RENAMED" -> {
+                                            when(msg.additional_info){
+                                                is RenameInfo -> {
+                                                    val oldRclonePath = rclonePath.parent.resolve(msg.additional_info.old_name)
+                                                    SyncWatcherRecursive (
+                                                        fsPath.resolve(oldRclonePath.toString()), 
+                                                        StandardWatchEventKinds.ENTRY_DELETE, 
+                                                        watchService, 
+                                                        pathKeys, 
+                                                        outChannel
+                                                    )
+                                                    forget(oldRclonePath, client)
+                                                    forget(rclonePath, client)
+                                                    SyncWatcherRecursive (
+                                                        fsPath.resolve(rclonePath.toString()), 
                                                         StandardWatchEventKinds.ENTRY_CREATE, 
                                                         watchService,
-                                                        pathKeys,
-                                                        outChannel)
+                                                        pathKeys, 
+                                                        outChannel
+                                                    )
+
+                                                }
+                                                else -> {Log.info("Missed info for " + msg.source.id + ". Ignored." )}
+                                            }
+                                         // when(msg.additional_info){
+                                            //     is RenameInfo -> Log.info("Rename! olda_name is " + msg.additional_info.old_name)
+                                            //     is MoveInfo -> Log.info("Move !" + msg.additional_info.toString() )
+                                            //     is EmptyInfo -> Log.info( "Info is empty")
+                                            // }
                                         }
-    
-                                        
-                                        "FOLDER.RENAMED", "FILE.RENAMED" -> {}
+                                        "FILE.RENAMED" -> {
+                                            when(msg.additional_info){
+                                                is RenameInfo -> {
+                                                    val oldRclonePath = rclonePath.parent.resolve(msg.additional_info.old_name)
+                                                    SyncWatcherOne (
+                                                        fsPath.resolve(oldRclonePath.toString()), 
+                                                        StandardWatchEventKinds.ENTRY_DELETE, 
+                                                        watchService, pathKeys, 
+                                                        outChannel
+                                                    )
+                                                    forget(oldRclonePath, client)
+                                                    forget(rclonePath, client)
+                                                    SyncWatcherOne (
+                                                        fsPath.resolve(rclonePath.toString()), 
+                                                        StandardWatchEventKinds.ENTRY_CREATE, 
+                                                        watchService, pathKeys, 
+                                                        outChannel
+                                                    )
+
+                                                }
+                                                else -> {Log.info("Missed info for " + msg.source.id + ". Ignored." )}
+                                            }
+                                        }
+
                                         "FOLDER.MOVED", "FILE.MOVED" -> {}
                                     }
                                     
