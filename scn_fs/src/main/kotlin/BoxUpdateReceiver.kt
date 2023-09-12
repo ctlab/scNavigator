@@ -149,7 +149,7 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                                   
                                     //rclone rc vfs/forget file="test.json" fs="remote:test_dir"
                                     when(msg.trigger){
-                                        "FOlDER.TRASHED",  "FOLDER.DELETED" -> {
+                                        "FOLDER.TRASHED",  "FOLDER.DELETED" -> {
                                             SyncWatcherRecursive(fsPath.resolve(rclonePath.toString()), 
                                             StandardWatchEventKinds.ENTRY_DELETE, 
                                             watchService, pathKeys, 
