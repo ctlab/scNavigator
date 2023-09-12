@@ -177,7 +177,7 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                                         "FOLDER.RENAMED" -> {
                                             when(msg.additional_info){
                                                 is RenameInfo -> {
-                                                    val oldRclonePath = rclonePath.parent.resolve(msg.additional_info.old_name)
+                                                    val oldRclonePath = (rclonePath.parent ?: Paths.get("")).resolve(msg.additional_info.old_name)
                                                     Log.info("old_path_rclone " + oldRclonePath.toString())
                                                     Log.info("rclone_path " + rclonePath.toString())
                                                     SyncWatcherRecursive (
@@ -209,7 +209,7 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                                         "FILE.RENAMED" -> {
                                             when(msg.additional_info){
                                                 is RenameInfo -> {
-                                                    val oldRclonePath = rclonePath.parent.resolve(msg.additional_info.old_name)
+                                                    val oldRclonePath = (rclonePath.parent ?: Paths.get("")).resolve(msg.additional_info.old_name)
                                                     SyncWatcherOne (
                                                         fsPath.resolve(oldRclonePath.toString()), 
                                                         StandardWatchEventKinds.ENTRY_DELETE, 
