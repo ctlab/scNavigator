@@ -178,6 +178,8 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                                             when(msg.additional_info){
                                                 is RenameInfo -> {
                                                     val oldRclonePath = rclonePath.parent.resolve(msg.additional_info.old_name)
+                                                    Log.info("old_path_rclone " + oldRclonePath.toString())
+                                                    Log.info("rclone_path " + rclonePath.toString())
                                                     SyncWatcherRecursive (
                                                         fsPath.resolve(oldRclonePath.toString()), 
                                                         StandardWatchEventKinds.ENTRY_DELETE, 
