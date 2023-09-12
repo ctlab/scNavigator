@@ -148,7 +148,7 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                                     when(msg.trigger){
                                         "FOLDER.TRASHED",  "FOLDER.DELETED" -> {
                                             SyncWatcherRecursive(
-                                                fsPath.resolve(rclonePath.toString()), 
+                                                fsPath.resolve(rclonePath), 
                                                 StandardWatchEventKinds.ENTRY_DELETE, 
                                                 watchService,
                                                 pathKeys, 
@@ -158,7 +158,7 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                                         }
                                         "FILE.TRASHED", "FILE.DELETED" -> {
                                             SyncWatcherOne(
-                                                fsPath.resolve(rclonePath.toString()), 
+                                                fsPath.resolve(rclonePath), 
                                                 StandardWatchEventKinds.ENTRY_DELETE, 
                                                 watchService,
                                                 pathKeys, 
@@ -169,7 +169,7 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                                         "FILE.RESTORED", "FILE.UPLOADED", "FILE.CREATED", "FOLDER.RESTORED" -> {
                                             forget(rclonePath, client)
                                             SyncWatcherOne(
-                                                fsPath.resolve(rclonePath.toString()), 
+                                                fsPath.resolve(rclonePath), 
                                                 StandardWatchEventKinds.ENTRY_CREATE, 
                                                 watchService,
                                                 pathKeys,
@@ -180,10 +180,8 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                                             when(msg.additional_info){
                                                 is RenameInfo -> {
                                                     val oldRclonePath = (rclonePath.parent ?: Paths.get("")).resolve(msg.additional_info.old_name)
-                                                    Log.info("old_path_rclone " + oldRclonePath.toString())
-                                                    Log.info("rclone_path " + rclonePath.toString())
                                                     SyncWatcherRecursive (
-                                                        fsPath.resolve(oldRclonePath.toString()), 
+                                                        fsPath.resolve(oldRclonePath), 
                                                         StandardWatchEventKinds.ENTRY_DELETE, 
                                                         watchService, 
                                                         pathKeys, 
@@ -213,7 +211,7 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                                                 is RenameInfo -> {
                                                     val oldRclonePath = (rclonePath.parent ?: Paths.get("")).resolve(msg.additional_info.old_name)
                                                     SyncWatcherOne (
-                                                        fsPath.resolve(oldRclonePath.toString()), 
+                                                        fsPath.resolve(oldRclonePath), 
                                                         StandardWatchEventKinds.ENTRY_DELETE, 
                                                         watchService, pathKeys, 
                                                         outChannel
@@ -221,7 +219,7 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                                                     forget(oldRclonePath, client)
                                                     forget(rclonePath, client)
                                                     SyncWatcherOne (
-                                                        fsPath.resolve(rclonePath.toString()), 
+                                                        fsPath.resolve(rclonePath), 
                                                         StandardWatchEventKinds.ENTRY_CREATE, 
                                                         watchService, pathKeys, 
                                                         outChannel
@@ -235,14 +233,15 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                                         "FILE.MOVED" -> {
                                             when(msg.additional_info){
                                                 is MoveInfo -> {
-                                                    val before_path = getBoxPath(BoxFolder(api, msg.additional_info.before.id)).resolve(rclonePath.name)
+                                                    val beforePath = getBoxPath(BoxFolder(api, msg.additional_info.before.id)).resolve(boxItemPath.name)
+                                                    val beforeRclonePath = boxPrefix.relativize(beforePath)
                                                     SyncWatcherOne (
-                                                        fsPath.resolve(before_path.toString()), 
+                                                        fsPath.resolve(beforeRclonePath), 
                                                         StandardWatchEventKinds.ENTRY_DELETE, 
                                                         watchService, pathKeys, 
                                                         outChannel
                                                     )
-                                                    forget(before_path, client)
+                                                    forget(beforeRclonePath, client)
                                                 }
                                                 else -> {Log.info("Missed info for " + msg.source.id + ". Ignored." )}
                                             }
@@ -250,18 +249,15 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                                         "FOLDER.MOVED" -> {
                                             when(msg.additional_info){
                                                 is MoveInfo -> {
-                                                    val boxParentPath = getBoxPath(BoxFolder(api, msg.additional_info.before.id))
-                                                    Log.info(boxParentPath.toString())
-                                                    val before_path = getBoxPath(BoxFolder(api, msg.additional_info.before.id)).resolve(rclonePath.name)
-                                                    Log.info(before_path.toString())
-                                                    Log.info(fsPath.resolve(before_path.toString()).toString())
+                                                    val beforePath = getBoxPath(BoxFolder(api, msg.additional_info.before.id)).resolve(boxItemPath.name)
+                                                    val beforeRclonePath = boxPrefix.relativize(beforePath)
                                                     SyncWatcherRecursive (
-                                                        fsPath.resolve(before_path.toString()), 
+                                                        fsPath.resolve(beforeRclonePath), 
                                                         StandardWatchEventKinds.ENTRY_DELETE, 
                                                         watchService, pathKeys, 
                                                         outChannel
                                                     )
-                                                    forget(before_path, client)
+                                                    forget(beforeRclonePath, client)
                                                 }
                                                 else -> {Log.info("Missed info for " + msg.source.id + ". Ignored." )}
                                             }
