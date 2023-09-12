@@ -296,17 +296,17 @@ suspend fun SyncWatcher(fullPath:Path,
                         StandardWatchEventKinds.ENTRY_MODIFY,
                         StandardWatchEventKinds.ENTRY_DELETE
                     )
-                    Log.info("Now also watching directory ${fullPath.toString()}")
+                    Log.info("Now also watching directory ${file.toString()}")
                 }
                 StandardWatchEventKinds.ENTRY_DELETE -> {
                     pathKeys[file.absolutePathString()]?.cancel()
-                    pathKeys.remove(fullPath.absolutePathString())
-                    Log.info("Directory ${fullPath.toString()} is deleted, no longer watching it")
+                    pathKeys.remove(file.absolutePathString())
+                    Log.info("Directory ${file.toString()} is deleted, no longer watching it")
                 }
             }
         } else {
             // Log.info("SENDING EVENT TO FSReciever")
-            outChannel.send(Pair(fullPath, event_kind));
+            outChannel.send(Pair(file, event_kind));
         }
     }    
 }
