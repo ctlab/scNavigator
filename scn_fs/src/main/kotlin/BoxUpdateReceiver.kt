@@ -117,9 +117,6 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                                 headers.get("BOX-DELIVERY-TIMESTAMP")
                             )
                             if (isValidMessage) {
-                                // Message is valid, handle it
-                                Log.info(body.toString())
-                                Log.info("------------------------")
                                 val msg:WebhookMessage = jacksonObjectMapper().readValue<WebhookMessage>(body)
                                 Log.info("________________" + msg.trigger + "__________________")
                                 Log.info(msg.source.toString())                            
@@ -152,16 +149,23 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                                   
                                     //rclone rc vfs/forget file="test.json" fs="remote:test_dir"
                                     when(msg.trigger){
-                                        "FILE.TRASHED", "FILE.DELETED",  "FOLDER.DELETED","FOLDER.TRASHED"-> {
-                                            SyncWatcher(fsPath.resolve(rclonePath.toString()), 
-                                                        StandardWatchEventKinds.ENTRY_DELETE, 
-                                                        watchService, pathKeys, 
-                                                        outChannel)
+                                        "FOlDER.TRASHED",  "FOLDER.DELETED" -> {
+                                            SyncWatcherRecursive(fsPath.resolve(rclonePath.toString()), 
+                                            StandardWatchEventKinds.ENTRY_DELETE, 
+                                            watchService, pathKeys, 
+                                            outChannel)
+                                            forget(rclonePath, client)
+                                        }
+                                        "FILE.TRASHED", "FILE.DELETED" -> {
+                                            SyncWatcherOne(fsPath.resolve(rclonePath.toString()), 
+                                            StandardWatchEventKinds.ENTRY_DELETE, 
+                                            watchService, pathKeys, 
+                                            outChannel)
                                             forget(rclonePath, client)
                                         }
                                         "FILE.RESTORED", "FILE.UPLOADED", "FILE.CREATED", "FOLDER.RESTORED" -> {
                                             forget(rclonePath, client)
-                                            SyncWatcher(fsPath.resolve(rclonePath.toString()), 
+                                            SyncWatcherOne(fsPath.resolve(rclonePath.toString()), 
                                                         StandardWatchEventKinds.ENTRY_CREATE, 
                                                         watchService,
                                                         pathKeys,
@@ -281,32 +285,40 @@ fun getBoxPath(item:BoxItem):Path{
 
 
 // assume that everything that cache contain file tree ( already for create and still for delete) 
-suspend fun SyncWatcher(fullPath:Path, 
+suspend fun SyncWatcherRecursive(fullPath:Path, 
                 event_kind:WatchEvent.Kind<Path>, 
                 watchService:WatchService, 
                 pathKeys:ConcurrentHashMap<String, WatchKey>,
                 outChannel:Channel<Pair<Path, WatchEvent.Kind<Path>>>){
 
     for (file in Files.walk(fullPath) ) {
-        if (file.isDirectory()) {
-            when (event_kind) {
-                StandardWatchEventKinds.ENTRY_CREATE -> {
-                    pathKeys[file.absolutePathString()] = file.register(watchService,
-                        StandardWatchEventKinds.ENTRY_CREATE,
-                        StandardWatchEventKinds.ENTRY_MODIFY,
-                        StandardWatchEventKinds.ENTRY_DELETE
-                    )
-                    Log.info("Now also watching directory ${file.toString()}")
-                }
-                StandardWatchEventKinds.ENTRY_DELETE -> {
-                    pathKeys[file.absolutePathString()]?.cancel()
-                    pathKeys.remove(file.absolutePathString())
-                    Log.info("Directory ${file.toString()} is deleted, no longer watching it")
-                }
-            }
-        } else {
-            // Log.info("SENDING EVENT TO FSReciever")
-            outChannel.send(Pair(file, event_kind));
-        }
+        SyncWatcherOne(file, event_kind, watchService, pathKeys, outChannel)
     }    
+}
+
+suspend fun SyncWatcherOne(file:Path, 
+event_kind:WatchEvent.Kind<Path>, 
+watchService:WatchService, 
+pathKeys:ConcurrentHashMap<String, WatchKey>,
+outChannel:Channel<Pair<Path, WatchEvent.Kind<Path>>>){
+    if (file.isDirectory()) {
+        when (event_kind) {
+            StandardWatchEventKinds.ENTRY_CREATE -> {
+                pathKeys[file.absolutePathString()] = file.register(watchService,
+                    StandardWatchEventKinds.ENTRY_CREATE,
+                    StandardWatchEventKinds.ENTRY_MODIFY,
+                    StandardWatchEventKinds.ENTRY_DELETE
+                )
+                Log.info("Now also watching directory ${file.toString()}")
+            }
+            StandardWatchEventKinds.ENTRY_DELETE -> {
+                pathKeys[file.absolutePathString()]?.cancel()
+                pathKeys.remove(file.absolutePathString())
+                Log.info("Directory ${file.toString()} is deleted, no longer watching it")
+            }
+        }
+    } else {
+        // Log.info("SENDING EVENT TO FSReciever")
+        outChannel.send(Pair(file, event_kind));
+    }
 }
