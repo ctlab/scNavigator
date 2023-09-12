@@ -7,6 +7,7 @@ import java.nio.file.Paths
 import java.nio.file.WatchService
 import java.nio.file.WatchKey
 import java.nio.file.StandardWatchEventKinds
+import java.nio.file.Files
 import io.ktor.application.*
 import io.ktor.client.*
 import io.ktor.client.engine.apache.*
@@ -102,7 +103,7 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
 
                 route("scn_fs") {
                     post("box_updates"){
-                        call.response.status(HttpStatusCode.OK)
+
                         val verifier:BoxWebHookSignatureVerifier = BoxWebHookSignatureVerifier(webhook_key, webhook_sec_key);
                         val headers = call.request.headers
                         try {
@@ -115,7 +116,6 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                                 body.toString(),
                                 headers.get("BOX-DELIVERY-TIMESTAMP")
                             )
-                            Log.info("_verified_")
                             if (isValidMessage) {
                                 // Message is valid, handle it
                                 Log.info(body.toString())
@@ -128,41 +128,55 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                                 //     is MoveInfo -> Log.info("Move !" + msg.additional_info.toString() )
                                 //     is EmptyInfo -> Log.info( "Info is empty")
                                 // }
-                                Log.info("++++++++++++START PATH PROC+++++++++++++++++")
                                 val curItem:BoxItem = when (msg.source.type){
                                     "file" -> BoxFile(api, msg.source.id)
                                      else -> BoxFolder(api, msg.source.id)
                                 }
-                                val boxItemPath = getBoxPath(curItem)
-                                Log.info(boxItemPath.toString())
-                                val boxPrefix = Paths.get(box_dir_path)
-                                Log.info(boxPrefix.toString())
-                                val fsPath = Paths.get(directoryToWatch)
-                                Log.info(fsPath.toString())
-                                val rclonePath = boxPrefix.relativize(boxItemPath)
 
-                                Log.info("rclonePath path " + rclonePath.toString())
-                                forget(rclonePath, client)
-                                //rclone rc vfs/forget file="test.json" fs="remote:test_dir"
-                                when(msg.trigger){
-                                    "FILE.TRASHED", "FILE.DELETED",  "FOLDER.DELETED","FOLDER.TRASHED"-> {
-                                        SyncWatcher(fsPath.resolve(rclonePath.toString()), 
-                                                    StandardWatchEventKinds.ENTRY_DELETE, 
-                                                    watchService, pathKeys, 
-                                                    outChannel)
+                                val boxItemPath = try{
+                                    getBoxPath(curItem)
+                                } catch(e:BoxAPIResponseException){
+                                    if (e.responseCode == 404){
+                                        Log.info( curItem.id + " trashed by parent")
                                     }
-                                    "FILE.RESTORED", "FILE.UPLOADED", "FILE.CREATED", "FOLDER.RESTORED" -> {
-                                        SyncWatcher(fsPath.resolve(rclonePath.toString()), 
-                                                    StandardWatchEventKinds.ENTRY_CREATE, 
-                                                    watchService,
-                                                    pathKeys,
-                                                    outChannel)
-                                    }
-
-                                    
-                                    "FOLDER.RENAMED", "FILE.RENAMED" -> {}
-                                    "FOLDER.MOVED", "FILE.MOVED" -> {}
+                                    null
                                 }
+                                if (boxItemPath == null){
+                                    call.response.status(HttpStatusCode.OK) // ignore
+                                } else {
+                                    Log.info(boxItemPath.toString())
+                                    val boxPrefix = Paths.get(box_dir_path)
+                                    val fsPath = Paths.get(directoryToWatch)
+                                    val rclonePath = boxPrefix.relativize(boxItemPath)
+                                    Log.info("rclonePath path " + rclonePath.toString())
+                                  
+                                    //rclone rc vfs/forget file="test.json" fs="remote:test_dir"
+                                    when(msg.trigger){
+                                        "FILE.TRASHED", "FILE.DELETED",  "FOLDER.DELETED","FOLDER.TRASHED"-> {
+                                            SyncWatcher(fsPath.resolve(rclonePath.toString()), 
+                                                        StandardWatchEventKinds.ENTRY_DELETE, 
+                                                        watchService, pathKeys, 
+                                                        outChannel)
+                                            forget(rclonePath, client)
+                                        }
+                                        "FILE.RESTORED", "FILE.UPLOADED", "FILE.CREATED", "FOLDER.RESTORED" -> {
+                                            forget(rclonePath, client)
+                                            SyncWatcher(fsPath.resolve(rclonePath.toString()), 
+                                                        StandardWatchEventKinds.ENTRY_CREATE, 
+                                                        watchService,
+                                                        pathKeys,
+                                                        outChannel)
+                                        }
+    
+                                        
+                                        "FOLDER.RENAMED", "FILE.RENAMED" -> {}
+                                        "FOLDER.MOVED", "FILE.MOVED" -> {}
+                                    }
+                                    
+                                    call.response.status(HttpStatusCode.OK)
+                                }
+
+                            
                             } else {
                                 // Message is invalid, reject it
                                 call.response.status(HttpStatusCode.OK)
@@ -219,50 +233,28 @@ suspend fun forget(path:Path, client:HttpClient){
 
 fun getBoxPath(item:BoxItem):Path{
     val api = item.getAPI()
-    Log.info("has API")
+
     val trash:BoxTrash  = BoxTrash(api);   
     var cur_item_info:BoxItem.Info? = try {
                                             when (item){
-                                                is BoxFile -> {
-                                                    Log.info("try file " + item.id)
-                                                    val info = trash.getFileInfo(item.id)
-                                                    Log.info("deleted file " + info.name)
-                                                    info
-                                                }
-                                                else ->  {
-                                                    Log.info("try folder " + item.id)
-                                                    val info = trash.getFolderInfo(item.id)
-                                                    Log.info("deleted folder " + info.name)
-                                                    info
-                                                }
+                                                is BoxFile -> { trash.getFileInfo(item.id)}
+                                                else ->  { trash.getFolderInfo(item.id)}
                                             }
                                         } catch (e:BoxAPIResponseException){
-                                            Log.info("_______________")
-                                            Log.info(e.toString())
-                                            Log.info("^^^^^^^^^^^^^^^")
-                                            Log.info("try existed(?) " + item.id)
-                                            val info = item.getInfo()
-                                            Log.info("exist " + info.name)
-                                            info
+                                            item.getInfo()
                                         } catch(e:Exception){
                                             null
                                         }
     if (cur_item_info == null){
         throw(Exception("Error! Unable to get info for id: " + item.id ))
     } 
-    Log.info("____first name_ : " + cur_item_info.name)
     val name_list = mutableListOf<String>(cur_item_info.name) 
     while(true){
         val parent_id = cur_item_info!!.getParent().getID()
-        Log.info("try id: " + parent_id)
         cur_item_info = try{
-           val info = trash.getFolderInfo(parent_id)
-           Log.info("removed with name " + info.name)
-           info
+            trash.getFolderInfo(parent_id)
         } catch (e:BoxAPIResponseException){
-           val info = BoxFolder(api, parent_id).getInfo()
-           Log.info("exist with name " + info.name)
-           info
+            BoxFolder(api, parent_id).getInfo()
         } catch(e:Exception){
             null
         }
@@ -271,7 +263,6 @@ fun getBoxPath(item:BoxItem):Path{
             //Log.info("Item status: " + cur_item_info.getItemStatus())
             name_list.add(0, cur_item_info.name)
             if (cur_item_info.getItemStatus().compareTo("active") == 0){
-                Log.info("found not trashed")
                 break
             }
         }
@@ -281,40 +272,41 @@ fun getBoxPath(item:BoxItem):Path{
         }
     }
     cur_item_info?.pathCollection?.forEachIndexed { index, it ->
-        Log.info("exist-tail name " + it.name)
         name_list.add( index, it.name)
     }
-    Log.info("final list: " + name_list.toString())
     return Paths.get( "" ,*name_list.toTypedArray())
 
 
 }
 
 
-
+// assume that everything that cache contain file tree ( already for create and still for delete) 
 suspend fun SyncWatcher(fullPath:Path, 
                 event_kind:WatchEvent.Kind<Path>, 
                 watchService:WatchService, 
                 pathKeys:ConcurrentHashMap<String, WatchKey>,
                 outChannel:Channel<Pair<Path, WatchEvent.Kind<Path>>>){
-            if (fullPath.isDirectory()) {
-                when (event_kind) {
-                    StandardWatchEventKinds.ENTRY_CREATE -> {
-                        pathKeys[fullPath.absolutePathString()] = fullPath.register(watchService,
-                            StandardWatchEventKinds.ENTRY_CREATE,
-                            StandardWatchEventKinds.ENTRY_MODIFY,
-                            StandardWatchEventKinds.ENTRY_DELETE
-                        )
-                        Log.info("Now also watching directory ${fullPath.toString()}")
-                    }
-                    StandardWatchEventKinds.ENTRY_DELETE -> {
-                        pathKeys[fullPath.absolutePathString()]?.cancel()
-                        pathKeys.remove(fullPath.absolutePathString())
-                        Log.info("Directory ${fullPath.toString()} is deleted, no longer watching it")
-                    }
+
+    for (file in Files.walk(fullPath) ) {
+        if (file.isDirectory()) {
+            when (event_kind) {
+                StandardWatchEventKinds.ENTRY_CREATE -> {
+                    pathKeys[file.absolutePathString()] = file.register(watchService,
+                        StandardWatchEventKinds.ENTRY_CREATE,
+                        StandardWatchEventKinds.ENTRY_MODIFY,
+                        StandardWatchEventKinds.ENTRY_DELETE
+                    )
+                    Log.info("Now also watching directory ${fullPath.toString()}")
                 }
-            } else {
-                // Log.info("SENDING EVENT TO FSReciever")
-                outChannel.send(Pair(fullPath, event_kind));
+                StandardWatchEventKinds.ENTRY_DELETE -> {
+                    pathKeys[file.absolutePathString()]?.cancel()
+                    pathKeys.remove(fullPath.absolutePathString())
+                    Log.info("Directory ${fullPath.toString()} is deleted, no longer watching it")
+                }
             }
+        } else {
+            // Log.info("SENDING EVENT TO FSReciever")
+            outChannel.send(Pair(fullPath, event_kind));
+        }
+    }    
 }
