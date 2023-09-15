@@ -346,13 +346,15 @@ fun getBoxPath(item:BoxItem):Path{
                                         } catch(e:Exception){
                                             null
                                         }
+    Log.info("try to find path for " + item.id)
     if (cur_item_info == null){
         throw(Exception("Error! Unable to get info for id: " + item.id ))
     } 
+    Log.info( cur_item_info.name)
     val name_list = mutableListOf<String>(cur_item_info.name) 
 
     while(true){
-        Log.info("cur_folder = " + cur_item_info!!.name)
+       
         val parent_id = cur_item_info!!.getParent().getID()
         cur_item_info = try{
             trash.getFolderInfo(parent_id)
@@ -362,7 +364,7 @@ fun getBoxPath(item:BoxItem):Path{
             null
         }
         if (cur_item_info != null){
-            //Log.info("____cur name_ : " + cur_item_info.name)
+           Log.info("____cur name_ : " + cur_item_info.name)
             //Log.info("Item status: " + cur_item_info.getItemStatus())
             name_list.add(0, cur_item_info.name)
             if (cur_item_info.getItemStatus().compareTo("active") == 0){
