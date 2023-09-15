@@ -137,6 +137,7 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                                     null
                                 }
                                 if (boxItemPath == null){
+                                    Log.info("ignored")
                                     call.response.status(HttpStatusCode.OK) // ignore
                                 } else {
                                     Log.info(boxItemPath.toString())
@@ -333,6 +334,7 @@ suspend fun forget(path:Path, client:HttpClient){
 }
 
 fun getBoxPath(item:BoxItem):Path{
+    Log.info("try to find path for " + item.id)
     val api = item.getAPI()
 
     val trash:BoxTrash  = BoxTrash(api);   
@@ -344,9 +346,9 @@ fun getBoxPath(item:BoxItem):Path{
                                         } catch (e:BoxAPIResponseException){
                                             item.getInfo()
                                         } catch(e:Exception){
+                                            Log.info(e.toString())
                                             null
                                         }
-    Log.info("try to find path for " + item.id)
     if (cur_item_info == null){
         throw(Exception("Error! Unable to get info for id: " + item.id ))
     } 
