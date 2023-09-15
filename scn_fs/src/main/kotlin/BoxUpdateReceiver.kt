@@ -350,7 +350,9 @@ fun getBoxPath(item:BoxItem):Path{
         throw(Exception("Error! Unable to get info for id: " + item.id ))
     } 
     val name_list = mutableListOf<String>(cur_item_info.name) 
+
     while(true){
+        Log.info("cur_folder = " + cur_item_info!!.name)
         val parent_id = cur_item_info!!.getParent().getID()
         cur_item_info = try{
             trash.getFolderInfo(parent_id)
@@ -373,6 +375,7 @@ fun getBoxPath(item:BoxItem):Path{
         }
     }
     cur_item_info?.pathCollection?.forEachIndexed { index, it ->
+        Log.info(it.name)
         name_list.add( index, it.name)
     }
     return Paths.get( "" ,*name_list.toTypedArray())
