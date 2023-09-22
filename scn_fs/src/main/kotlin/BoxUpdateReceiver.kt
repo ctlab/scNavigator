@@ -128,6 +128,7 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                                 val boxItemPath = try{
                                     getBoxPath(curItem)
                                 } catch(e:BoxAPIResponseException){
+                                    Log.info(e.toString())
                                     if (e.responseCode == 404){
                                         Log.info( curItem.id + " trashed by parent")
                                     }
@@ -343,7 +344,7 @@ fun getBoxPath(item:BoxItem):Path{
                                         } catch (e:BoxAPIResponseException){
                                             item.getInfo()
                                         } catch(e:Exception){
-                                            Log.info(e.toString())
+                                            Log.info("Strange error" + e.toString())
                                             null
                                         }
     if (cur_item_info == null){
