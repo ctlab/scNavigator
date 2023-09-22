@@ -40,6 +40,7 @@ import com.box.sdk.BoxWebHookSignatureVerifier
 import com.box.sdk.BoxFile
 import com.box.sdk.BoxTrash
 import com.box.sdk.BoxAPIResponseException
+import com.box.sdk.BoxCCGAPIConnection
 import kotlin.io.path.isDirectory
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.name
@@ -55,7 +56,8 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
     webhook_first_key:String,
     webhook_sec_key:String,
     box_user_key:String, 
-    box_user_secret:String    
+    box_user_secret:String,
+    box_enterprise_id:String    
     ) {       
         //val api = BoxAPIConnection(api_key, api_secret) 
         val api:BoxAPIConnection
@@ -63,7 +65,8 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
             Log.info("********USE DEV KEY ************")
             api = BoxAPIConnection(box_user_key)
         } else{
-            api = BoxAPIConnection(box_user_key, box_user_secret)
+
+            api = BoxCCGAPIConnection.applicationServiceAccountConnection(box_user_key, box_user_secret, box_enterprise_id)
         }
         Log.info("Use first_key:"  + box_user_key)
         Log.info("Use second_key:"  + box_user_secret)

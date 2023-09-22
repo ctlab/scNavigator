@@ -49,7 +49,7 @@ services:
       - "$BOX_CACHE:/data/cache:shared"
       - "$GMT_PATH:/vat/gmt"
       - "$TMP_PATH:/var/tmp"
-    command: ["java", "-Djava.library.path=./", "-jar", "fs.jar", "/var/datasets", "/vat/gmt", "All Files/$BOX_SOURCE", "$BOX_WEBHOOK_KEY_PRIMARY", "$BOX_WEBHOOK_KEY_SECONDARY", "$BOX_CLIENT_ID", "$BOX_CLIENT_SECRET"]
+    command: ["java", "-Djava.library.path=./", "-jar", "fs.jar", "/var/datasets", "/vat/gmt", "All Files/$BOX_SOURCE", "$BOX_WEBHOOK_KEY_PRIMARY", "$BOX_WEBHOOK_KEY_SECONDARY", "$BOX_ENTERPRISE_ID","$BOX_CLIENT_ID", "$BOX_CLIENT_SECRET"]
 
   web:
     env_file:

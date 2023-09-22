@@ -89,9 +89,10 @@ fun main(args: Array<String>) {
  
     val webhook_first = args[3]
     val webhook_sec = args[4]
-    val box_user = args[5] // "client secret or devkey"
+    val box_enterprise_id = args[5]
+    val box_user = args[6] // "client secret or devkey"
     
-    val box_secret = if (args.size == 7) {args[6]} else {""} //client secret or nothing
+    val box_secret = if (args.size == 8) {args[7]} else {""} //client secret or nothing
 
     
     val pathKeys =  ConcurrentHashMap<String, WatchKey>()
@@ -111,7 +112,8 @@ fun main(args: Array<String>) {
                                            webhook_first,
                                            webhook_sec,
                                            box_user,
-                                           box_secret)}
+                                           box_secret,
+                                           box_enterprise_id)}
     Thread.sleep(30000)
     Log.info("Now generating GMTs and annotations")
     generateGMTs(mongoDBCollection, gmtOutDir)
