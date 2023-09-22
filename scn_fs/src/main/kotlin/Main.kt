@@ -85,10 +85,15 @@ fun main(args: Array<String>) {
     val gmtOutDir = args[1]
 
     val box_dir_path = args[2] // "All Files/test_dir"
-    val fisrt_key = args[3] //"aprdjeuciqnlp1yo9d4ttwpy2zgb7ibd"
-    
-    val second_key = if (args.size == 5) {args[4]} else {""} //"PyU8Kq4ZpboQ7GEGzGmeZxaF84JHadEg"
 
+ 
+    val webhook_first = args[3]
+    val webhook_sec = args[4]
+    val box_user = args[5] // "client secret or devkey"
+    
+    val box_secret = if (args.size == 7) {args[6]} else {""} //client secret or nothing
+
+    
     val pathKeys =  ConcurrentHashMap<String, WatchKey>()
     
     GlobalScope.launch { recursiveFSWatcher(watchService, directoryToWatch, pathChangesChannel, pathKeys) }
@@ -99,7 +104,14 @@ fun main(args: Array<String>) {
     GlobalScope.launch { fileDeleteHandler(deletedChannel, mongoDBCollection,
         mongoDBCollectionExp, mongoDBCollectionMarkers) }
     GlobalScope.launch { pushDescriptorsToQueue(File(directoryToWatch), pathChangesChannel) }
-    GlobalScope.launch{ boxUpdateReceiver( pathChangesChannel,watchService,pathKeys, directoryToWatch, box_dir_path, fisrt_key, second_key)}
+    GlobalScope.launch{ boxUpdateReceiver( pathChangesChannel,
+                                           watchService,pathKeys,
+                                           directoryToWatch,
+                                           box_dir_path,
+                                           webhook_first,
+                                           webhook_sec,
+                                           box_user,
+                                           box_secret)}
     Thread.sleep(30000)
     Log.info("Now generating GMTs and annotations")
     generateGMTs(mongoDBCollection, gmtOutDir)

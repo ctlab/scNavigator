@@ -52,24 +52,21 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
     pathKeys:ConcurrentHashMap<String, WatchKey>,
     directoryToWatch:String,
     box_dir_path:String,
-    first_key:String, 
-    second_key:String    
-    ) {   
-
-        val webhook_key = "2APuppKR82qdck4G527dpelA7D1YHBTM";
-        val webhook_sec_key = "hNL8IZQWEN7geXDF9N4mHHMDVWf33gUv";
-        
-
+    webhook_first_key:String,
+    webhook_sec_key:String,
+    box_user_key:String, 
+    box_user_secret:String    
+    ) {       
         //val api = BoxAPIConnection(api_key, api_secret) 
         val api:BoxAPIConnection
-        if (second_key.length == 0){
+        if (box_user_secret.length == 0){
             Log.info("********USE DEV KEY ************")
-            api = BoxAPIConnection(first_key)
+            api = BoxAPIConnection(box_user_key)
         } else{
-            api = BoxAPIConnection(first_key, second_key)
+            api = BoxAPIConnection(box_user_key, box_user_secret)
         }
-        Log.info("Use first_key:"  + first_key)
-        Log.info("Use second_key:"  + second_key)
+        Log.info("Use first_key:"  + box_user_key)
+        Log.info("Use second_key:"  + box_user_secret)
         embeddedServer(Netty, port = 8081) {
             install(Compression) {
                 gzip {
@@ -106,7 +103,7 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                 route("scn_fs") {
                     post("box_updates"){
 
-                        val verifier:BoxWebHookSignatureVerifier = BoxWebHookSignatureVerifier(webhook_key, webhook_sec_key);
+                        val verifier:BoxWebHookSignatureVerifier = BoxWebHookSignatureVerifier(webhook_first_key, webhook_sec_key);
                         val headers = call.request.headers
                         try {
                             val body = call.receive<String>();
