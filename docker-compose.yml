@@ -59,7 +59,7 @@ services:
       - fs
     build: ./scn_server
     volumes:
-      - "$DATASET_PATH:/var/datasets"
+      - "$DATASET_PATH:/var/datasets:shared"
       - "$BOX_CACHE:/data/cache:shared"
       - "./scn_js:/scn/scn_js"
     command: ["java", "-Djava.library.path=./", "-jar", "server.jar"]
