@@ -406,6 +406,7 @@ event_kind:WatchEvent.Kind<Path>,
 watchService:WatchService, 
 pathKeys:ConcurrentHashMap<String, WatchKey>,
 outChannel:Channel<Pair<Path, WatchEvent.Kind<Path>>>){
+    Log.info("sync " + file.toString())
     if (file.isDirectory()) {
         when (event_kind) {
             StandardWatchEventKinds.ENTRY_CREATE -> {
@@ -417,7 +418,10 @@ outChannel:Channel<Pair<Path, WatchEvent.Kind<Path>>>){
                 Log.info("Now also watching directory ${file.toString()}")
             }
             StandardWatchEventKinds.ENTRY_DELETE -> {
+                Log.info("delete event")
+                Log.info(file.absolutePathString())
                 pathKeys[file.absolutePathString()]?.cancel()
+                Log.info("cancel key, try remove")
                 pathKeys.remove(file.absolutePathString())
                 Log.info("Directory ${file.toString()} is deleted, no longer watching it")
             }
