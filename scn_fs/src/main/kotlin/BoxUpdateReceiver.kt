@@ -409,7 +409,7 @@ suspend fun SyncWatcherRecursive(fullPath:Path,
         Log.info("Failed recursive sync with: " + e.toString())
         Log.info(e.stackTraceToString())
         Log.info("path exists:" + fullPath.exists())
-        Log.info("in path keys: " + pathKeys[fullPath.toString()]?)
+        Log.info("in path keys: " + pathKeys[fullPath.toString()])
     }
 }
 
