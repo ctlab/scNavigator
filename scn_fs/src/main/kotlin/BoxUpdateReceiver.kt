@@ -147,6 +147,7 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                                     val rclonePath = boxPrefix.relativize(boxItemPath)
                                     Log.info("rclonePath path " + rclonePath.toString())
                                     //rclone rc vfs/forget file="test.json" fs="remote:test_dir"
+                                    Log.info("local path " + fsPath.resolve(rclonePath).toString())
                                     when(msg.trigger){
                                         "FOLDER.TRASHED",  "FOLDER.DELETED" -> {
                                             SyncWatcherRecursive(
@@ -395,7 +396,7 @@ suspend fun SyncWatcherRecursive(fullPath:Path,
                 watchService:WatchService, 
                 pathKeys:ConcurrentHashMap<String, WatchKey>,
                 outChannel:Channel<Pair<Path, WatchEvent.Kind<Path>>>){
-
+    Log.info("recursive sync " + fullPath.toString())           
     for (file in Files.walk(fullPath) ) {
         SyncWatcherOne(file, event_kind, watchService, pathKeys, outChannel)
     }    
