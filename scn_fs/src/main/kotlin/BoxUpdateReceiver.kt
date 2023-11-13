@@ -44,6 +44,7 @@ import com.box.sdk.BoxCCGAPIConnection
 import kotlin.io.path.isDirectory
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.name
+import kotlin.io.path.exists
 import ru.itmo.scn.fs.SyncWatcherRecursive
 
 
@@ -396,11 +397,20 @@ suspend fun SyncWatcherRecursive(fullPath:Path,
                 watchService:WatchService, 
                 pathKeys:ConcurrentHashMap<String, WatchKey>,
                 outChannel:Channel<Pair<Path, WatchEvent.Kind<Path>>>){
-    Log.info("recursive sync " + fullPath.toString())           
-    for (file in Files.walk(fullPath) ) {
-        Log.info("run one for " + file)
-        SyncWatcherOne(file, event_kind, watchService, pathKeys, outChannel)
-    }    
+    Log.info("recursive sync " + fullPath.toString())
+    try{
+
+             
+        for (file in Files.walk(fullPath) ) {
+            Log.info("run one for " + file)
+            SyncWatcherOne(file, event_kind, watchService, pathKeys, outChannel)
+        }    
+    } catch(e:Exception){
+        Log.info("Failed recursive sync with: " + e.toString())
+        Log.info(e.stackTraceToString())
+        Log.info("path exists:" + fullPath.exists())
+        Log.info("in path keys: " + pathKeys[fullPath.toString()]?)
+    }
 }
 
 suspend fun SyncWatcherOne(file:Path, 
