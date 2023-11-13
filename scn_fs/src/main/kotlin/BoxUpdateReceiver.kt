@@ -398,6 +398,7 @@ suspend fun SyncWatcherRecursive(fullPath:Path,
                 outChannel:Channel<Pair<Path, WatchEvent.Kind<Path>>>){
     Log.info("recursive sync " + fullPath.toString())           
     for (file in Files.walk(fullPath) ) {
+        Log.info("run one for " + file)
         SyncWatcherOne(file, event_kind, watchService, pathKeys, outChannel)
     }    
 }
