@@ -414,42 +414,52 @@ suspend fun SyncWatcherRecursive(fullPath:Path,
         }    
     } else{
         Log.info("folder not cached. Try use mongo.")
-        val regexp = "^"+ fullPath;
+        updateKeys(fullPath, event_kind, watchService, pathKeys)
+        val regexp = "^"+ fullPath + "/";
         val datasets = mongoDBCollection.find( SCDataset::selfPath regex regexp)
         val dataset_files = datasets.mapNotNull { it.selfPath }.map{ Paths.get(it) }
         dataset_files.forEach({
             Log.info("Found dataset :" + it.toString())
+            var folder = it.parent
+            while(!folder.equals(fullPath)){
+                updateKeys(folder, event_kind, watchService, pathKeys)
+                folder = folder.parent
+            }    
             SyncWatcherOne(it, event_kind, watchService, pathKeys, outChannel)})
     }
 }
-
 suspend fun SyncWatcherOne(file:Path, 
-event_kind:WatchEvent.Kind<Path>, 
-watchService:WatchService, 
-pathKeys:ConcurrentHashMap<String, WatchKey>,
-outChannel:Channel<Pair<Path, WatchEvent.Kind<Path>>>){
+                            event_kind:WatchEvent.Kind<Path>, 
+                            watchService:WatchService, 
+                            pathKeys:ConcurrentHashMap<String, WatchKey>,
+                            outChannel:Channel<Pair<Path, WatchEvent.Kind<Path>>>){
     Log.info("sync " + file.toString())
     if (file.isDirectory()) {
-        when (event_kind) {
-            StandardWatchEventKinds.ENTRY_CREATE -> {
-                pathKeys[file.absolutePathString()] = file.register(watchService,
-                    StandardWatchEventKinds.ENTRY_CREATE,
-                    StandardWatchEventKinds.ENTRY_MODIFY,
-                    StandardWatchEventKinds.ENTRY_DELETE
-                )
-                Log.info("Now also watching directory ${file.toString()}")
-            }
-            StandardWatchEventKinds.ENTRY_DELETE -> {
-                Log.info("delete event")
-                Log.info(file.absolutePathString())
-                pathKeys[file.absolutePathString()]?.cancel()
-                Log.info("cancel key, try remove")
-                pathKeys.remove(file.absolutePathString())
-                Log.info("Directory ${file.toString()} is deleted, no longer watching it")
-            }
-        }
+        updateKeys(file, event_kind,  watchService, pathKeys) 
     } else {
         // Log.info("SENDING EVENT TO FSReciever")
         outChannel.send(Pair(file, event_kind));
     }
 }
+fun updateKeys(file:Path, 
+event_kind:WatchEvent.Kind<Path>, 
+watchService:WatchService, 
+pathKeys:ConcurrentHashMap<String, WatchKey>){
+    when (event_kind) {
+        StandardWatchEventKinds.ENTRY_CREATE -> {
+            pathKeys[file.absolutePathString()] = file.register(watchService,
+                StandardWatchEventKinds.ENTRY_CREATE,
+                StandardWatchEventKinds.ENTRY_MODIFY,
+                StandardWatchEventKinds.ENTRY_DELETE
+            )
+            Log.info("Now also watching directory ${file.toString()}")
+        }
+        StandardWatchEventKinds.ENTRY_DELETE -> {
+            Log.info(file.absolutePathString())
+            pathKeys[file.absolutePathString()]?.cancel()
+            pathKeys.remove(file.absolutePathString())
+            Log.info("Directory ${file.toString()} is deleted, no longer watching it")
+        }
+    }
+}
+
