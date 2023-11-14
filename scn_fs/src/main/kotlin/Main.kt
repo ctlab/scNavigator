@@ -105,7 +105,7 @@ fun main(args: Array<String>) {
     GlobalScope.launch { fileDeleteHandler(deletedChannel, mongoDBCollection,
         mongoDBCollectionExp, mongoDBCollectionMarkers) }
     GlobalScope.launch { pushDescriptorsToQueue(File(directoryToWatch), pathChangesChannel) }
-    GlobalScope.launch{ boxUpdateReceiver( pathChangesChannel,
+    GlobalScope.launch{ boxUpdateReceiver( pathChangesChannel, mongoDBCollection,
                                            watchService,pathKeys,
                                            directoryToWatch,
                                            box_dir_path,

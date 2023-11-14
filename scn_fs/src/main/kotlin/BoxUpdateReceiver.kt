@@ -41,15 +41,17 @@ import com.box.sdk.BoxFile
 import com.box.sdk.BoxTrash
 import com.box.sdk.BoxAPIResponseException
 import com.box.sdk.BoxCCGAPIConnection
+import com.mongodb.client.MongoCollection
 import kotlin.io.path.isDirectory
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.name
 import kotlin.io.path.exists
 import ru.itmo.scn.fs.SyncWatcherRecursive
+import org.litote.kmongo.regex
 
-
-suspend fun boxUpdateReceiver( // boxDir:Path,
+suspend fun boxUpdateReceiver( 
     outChannel: Channel<Pair<Path, WatchEvent.Kind<Path>>>,
+    mongoDBCollection: MongoCollection<SCDataset>,
     watchService: WatchService,
     pathKeys:ConcurrentHashMap<String, WatchKey>,
     directoryToWatch:String,
@@ -156,7 +158,8 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                                                 StandardWatchEventKinds.ENTRY_DELETE, 
                                                 watchService,
                                                 pathKeys, 
-                                                outChannel
+                                                outChannel,
+                                                mongoDBCollection
                                             )
                                             forget(rclonePath, client)
                                         }
@@ -187,7 +190,8 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                                                 StandardWatchEventKinds.ENTRY_CREATE, 
                                                 watchService,
                                                 pathKeys, 
-                                                outChannel
+                                                outChannel,
+                                                mongoDBCollection
                                             )
                                         }
                                         "FOLDER.RENAMED" -> {
@@ -199,7 +203,8 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                                                         StandardWatchEventKinds.ENTRY_DELETE, 
                                                         watchService, 
                                                         pathKeys, 
-                                                        outChannel
+                                                        outChannel,
+                                                        mongoDBCollection
                                                     )
                                                     forget(oldRclonePath, client)
                                                     forget(rclonePath, client)
@@ -208,7 +213,8 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                                                         StandardWatchEventKinds.ENTRY_CREATE, 
                                                         watchService,
                                                         pathKeys, 
-                                                        outChannel
+                                                        outChannel,
+                                                        mongoDBCollection
                                                     )
 
                                                 }
@@ -269,7 +275,8 @@ suspend fun boxUpdateReceiver( // boxDir:Path,
                                                         fsPath.resolve(beforeRclonePath), 
                                                         StandardWatchEventKinds.ENTRY_DELETE, 
                                                         watchService, pathKeys, 
-                                                        outChannel
+                                                        outChannel,
+                                                        mongoDBCollection
                                                     )
                                                     forget(beforeRclonePath, client)
                                                 }
@@ -396,20 +403,23 @@ suspend fun SyncWatcherRecursive(fullPath:Path,
                 event_kind:WatchEvent.Kind<Path>, 
                 watchService:WatchService, 
                 pathKeys:ConcurrentHashMap<String, WatchKey>,
-                outChannel:Channel<Pair<Path, WatchEvent.Kind<Path>>>){
+                outChannel:Channel<Pair<Path, WatchEvent.Kind<Path>>>,
+                mongoDBCollection: MongoCollection<SCDataset>){
     Log.info("recursive sync " + fullPath.toString())
-    try{
-
-             
+    
+    if (fullPath.exists()){   
+        Log.info("folder cached")     
         for (file in Files.walk(fullPath) ) {
-            Log.info("run one for " + file)
             SyncWatcherOne(file, event_kind, watchService, pathKeys, outChannel)
         }    
-    } catch(e:Exception){
-        Log.info("Failed recursive sync with: " + e.toString())
-        Log.info(e.stackTraceToString())
-        Log.info("path exists:" + fullPath.exists())
-        Log.info("in path keys: " + pathKeys[fullPath.toString()])
+    } else{
+        Log.info("folder not cached. Try use mongo.")
+        val regexp = "^"+ fullPath;
+        val datasets = mongoDBCollection.find( SCDataset::selfPath regex regexp)
+        Log.info("Found datasets:")
+        Log.info( datasets.toString())
+        val dataset_files = datasets.mapNotNull { it.gmtAnnotationFile }.map{ Paths.get(it) }
+        dataset_files.forEach({SyncWatcherOne(it, event_kind, watchService, pathKeys, outChannel)})
     }
 }
 
