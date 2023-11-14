@@ -14,6 +14,99 @@ import java.nio.file.Path
 import java.nio.file.Paths
 
 
+
+fun insertSCDataset(path: Path,
+                            mongoDBCollection: MongoCollection<SCDataset>,
+                            mongoDBCollectionExp: MongoCollection<SCDatasetExpression>,
+                            mongoDBCollectionMarkers: MongoCollection<SCMarkerEntry>) {
+
+    try{
+        val scDataset = SCDataset.fromJsonFile(path)
+
+            Log.info("Inserting the dataset ${scDataset.token} into the mongo database")
+            mongoDBCollection.insertOne(scDataset)
+
+        if (scDataset.expressionFile !== null) {
+            val scExp = SCDatasetExpression.fromJsonFile(scDataset.expressionFile, scDataset.token)
+            Log.info("Inserting the expression info for ${scExp.token} into the mongo database")
+            mongoDBCollectionExp.insertOne(scExp)
+
+        }
+
+        if (scDataset.markersFile !== null) {
+            val markersCollection = MarkerCollection.fromJsonFile(scDataset.markersFile)
+            val flatSCMarkerEntries: List<SCMarkerEntry> = markersCollection.collection.flatMap { entry ->
+                val tableName = entry.key
+                entry.value.map {
+                    SCMarkerEntry(
+                        token = scDataset.token,
+                        tableName = tableName,
+                        cluster = it.cluster,
+                        gene = it.gene,
+                        pct1 = it.pct1,
+                        pct2 = it.pct2,
+                        pValue = it.pValue,
+                        pValueAdjusted = it.pValueAdjusted,
+                        averageLogFoldChange = it.averageLogFoldChange
+                    )
+                }
+            }
+            Log.info("Updating the markers info for dataset ${scDataset.token} in the database")
+            mongoDBCollectionMarkers.deleteMany(SCMarkerEntry::token eq scDataset.token)
+            mongoDBCollectionMarkers.insertMany(flatSCMarkerEntries)
+        }
+    } catch (e: Exception) {
+        Log.error("Error while parsing $path. See exception text below")
+        Log.error(e.message.toString())
+    }                 
+
+}
+
+fun insertBulkSCDataset(paths: List<Path>,
+                            mongoDBCollection: MongoCollection<SCDataset>,
+                            mongoDBCollectionExp: MongoCollection<SCDatasetExpression>,
+                            mongoDBCollectionMarkers: MongoCollection<SCMarkerEntry>) {
+    val datasets:List<SCDataset> = paths.map{ item -> SCDataset.fromJsonFile(item) }
+    val exprs = datasets.filter{
+                                dataset -> dataset.expressionFile !== null
+                            }.map{ 
+                                dataset -> dataset.expressionFile?.let{
+                                SCDatasetExpression.fromJsonFile(dataset.expressionFile, dataset.token)}
+                            }
+
+    val markersCollections:Map<String,MarkerCollection> =  datasets.filter{
+                                                dataset -> dataset.markersFile !== null
+                                             }.map{ 
+                                                it.token to MarkerCollection.fromJsonFile(it.markersFile.toString())
+                                             }.toMap()    
+
+    val flatSCMarkerEntries: List<SCMarkerEntry> = markersCollections.flatMap { markersCollection ->
+        markersCollection.value.collection.flatMap { entry ->
+            val tableName = entry.key
+            entry.value.map {
+                SCMarkerEntry(
+                    token = markersCollection.key,
+                    tableName = tableName,
+                    cluster = it.cluster,
+                    gene = it.gene,
+                    pct1 = it.pct1,
+                    pct2 = it.pct2,
+                    pValue = it.pValue,
+                    pValueAdjusted = it.pValueAdjusted,
+                    averageLogFoldChange = it.averageLogFoldChange
+                )
+            }
+        }
+    }
+    mongoDBCollection.insertMany(datasets)
+    if (!exprs.isEmpty()){
+        mongoDBCollectionExp.insertMany(exprs)
+    }
+    if (!markersCollections.isEmpty()){
+        mongoDBCollectionMarkers.insertMany(flatSCMarkerEntries)
+    }
+}
+
 fun insertOrUpdateSCDataset(path: Path,
                             mongoDBCollection: MongoCollection<SCDataset>,
                             mongoDBCollectionExp: MongoCollection<SCDatasetExpression>,
@@ -83,6 +176,11 @@ fun insertOrUpdateSCDataset(path: Path,
         Log.error(e.message.toString())
     }
 }
+
+
+
+
+
 
 fun deleteSCDataset(path: Path,
                     mongoDBCollection: MongoCollection<SCDataset>,

@@ -17,6 +17,8 @@ import java.io.File
 import java.nio.file.FileSystems
 import java.nio.file.Path
 import java.nio.file.WatchEvent
+import java.nio.file.WatchKey
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.time.ExperimentalTime
 
 val mongoDBHost: String =  System.getenv("MONGODB_HOST") ?: "mongodb://mongo:27017"
@@ -31,7 +33,7 @@ val database: MongoDatabase = client.getDatabase(mongoDB)
 
 @ExperimentalTime
 fun main(args: Array<String>) {
-    if (args.size != 2) {
+    if (args.size < 4) {
         Log.error("FS module was run without directory to watch argument, try again")
         return
     }
@@ -82,8 +84,20 @@ fun main(args: Array<String>) {
     val directoryToWatch = args[0]
     val gmtOutDir = args[1]
 
+    val box_dir_path = args[2] // "All Files/test_dir"
 
-    GlobalScope.launch { recursiveFSWatcher(watchService, directoryToWatch, pathChangesChannel) }
+ 
+    val webhook_first = args[3]
+    val webhook_sec = args[4]
+    val box_enterprise_id = args[5]
+    val box_user = args[6] // "client secret or devkey"
+    
+    val box_secret = if (args.size == 8) {args[7]} else {""} //client secret or nothing
+
+    
+    val pathKeys =  ConcurrentHashMap<String, WatchKey>()
+    
+    GlobalScope.launch { recursiveFSWatcher(watchService, directoryToWatch, pathChangesChannel, pathKeys) }
     GlobalScope.launch { fsReceiver(pathChangesChannel, deletedChannel, fileChanges, mutex) }
     GlobalScope.launch { delayedFSReceiver(modifiedChannel, fileChanges, mutex) }
     GlobalScope.launch { fileChangeHandler(modifiedChannel, mongoDBCollection,
@@ -91,7 +105,15 @@ fun main(args: Array<String>) {
     GlobalScope.launch { fileDeleteHandler(deletedChannel, mongoDBCollection,
         mongoDBCollectionExp, mongoDBCollectionMarkers) }
     GlobalScope.launch { pushDescriptorsToQueue(File(directoryToWatch), pathChangesChannel) }
-
+    GlobalScope.launch{ boxUpdateReceiver( pathChangesChannel, mongoDBCollection,
+                                           watchService,pathKeys,
+                                           directoryToWatch,
+                                           box_dir_path,
+                                           webhook_first,
+                                           webhook_sec,
+                                           box_user,
+                                           box_secret,
+                                           box_enterprise_id)}
     Thread.sleep(30000)
     Log.info("Now generating GMTs and annotations")
     generateGMTs(mongoDBCollection, gmtOutDir)

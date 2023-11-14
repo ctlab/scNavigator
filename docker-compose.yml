@@ -10,12 +10,11 @@ services:
       - "./nginx/sites-enabled:/etc/nginx/sites-enabled"
       - "./scn_js:/scn/scn_js"
       - "./scn_docs/build/:/scn/docs"
-      - "$DATASET_PATH:/var/datasets"
+      - "$DATASET_PATH:/var/datasets:shared"
     ports:
-      - "31:80"
+      - "3133:80"
 
   genequery:
-    container_name: gq
     depends_on:
       - fs
     restart: always
@@ -23,7 +22,7 @@ services:
     expose:
       - 8423
     ports:
-      - "8423:8423"
+      - "8433:8423"
     volumes:
       - "$GMT_PATH:/genequery/data-files"
 
@@ -32,11 +31,12 @@ services:
     image: mongo:latest
     restart: always
 #    ports:
-#      - "27017:27017"
+#      - "27033:27017"
+    depends_on:
+       - rclone_fs
     volumes:
       - "./mongo/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro"
-      - "$DATASET_PATH:/var/datasets"
-
+      - "$DATASET_PATH:/var/datasets:shared"
   fs:
     env_file:
       - .env
@@ -45,9 +45,11 @@ services:
       - mongo
     build: ./scn_fs
     volumes:
-      - "$DATASET_PATH:/var/datasets"
+      - "$DATASET_PATH:/var/datasets:shared"
+      - "$BOX_CACHE:/data/cache:shared"
       - "$GMT_PATH:/vat/gmt"
-    command: ["java", "-Djava.library.path=./", "-jar", "fs.jar", "/var/datasets", "/vat/gmt"]
+      - "$TMP_PATH:/var/tmp"
+    command: ["java", "-Djava.library.path=./", "-jar", "fs.jar", "/var/datasets", "/vat/gmt", "All Files/$BOX_SOURCE", "$BOX_WEBHOOK_KEY_PRIMARY", "$BOX_WEBHOOK_KEY_SECONDARY", "$BOX_ENTERPRISE_ID","$BOX_CLIENT_ID", "$BOX_CLIENT_SECRET"]
 
   web:
     env_file:
@@ -57,6 +59,44 @@ services:
       - fs
     build: ./scn_server
     volumes:
-      - "$DATASET_PATH:/var/datasets"
+      - "$DATASET_PATH:/var/datasets:shared"
+      - "$BOX_CACHE:/data/cache:shared"
       - "./scn_js:/scn/scn_js"
     command: ["java", "-Djava.library.path=./", "-jar", "server.jar"]
+
+  rclone_fs:
+      env_file:
+        - .env
+      restart: always
+      image:  rclone/rclone
+      user: 1014:1014
+      volumes:
+        - "~/.config/rclone:/config/rclone"
+        - "$DATASET_PATH:/data/box:shared"
+        - "$BOX_CACHE:/data/cache:shared"
+        - "/etc/passwd:/etc/passwd:ro"
+        - "/etc/group:/etc/group:ro"
+      ports:
+        - "5533:5572"
+      devices:
+        - "/dev/fuse:/dev/fuse"
+      cap_add:
+        - SYS_ADMIN
+      security_opt:
+        - apparmor:unconfined
+      command: ["mount", "remote:/$BOX_SOURCE", "/data/box",
+    "--vfs-cache-mode", "full",
+    "--cache-dir", "/data/cache",
+    "--vfs-cache-max-age", "10h",
+    "--vfs-cache-poll-interval", "120s",
+    "--vfs-read-ahead", "20M",
+    "--buffer-size", "2000M",
+    "--vfs-disk-space-total-size", "10G",
+    "--read-only",
+    "--dir-cache-time", "5m",
+    "--poll-interval", "60s",
+    "--allow-non-empty",
+    "--allow-other",
+    "-v",
+    "--rc",
+    "--rc-addr", ":5572"]

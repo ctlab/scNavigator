@@ -56,7 +56,7 @@ suspend fun delayedFSReceiver(modifiedChannel: Channel<Path>,
         delay(100)
         mutex.withLock {
             val changes = fileChanges.filter {
-                (Clock.System.now() - it.value).toDouble(DurationUnit.SECONDS) > TIMEDELTA_THRESHOLD
+                (Clock.System.now() - it.value).inWholeSeconds > TIMEDELTA_THRESHOLD
             }
             var pathChangePairs: List<Pair<Path, Instant>> = changes.toList()
             pathChangePairs = pathChangePairs.sortedBy { it.second }
