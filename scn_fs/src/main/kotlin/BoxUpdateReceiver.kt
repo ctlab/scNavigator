@@ -416,10 +416,10 @@ suspend fun SyncWatcherRecursive(fullPath:Path,
         Log.info("folder not cached. Try use mongo.")
         val regexp = "^"+ fullPath;
         val datasets = mongoDBCollection.find( SCDataset::selfPath regex regexp)
-        Log.info("Found datasets:")
-        Log.info( datasets.toString())
-        val dataset_files = datasets.mapNotNull { it.gmtAnnotationFile }.map{ Paths.get(it) }
-        dataset_files.forEach({SyncWatcherOne(it, event_kind, watchService, pathKeys, outChannel)})
+        val dataset_files = datasets.mapNotNull { it.selfPath }.map{ Paths.get(it) }
+        dataset_files.forEach({
+            Log.info("Found dataset :" + it.toString())
+            SyncWatcherOne(it, event_kind, watchService, pathKeys, outChannel)})
     }
 }
 
