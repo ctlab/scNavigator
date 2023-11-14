@@ -344,7 +344,6 @@ suspend fun forget(path:Path, client:HttpClient){
 }
 
 fun getBoxPath(item:BoxItem):Path{
-    Log.info("try to find path for " + item.id)
     val api = item.getAPI()
 
     val trash:BoxTrash  = BoxTrash(api);   
@@ -362,7 +361,6 @@ fun getBoxPath(item:BoxItem):Path{
     if (cur_item_info == null){
         throw(Exception("Error! Unable to get info for id: " + item.id ))
     } 
-    Log.info( cur_item_info.name)
     val name_list = mutableListOf<String>(cur_item_info.name) 
 
     while(true){
@@ -376,7 +374,6 @@ fun getBoxPath(item:BoxItem):Path{
             null
         }
         if (cur_item_info != null){
-           Log.info("____cur name_ : " + cur_item_info.name)
             //Log.info("Item status: " + cur_item_info.getItemStatus())
             name_list.add(0, cur_item_info.name)
             if (cur_item_info.getItemStatus().compareTo("active") == 0){
@@ -389,7 +386,6 @@ fun getBoxPath(item:BoxItem):Path{
         }
     }
     cur_item_info?.pathCollection?.forEachIndexed { index, it ->
-        Log.info(it.name)
         name_list.add( index, it.name)
     }
     return Paths.get( "" ,*name_list.toTypedArray())
@@ -419,7 +415,6 @@ suspend fun SyncWatcherRecursive(fullPath:Path,
         val datasets = mongoDBCollection.find( SCDataset::selfPath regex regexp)
         val dataset_files = datasets.mapNotNull { it.selfPath }.map{ Paths.get(it) }
         dataset_files.forEach({
-            Log.info("Found dataset :" + it.toString())
             var folder = it.parent
             while(!folder.equals(fullPath)){
                 updateKeys(folder, event_kind, watchService, pathKeys)
@@ -455,7 +450,6 @@ pathKeys:ConcurrentHashMap<String, WatchKey>){
             Log.info("Now also watching directory ${file.toString()}")
         }
         StandardWatchEventKinds.ENTRY_DELETE -> {
-            Log.info(file.absolutePathString())
             pathKeys[file.absolutePathString()]?.cancel()
             pathKeys.remove(file.absolutePathString())
             Log.info("Directory ${file.toString()} is deleted, no longer watching it")
