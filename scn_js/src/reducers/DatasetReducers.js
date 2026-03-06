@@ -55,8 +55,8 @@ const createDefaultDataset = (token) => {
         public: false,
         curated: false,
         debug: false,
-
-
+        additional: "", 
+        defaultPlotPointSize: null,
         fields: null,
         plotData: null,
 

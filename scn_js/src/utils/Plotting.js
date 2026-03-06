@@ -76,7 +76,7 @@ export function scatterPlot(data, fields, x, y, colorField, splitField, plotArea
         type: webglSupport() ? "scattergl" : "scatter",
         showlegend: false,
         marker: {
-            size: _.get(options, "plotPointSize", 8),
+            size: _.get(options, "plotPointSize", 4),
             color: "darkgrey"
         }
     }];

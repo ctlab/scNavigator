@@ -1,9 +1,9 @@
 import React from 'react';
-import {Table} from "semantic-ui-react";
-import {connect} from "react-redux";
-import {speciesMapping} from "../utils/Constants";
+import { Table } from "semantic-ui-react";
+import { connect } from "react-redux";
+import { speciesMapping } from "../utils/Constants";
 
-const InfoComponent = ({token, name, description, link, species, cells, isPublic, curated, debug}) => (
+const InfoComponent = ({ token, name, description, link, species, cells, isPublic, curated, debug, additional }) => (
     <Table celled padded>
         <Table.Body>
             <Table.Row>
@@ -21,10 +21,10 @@ const InfoComponent = ({token, name, description, link, species, cells, isPublic
             <Table.Row>
                 <Table.HeaderCell>Link</Table.HeaderCell>
                 <Table.Cell>
-					<a href={link} target={"_blank"} rel={"noreferrer"}>
-                            {link}
+                    <a href={link} target={"_blank"} rel={"noreferrer"}>
+                        {link}
                     </a>
-				</Table.Cell>
+                </Table.Cell>
             </Table.Row>
             <Table.Row>
                 <Table.HeaderCell>Species</Table.HeaderCell>
@@ -46,6 +46,14 @@ const InfoComponent = ({token, name, description, link, species, cells, isPublic
                 <Table.HeaderCell>Is dataset in debug mode?</Table.HeaderCell>
                 <Table.Cell>{debug.toString()}</Table.Cell>
             </Table.Row>
+            {additional && (
+                <Table.Row>
+                    <Table.HeaderCell>Additional</Table.HeaderCell>
+                    <Table.Cell  style={{ whiteSpace: "pre-wrap" }}>{additional.toString()}</Table.Cell>
+                </Table.Row>
+            )}
+
+
         </Table.Body>
     </Table>
 );
@@ -53,9 +61,9 @@ const InfoComponent = ({token, name, description, link, species, cells, isPublic
 
 const mapStateToProps = (state, ownProps) => {
     let dataset = state.datasetsByTokens[ownProps.token];
-    let {token, name, description, link, species, cells, curated, debug} = dataset;
+    let { token, name, description, link, species, cells, curated, debug, additional } = dataset;
     let isPublic = dataset.public;
-    return {token, name, description, link, species, cells, isPublic, curated, debug}
+    return { token, name, description, link, species, cells, isPublic, curated, debug, additional };
 };
 
 const mapDispatchToProps = dispatch => ({});

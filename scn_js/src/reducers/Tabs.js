@@ -1,7 +1,7 @@
 import _ from "lodash";
 import React from 'react';
 import { getDefaultX, getDefaultY } from "../utils/Utils";
-import {Header, Menu} from "semantic-ui-react"
+import { Header, Menu } from "semantic-ui-react"
 
 import DatasetOverview from "../components/DatasetOverview";
 import DatasetHistogram from "../components/DatasetHistogram";
@@ -12,7 +12,7 @@ import DatasetMarkers from "../components/DatasetMarkers";
 import FilesComponent from "../components/FilesComponent";
 import FilterComponent from "../components/FilterComponent";
 import InfoComponent from "../components/InfoComponent";
-import {speciesMapping} from "../utils/Constants";
+import { speciesMapping } from "../utils/Constants";
 
 export const OVERVIEW = "_overview";
 export const HISTOGRAM = "_histogram";
@@ -46,7 +46,7 @@ const generatePlotState = (dataset) => {
             split: null,
             percent: false,
             showPlotGrid: false,
-            plotPointSize: 8,
+            plotPointSize: _.get(dataset, "defaultPlotPointSize") ?? 4,
             fontSize: 16,
             annotations: annObj
         }
@@ -146,17 +146,22 @@ tabMenuItems[HISTOGRAM] = (props) => "Histogram / Bar plot";
 tabMenuItems[EXPRESSION_SCATTER] = (props) => "Expression scatter plot";
 tabMenuItems[EXPRESSION_VIOLIN] = (props) => "Expression violin plot";
 tabMenuItems[PATHWAYS] = (props) => "Pathway / Gene set plot";
-tabMenuItems[MARKERS] =  (props) => "Markers";
-tabMenuItems[FILES] =  (props) => "Files";
+tabMenuItems[MARKERS] = (props) => "Markers";
+tabMenuItems[FILES] = (props) => "Files";
 tabMenuItems[FILTER] = (props) => "Filtering";
 tabMenuItems[INFO] = (props) => {
     return (<Menu.Item>
         <Header as='h4'>Information</Header>
-        <p>Token: {props.token} <br/>
-            Species: {speciesMapping[props.species]} <br/>
-            Cells shown: {props.cellsShown} / {props.cells} <br/>
-            Total number of cells: {props.cells} <br/>
-            Dataset is public: {props.public ? "yes" : "no"} <br/>
+        <p  style={{ whiteSpace: "pre-wrap" }}>Token: {props.token} <br />
+            Species: {speciesMapping[props.species]} <br />
+            Cells shown: {props.cellsShown} / {props.cells} <br />
+            Total number of cells: {props.cells} <br />
+            Dataset is public: {props.public ? "yes" : "no"} <br />
+            {props.additional && (
+                <>
+                    Additional: {props.additional} <br />
+                </>
+            )}
         </p>
     </Menu.Item>)
 }

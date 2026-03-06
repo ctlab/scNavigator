@@ -52,18 +52,32 @@ suspend fun fsReceiver(inChannel: Channel<Pair<Path, WatchEvent.Kind<Path>>>,
 suspend fun delayedFSReceiver(modifiedChannel: Channel<Path>,
                               fileChanges: HashMap<Path, Instant>,
                               mutex: Mutex) {
+    var fisrt_iteration_done = false
+    Log.info("STARTED delayedFSReceiver")
     while (true) {
         delay(100)
-        mutex.withLock {
-            val changes = fileChanges.filter {
-                (Clock.System.now() - it.value).toDouble(DurationUnit.SECONDS) > TIMEDELTA_THRESHOLD
+        try {
+             mutex.withLock {
+                val changes = fileChanges.filter {
+                    (Clock.System.now() - it.value).inWholeSeconds > TIMEDELTA_THRESHOLD
+                }
+                var pathChangePairs: List<Pair<Path, Instant>> = changes.toList()
+                pathChangePairs = pathChangePairs.sortedBy { it.second }
+                for (path in pathChangePairs) {
+                    modifiedChannel.send(path.first)
+                    fileChanges.remove(path.first)
+                }
             }
-            var pathChangePairs: List<Pair<Path, Instant>> = changes.toList()
-            pathChangePairs = pathChangePairs.sortedBy { it.second }
-            for (path in pathChangePairs) {
-                modifiedChannel.send(path.first)
-                fileChanges.remove(path.first)
+            if (!fisrt_iteration_done){
+                Log.info("DONE FIRST iteration in delayed delayedFSReceiver")
+                fisrt_iteration_done = true
             }
         }
+        catch(e:Exception) {
+            Log.info("Error in delayed delayedFSReceiver")
+            Log.info(e.toString())
+
+        }
+       
     }
 }
